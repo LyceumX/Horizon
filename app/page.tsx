@@ -1,191 +1,161 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { calculateHorizonDay1, type PlannerInput, type PlannerResult } from "@/lib/planner";
 import { AuthControls } from "@/components/auth-controls";
 
-type FormState = PlannerInput & {
-  sex: string;
-  dependents: number;
-};
-
 type Language = "en" | "zh";
+type Theme = "light" | "dark";
+type BudgetMode = "low" | "full";
 
 type Copy = {
   brand: string;
+  nav: { philosophy: string; dayZero: string; method: string; voices: string };
   slogan: string;
-  intro: string;
+  title: string[];
+  lede: string;
   modeLabel: string;
-  modeHelp: string;
+  modeApplied: string;
   lowBudgetLabel: string;
   lowBudgetCopy: string;
   fullBudgetLabel: string;
   fullBudgetCopy: string;
-  formTitle: string;
-  formHint: string;
-  authLabel: string;
-  signIn: string;
-  signUp: string;
-  signOutHint: string;
-  saveRequiresSignIn: string;
-  calculate: string;
+  estimateLabel: string;
+  estimateUnit: string;
+  estimateCaption: string;
+  ticker: string[];
+  calcTitle: string;
+  calcDesc: string;
+  age: string;
   save: string;
+  spend: string;
+  yearsToZero: string;
+  dateLabel: string;
+  reclaimedYears: string;
+  reclaimedHours: string;
+  freePlayHint: string;
+  authMissing: string;
+  saveRequiresSignIn: string;
+  saveCta: string;
   saving: string;
-  inputs: {
-    age: string;
-    city: string;
-    sex: string;
-    maritalStatus: string;
-    dependents: string;
-    currentSavings: string;
-    monthlyIncome: string;
-    monthlyExpenses: string;
-    monthlyTargetSpendAtRetirement: string;
-    annualReturnRate: string;
-    annualInflationRate: string;
-    multiplier: string;
-  };
-  results: {
-    title: string;
-    horizonDay1: string;
-    yearsToGoal: string;
-    requiredNestEgg: string;
-    currentMonthlySurplus: string;
-    additionalMonthlyGap: string;
-    assumptions: string;
-  };
-  footnote: string;
-};
-
-const DEFAULTS: FormState = {
-  age: 30,
-  city: "Shanghai",
-  sex: "Prefer not to say",
-  maritalStatus: "Single",
-  dependents: 0,
-  currentSavings: 250000,
-  monthlyIncome: 30000,
-  monthlyExpenses: 16000,
-  monthlyTargetSpendAtRetirement: 18000,
-  annualReturnRate: 0.06,
-  annualInflationRate: 0.025,
-  multiplier: 25
+  themeLight: string;
+  themeDark: string;
 };
 
 const COPY: Record<Language, Copy> = {
   en: {
     brand: "Horizon Zero",
-    slogan: "Plan the date, not the fantasy.",
-    intro:
-      "Horizon Zero helps you calculate a real Day1 for a sustainable life. Model your spending, savings, and scenario choices, then adjust the path until freedom becomes practical.",
-    modeLabel: "Freedom mode",
-    modeHelp: "Choose the path that fits your life strategy.",
+    nav: { philosophy: "Philosophy", dayZero: "Day Zero", method: "Method", voices: "Voices" },
+    slogan: "A life-design platform · since 2024",
+    title: ["The day", "you have", "enough."],
+    lede:
+      "True retirement is not a dollar amount. It is a date on your calendar, when your savings and lifestyle become sustainably aligned.",
+    modeLabel: "Freedom mode presets",
+    modeApplied: "Preset applied. You can still edit all inputs manually.",
     lowBudgetLabel: "Low-budget freedom",
     lowBudgetCopy: "Reduce desire, simplify spending, and reach Day1 sooner.",
     fullBudgetLabel: "Full-budget freedom",
     fullBudgetCopy: "Keep a higher lifestyle standard and close the gap with income plus savings.",
-    formTitle: "Calculate your Horizon Day1",
-    formHint: "Edit your inputs, then calculate a projected date and the savings gap.",
-    authLabel: "Account",
-    signIn: "Sign in",
-    signUp: "Create account",
-    signOutHint: "Signed in users can save scenarios to Supabase.",
+    estimateLabel: "Your Day Zero arrives in",
+    estimateUnit: "years",
+    estimateCaption: "A directional estimate, built from your live inputs.",
+    ticker: ["Time over wealth", "Enough is a date", "Design the next chapter", "Reclaim the calendar"],
+    calcTitle: "Find your Day Zero",
+    calcDesc: "Move three honest sliders and watch your freedom date shift.",
+    age: "Your age today",
+    save: "Monthly savings",
+    spend: "Monthly cost of enough",
+    yearsToZero: "in years",
+    dateLabel: "Date",
+    reclaimedYears: "Years reclaimed before 65",
+    reclaimedHours: "Hours of life",
+    freePlayHint: "Free to play for everyone. Sign in is only required to save and personalize.",
+    authMissing: "Clerk is not configured yet in environment variables.",
     saveRequiresSignIn: "Sign in to save this scenario.",
-    calculate: "Calculate Day1",
-    save: "Save Scenario",
+    saveCta: "Save scenario",
     saving: "Saving...",
-    inputs: {
-      age: "Age",
-      city: "City",
-      sex: "Sex",
-      maritalStatus: "Marital status",
-      dependents: "Dependents",
-      currentSavings: "Current savings",
-      monthlyIncome: "Monthly income",
-      monthlyExpenses: "Monthly expenses",
-      monthlyTargetSpendAtRetirement: "Monthly target spend at Day1",
-      annualReturnRate: "Annual return rate (decimal)",
-      annualInflationRate: "Annual inflation rate (decimal)",
-      multiplier: "Safety multiplier (20-35)"
-    },
-    results: {
-      title: "Plan summary",
-      horizonDay1: "Horizon Day1",
-      yearsToGoal: "Years to goal",
-      requiredNestEgg: "Required nest egg",
-      currentMonthlySurplus: "Current monthly surplus",
-      additionalMonthlyGap: "Additional monthly gap",
-      assumptions: "Assumptions"
-    },
-    footnote:
-      "This tool is educational and planning-oriented only. It does not provide tax, legal, or investment advice."
+    themeLight: "Light",
+    themeDark: "Dark",
   },
   zh: {
     brand: "Horizon Zero",
-    slogan: "先定日期，再谈自由。",
-    intro:
-      "Horizon Zero 帮你计算一个真实可达的 Day1：当你的预算、储蓄和生活目标终于能稳定支持自由生活的那一天。",
-    modeLabel: "自由模式",
-    modeHelp: "选择最符合你人生策略的路径。",
+    nav: { philosophy: "理念", dayZero: "自由日", method: "方法", voices: "故事" },
+    slogan: "人生设计平台 · 自 2024",
+    title: ["你拥有", "自由日", "的那一天"],
+    lede:
+      "退休从来不是一个数字，而是日历上的一个日期：当你的预算、积蓄与所爱之事终于稳定交汇。",
+    modeLabel: "自由模式预设",
+    modeApplied: "已应用预设，你仍可手动编辑所有参数。",
     lowBudgetLabel: "低预算自由",
     lowBudgetCopy: "降低欲望、简化生活，更早抵达 Day1。",
     fullBudgetLabel: "全预算自由",
     fullBudgetCopy: "保留更高生活标准，用收入与储蓄去缩小缺口。",
-    formTitle: "计算你的 Horizon Day1",
-    formHint: "调整输入项，即可得到预计日期和储蓄缺口。",
-    authLabel: "账户",
-    signIn: "登录",
-    signUp: "注册",
-    signOutHint: "登录后即可将方案保存到 Supabase。",
+    estimateLabel: "你的自由日还有",
+    estimateUnit: "年",
+    estimateCaption: "基于当前输入的方向性估算。",
+    ticker: ["时间优于财富", "足够是一个日期", "设计下一章节", "把日历夺回来"],
+    calcTitle: "测算你的自由日",
+    calcDesc: "拖动三个诚实的滑块，观察自由日期如何改变。",
+    age: "你今年的年龄",
+    save: "每月可储蓄",
+    spend: "足够生活的月开销",
+    yearsToZero: "年后",
+    dateLabel: "日期",
+    reclaimedYears: "比 65 岁提前的年数",
+    reclaimedHours: "可重新拥有的小时",
+    freePlayHint: "所有人都可免费体验；仅在保存和个性化时需要登录。",
+    authMissing: "环境变量中尚未配置 Clerk。",
     saveRequiresSignIn: "请先登录后再保存方案。",
-    calculate: "计算 Day1",
-    save: "保存方案",
+    saveCta: "保存方案",
     saving: "保存中...",
-    inputs: {
-      age: "年龄",
-      city: "城市",
-      sex: "性别",
-      maritalStatus: "婚姻状态",
-      dependents: "抚养人数",
-      currentSavings: "当前储蓄",
-      monthlyIncome: "月收入",
-      monthlyExpenses: "月支出",
-      monthlyTargetSpendAtRetirement: "Day1 目标月花费",
-      annualReturnRate: "年化收益率（小数）",
-      annualInflationRate: "年化通胀率（小数）",
-      multiplier: "安全倍数（20-35）"
-    },
-    results: {
-      title: "方案摘要",
-      horizonDay1: "Horizon Day1",
-      yearsToGoal: "距离目标年数",
-      requiredNestEgg: "所需本金",
-      currentMonthlySurplus: "当前每月结余",
-      additionalMonthlyGap: "还需补足的月度缺口",
-      assumptions: "假设条件"
-    },
-    footnote:
-      "本工具仅用于教育与规划，不构成税务、法律或投资建议。"
+    themeLight: "浅色",
+    themeDark: "深色",
   }
 };
 
-function formatMoney(value: number, language: Language) {
-  return new Intl.NumberFormat(language === "zh" ? "zh-CN" : "en-US", {
+function dayZero(input: { age: number; save: number; spend: number }) {
+  const target = input.spend * 12 * 25;
+  const monthlyRate = 0.05 / 12;
+  let balance = 0;
+  let months = 0;
+
+  while (balance < target && months < 12 * 80) {
+    balance = balance * (1 + monthlyRate) + input.save;
+    months += 1;
+  }
+
+  const years = months / 12;
+  const dzAge = input.age + years;
+  const dzDate = new Date();
+  dzDate.setMonth(dzDate.getMonth() + months);
+  const hours = Math.round((85 - dzAge) * 365 * 16);
+
+  return { years, dzAge, dzDate, hours, target };
+}
+
+function money(value: number, lang: Language) {
+  return new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", {
     style: "currency",
-    currency: language === "zh" ? "CNY" : "USD",
+    currency: lang === "zh" ? "CNY" : "USD",
     maximumFractionDigits: 0
   }).format(value);
 }
 
-function formatPercent(value: number, language: Language) {
-  return `${Math.round(value * 1000) / 10}${language === "zh" ? "%" : "%"}`;
+function monthLabel(date: Date, lang: Language) {
+  if (lang === "zh") {
+    return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+  }
+
+  return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
 }
 
 export default function HomePage() {
-  const [form, setForm] = useState<FormState>(DEFAULTS);
-  const [result, setResult] = useState<PlannerResult | null>(null);
   const [saveState, setSaveState] = useState<string>("");
   const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>("light");
+  const [budgetMode, setBudgetMode] = useState<BudgetMode>("low");
+  const [age, setAge] = useState(32);
+  const [save, setSave] = useState(1800);
+  const [spend, setSpend] = useState(2400);
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   useEffect(() => {
@@ -199,24 +169,36 @@ export default function HomePage() {
     window.localStorage.setItem("horizon-language", language);
   }, [language]);
 
-  const monthlyFreedomGap = useMemo(() => form.monthlyIncome - form.monthlyTargetSpendAtRetirement, [form]);
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("horizon-theme");
+    if (storedTheme === "light" || storedTheme === "dark") {
+      setTheme(storedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("horizon-theme", theme);
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    document.body.className = language === "zh" ? "ch-on" : "en-on";
+  }, [language]);
+
+  const output = useMemo(() => dayZero({ age, save, spend }), [age, save, spend]);
   const copy = COPY[language];
 
-  function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setResult(calculateHorizonDay1(form));
-    setSaveState("");
+  function applyModePreset(mode: BudgetMode) {
+    setBudgetMode(mode);
+    setSaveState(copy.modeApplied);
+    if (mode === "low") {
+      setSpend((current) => Math.max(800, Math.round(current * 0.82)));
+    } else {
+      setSpend((current) => Math.min(6000, Math.round(current * 1.18)));
+    }
   }
 
   async function saveToSupabase() {
-    if (!result) {
-      return;
-    }
-
     setSaveState(copy.saving);
     const response = await fetch("/api/profiles", {
       method: "POST",
@@ -224,8 +206,21 @@ export default function HomePage() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        profile: form,
-        projection: result
+        profile: {
+          age,
+          save,
+          spend,
+          budgetMode,
+          language,
+          theme
+        },
+        projection: {
+          years: Number(output.years.toFixed(1)),
+          dayZeroAge: Number(output.dzAge.toFixed(1)),
+          dayZeroDate: output.dzDate.toISOString(),
+          target: Math.round(output.target),
+          reclaimedHours: Math.max(0, output.hours)
+        }
       })
     });
 
@@ -240,174 +235,171 @@ export default function HomePage() {
   }
 
   return (
-    <main>
-      <header className="topbar">
-        <div>
-          <span className="eyebrow">Horizon Zero</span>
-          <h1>{copy.brand}</h1>
-        </div>
-        <div className="topbar-actions">
-          {hasClerk ? <AuthControls copy={copy} /> : null}
-          <button
-            type="button"
-            className="lang-toggle"
-            onClick={() => setLanguage((current) => (current === "en" ? "zh" : "en"))}
-            aria-label="Toggle language"
-          >
-            {language === "en" ? "EN / CN" : "CN / EN"}
-          </button>
-        </div>
-      </header>
+    <>
+      <nav className="nav">
+        <div className="nav-inner">
+          <a className="brand" href="#">
+            <span className="dot"></span>
+            {copy.brand}
+            <small>{language === "zh" ? "自由日" : "Zero"}</small>
+          </a>
 
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="hero-kicker">{copy.slogan}</p>
-          <p>{copy.intro}</p>
-        </div>
-        <div className="hero-cards">
-          <article className="stat-card stat-card-dark">
-            <h2>{copy.modeLabel}</h2>
-            <p>{copy.modeHelp}</p>
-          </article>
-          <article className="stat-card">
-            <h2>{copy.lowBudgetLabel}</h2>
-            <p>{copy.lowBudgetCopy}</p>
-          </article>
-          <article className="stat-card">
-            <h2>{copy.fullBudgetLabel}</h2>
-            <p>{copy.fullBudgetCopy}</p>
-          </article>
-        </div>
-      </section>
+          <div className="nav-links">
+            <a href="#philosophy">{copy.nav.philosophy}</a>
+            <a href="#calc">{copy.nav.dayZero}</a>
+            <a href="#method">{copy.nav.method}</a>
+            <a href="#voices">{copy.nav.voices}</a>
+          </div>
 
-      <section className="panel">
-        <div className="section-heading">
+          <div className="nav-cta">
+            <div className="langtog" role="tablist" aria-label="Language">
+              <button className={language === "zh" ? "on" : ""} onClick={() => setLanguage("zh")}>中</button>
+              <button className={language === "en" ? "on" : ""} onClick={() => setLanguage("en")}>EN</button>
+            </div>
+
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Toggle theme"
+              onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+            >
+              {theme === "light" ? "◐" : "◑"}
+            </button>
+
+            {hasClerk ? <AuthControls language={language} /> : null}
+          </div>
+        </div>
+      </nav>
+
+      <main>
+        <header className="hero" id="philosophy">
           <div>
-            <h2>{copy.formTitle}</h2>
-            <p className="small">{copy.formHint}</p>
+            <span className="eyebrow"><span className="ln"></span>{copy.slogan}</span>
+            <h1>
+              {copy.title[0]}<br />
+              {copy.title[1]}<br />
+              <em>{copy.title[2]}</em>
+            </h1>
+            <p className="lede">{copy.lede}</p>
+
+            <div className="hero-actions">
+              <button
+                type="button"
+                className={`btn ghost ${budgetMode === "low" ? "mode-on" : ""}`}
+                onClick={() => applyModePreset("low")}
+              >
+                {copy.lowBudgetLabel}
+              </button>
+              <button
+                type="button"
+                className={`btn ghost ${budgetMode === "full" ? "mode-on" : ""}`}
+                onClick={() => applyModePreset("full")}
+              >
+                {copy.fullBudgetLabel}
+              </button>
+            </div>
+
+            <p className="mode-copy">{budgetMode === "low" ? copy.lowBudgetCopy : copy.fullBudgetCopy}</p>
+            <p className="mode-copy">{copy.freePlayHint}</p>
+            {!hasClerk ? <p className="mode-copy auth-warning">{copy.authMissing}</p> : null}
           </div>
-          <div className="language-chip">{language === "en" ? "English" : "中文"}</div>
+
+          <div className="dz-card">
+            <div className="meta">
+              <span>{copy.estimateLabel}</span>
+            </div>
+            <div className="foot">
+              <div className="ct">
+                <span className="n">{output.years.toFixed(1)}</span>
+                <span className="u">{copy.estimateUnit}</span>
+              </div>
+              <div className="cap">{copy.estimateCaption}</div>
+            </div>
+          </div>
+        </header>
+
+        <div className="ticker">
+          <div className="ticker-track">
+            <span>{copy.ticker.join(" ✦ ")} ✦ {copy.ticker.join(" ✦ ")}</span>
+          </div>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div className="grid">
+
+        <section className="calc" id="calc">
+          <div className="calc-head">
             <div>
-              <label htmlFor="age">{copy.inputs.age}</label>
-              <input id="age" type="number" value={form.age} onChange={(e) => setField("age", Number(e.target.value))} />
+              <div className="sect-label"><span className="num">02</span> — {copy.nav.dayZero}</div>
+              <h2>{copy.calcTitle}</h2>
             </div>
-            <div>
-              <label htmlFor="city">{copy.inputs.city}</label>
-              <input id="city" value={form.city} onChange={(e) => setField("city", e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor="sex">{copy.inputs.sex}</label>
-              <select id="sex" value={form.sex} onChange={(e) => setField("sex", e.target.value)}>
-                <option>{language === "en" ? "Prefer not to say" : "不透露"}</option>
-                <option>{language === "en" ? "Female" : "女性"}</option>
-                <option>{language === "en" ? "Male" : "男性"}</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="maritalStatus">{copy.inputs.maritalStatus}</label>
-              <input id="maritalStatus" value={form.maritalStatus} onChange={(e) => setField("maritalStatus", e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor="dependents">{copy.inputs.dependents}</label>
-              <input id="dependents" type="number" value={form.dependents} onChange={(e) => setField("dependents", Number(e.target.value))} />
-            </div>
-            <div>
-              <label htmlFor="currentSavings">{copy.inputs.currentSavings}</label>
-              <input id="currentSavings" type="number" value={form.currentSavings} onChange={(e) => setField("currentSavings", Number(e.target.value))} />
-            </div>
-            <div>
-              <label htmlFor="monthlyIncome">{copy.inputs.monthlyIncome}</label>
-              <input id="monthlyIncome" type="number" value={form.monthlyIncome} onChange={(e) => setField("monthlyIncome", Number(e.target.value))} />
-            </div>
-            <div>
-              <label htmlFor="monthlyExpenses">{copy.inputs.monthlyExpenses}</label>
-              <input id="monthlyExpenses" type="number" value={form.monthlyExpenses} onChange={(e) => setField("monthlyExpenses", Number(e.target.value))} />
-            </div>
-            <div>
-              <label htmlFor="monthlyTarget">{copy.inputs.monthlyTargetSpendAtRetirement}</label>
-              <input
-                id="monthlyTarget"
-                type="number"
-                value={form.monthlyTargetSpendAtRetirement}
-                onChange={(e) => setField("monthlyTargetSpendAtRetirement", Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label htmlFor="annualReturnRate">{copy.inputs.annualReturnRate}</label>
-              <input
-                id="annualReturnRate"
-                type="number"
-                step="0.001"
-                value={form.annualReturnRate}
-                onChange={(e) => setField("annualReturnRate", Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label htmlFor="annualInflationRate">{copy.inputs.annualInflationRate}</label>
-              <input
-                id="annualInflationRate"
-                type="number"
-                step="0.001"
-                value={form.annualInflationRate}
-                onChange={(e) => setField("annualInflationRate", Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label htmlFor="multiplier">{copy.inputs.multiplier}</label>
-              <input id="multiplier" type="number" value={form.multiplier} onChange={(e) => setField("multiplier", Number(e.target.value))} />
-            </div>
+            <div className="desc">{copy.calcDesc}</div>
           </div>
 
-          <p className="small">
-            {language === "en"
-              ? `Monthly freedom spread (income - Day1 lifestyle): ${formatMoney(monthlyFreedomGap, language)}`
-              : `每月自由结余（收入 - Day1 生活方式）：${formatMoney(monthlyFreedomGap, language)}`}
-          </p>
-          <button type="submit">{copy.calculate}</button>
-          <button type="button" onClick={saveToSupabase} disabled={!result}>
-            {copy.save}
-          </button>
-          {saveState ? <p className="small">{saveState}</p> : null}
-        </form>
+          <div className="calc-grid">
+            <div className="calc-form">
+              <div className="field">
+                <div className="lbl"><span>{copy.age}</span><span className="val">{age}</span></div>
+                <input type="range" min={22} max={60} value={age} onChange={(e) => setAge(Number(e.target.value))} />
+              </div>
 
-        {result ? (
-          <div className="results">
-            <article className="metric">
-              <h3>{copy.results.horizonDay1}</h3>
-              <p>{result.horizonDay1}</p>
-            </article>
-            <article className="metric">
-              <h3>{copy.results.yearsToGoal}</h3>
-              <p>{result.yearsToGoal}</p>
-            </article>
-            <article className="metric">
-              <h3>{copy.results.requiredNestEgg}</h3>
-              <p>{formatMoney(result.requiredNestEgg, language)}</p>
-            </article>
-            <article className="metric">
-              <h3>{copy.results.currentMonthlySurplus}</h3>
-              <p>{formatMoney(result.monthlySurplus, language)}</p>
-            </article>
-            <article className="metric">
-              <h3>{copy.results.additionalMonthlyGap}</h3>
-              <p>{formatMoney(result.monthlyGapToSave, language)}</p>
-            </article>
-            <article className="metric">
-              <h3>{copy.results.assumptions}</h3>
-              <p className="small">
-                {language === "en"
-                  ? `Return ${formatPercent(result.assumptions.annualReturnRate, language)} | Inflation ${formatPercent(result.assumptions.annualInflationRate, language)} | Multiplier ${result.assumptions.multiplier}x`
-                  : `收益率 ${formatPercent(result.assumptions.annualReturnRate, language)} | 通胀 ${formatPercent(result.assumptions.annualInflationRate, language)} | 倍数 ${result.assumptions.multiplier}x`}
-              </p>
-            </article>
+              <div className="field">
+                <div className="lbl"><span>{copy.save}</span><span className="val">{money(save, language)}</span></div>
+                <input type="range" min={200} max={8000} step={100} value={save} onChange={(e) => setSave(Number(e.target.value))} />
+              </div>
+
+              <div className="field">
+                <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, language)}</span></div>
+                <input type="range" min={800} max={6000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
+              </div>
+
+              <button type="button" className="btn" onClick={saveToSupabase}>{copy.saveCta}</button>
+              {saveState ? <p className="mode-copy">{saveState}</p> : null}
+            </div>
+
+            <div className="calc-out">
+              <div className="k">{copy.estimateLabel}</div>
+              <div className="age"><span className="n">{Math.round(output.dzAge)}</span><span className="u">{copy.estimateUnit}</span></div>
+              <div className="yr">{copy.yearsToZero} {output.years.toFixed(1)}</div>
+
+              <div className="row">
+                <div className="cell">
+                  <div className="k2">{copy.dateLabel}</div>
+                  <div className="v2">{monthLabel(output.dzDate, language)}</div>
+                </div>
+                <div className="cell">
+                  <div className="k2">{copy.reclaimedYears}</div>
+                  <div className="v2">{Math.max(0, 65 - Math.round(output.dzAge))}</div>
+                </div>
+                <div className="cell">
+                  <div className="k2">{copy.reclaimedHours}</div>
+                  <div className="v2">{Math.max(0, output.hours).toLocaleString()}</div>
+                </div>
+                <div className="cell">
+                  <div className="k2">Target</div>
+                  <div className="v2">{money(Math.round(output.target), language)}</div>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : null}
+        </section>
 
-        <p className="footnote">{copy.footnote}</p>
-      </section>
-    </main>
+        <section className="manifesto" id="method">
+          <div>
+            <div className="sect-label"><span className="num">03</span> — {copy.nav.method}</div>
+            <p>
+              {language === "zh"
+                ? "预算不是束缚，而是把时间从焦虑里解放出来的方法。Horizon 让你先确定自由的日期，再反推每个月要做的选择。"
+                : "Budgeting is not constraint. It is how you reclaim time from anxiety. Horizon starts from your freedom date, then works backward into practical monthly choices."}
+            </p>
+          </div>
+          <div>
+            <div className="sect-label"><span className="num">05</span> — {copy.nav.voices}</div>
+            <p>
+              {language === "zh"
+                ? "你可以先匿名体验整个测算流程。想保存输入和结果、获得后续个性化建议时，再登录即可。"
+                : "Anyone can use the planner free. Sign-up and sign-in are only required when saving your scenarios and unlocking personalized follow-up."}
+            </p>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
