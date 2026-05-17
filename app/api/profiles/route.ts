@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
 type RequestPayload = {
@@ -8,6 +9,15 @@ type RequestPayload = {
 
 export async function POST(request: Request) {
   const body = (await request.json()) as RequestPayload;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({
+      saved: false,
+      message: "Authentication required to save a scenario."
+    }, { status: 401 });
+  }
+
   const supabase = getSupabaseServerClient();
 
   if (!supabase) {
@@ -19,6 +29,7 @@ export async function POST(request: Request) {
 
   const tableName = process.env.SUPABASE_TABLE_NAME || "planner_profiles";
   const { error } = await supabase.from(tableName).insert({
+    clerk_user_id: userId,
     profile: body.profile,
     projection: body.projection,
     created_at: new Date().toISOString()

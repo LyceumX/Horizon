@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { calculateHorizonDay1, type PlannerInput, type PlannerResult } from "@/lib/planner";
+import { AuthControls } from "@/components/auth-controls";
 
 type FormState = PlannerInput & {
   sex: string;
@@ -22,6 +23,11 @@ type Copy = {
   fullBudgetCopy: string;
   formTitle: string;
   formHint: string;
+  authLabel: string;
+  signIn: string;
+  signUp: string;
+  signOutHint: string;
+  saveRequiresSignIn: string;
   calculate: string;
   save: string;
   saving: string;
@@ -80,6 +86,11 @@ const COPY: Record<Language, Copy> = {
     fullBudgetCopy: "Keep a higher lifestyle standard and close the gap with income plus savings.",
     formTitle: "Calculate your Horizon Day1",
     formHint: "Edit your inputs, then calculate a projected date and the savings gap.",
+    authLabel: "Account",
+    signIn: "Sign in",
+    signUp: "Create account",
+    signOutHint: "Signed in users can save scenarios to Supabase.",
+    saveRequiresSignIn: "Sign in to save this scenario.",
     calculate: "Calculate Day1",
     save: "Save Scenario",
     saving: "Saving...",
@@ -122,6 +133,11 @@ const COPY: Record<Language, Copy> = {
     fullBudgetCopy: "保留更高生活标准，用收入与储蓄去缩小缺口。",
     formTitle: "计算你的 Horizon Day1",
     formHint: "调整输入项，即可得到预计日期和储蓄缺口。",
+    authLabel: "账户",
+    signIn: "登录",
+    signUp: "注册",
+    signOutHint: "登录后即可将方案保存到 Supabase。",
+    saveRequiresSignIn: "请先登录后再保存方案。",
     calculate: "计算 Day1",
     save: "保存方案",
     saving: "保存中...",
@@ -170,6 +186,7 @@ export default function HomePage() {
   const [result, setResult] = useState<PlannerResult | null>(null);
   const [saveState, setSaveState] = useState<string>("");
   const [language, setLanguage] = useState<Language>("en");
+  const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   useEffect(() => {
     const storedLanguage = window.localStorage.getItem("horizon-language");
@@ -213,6 +230,12 @@ export default function HomePage() {
     });
 
     const payload = (await response.json()) as { saved: boolean; message: string };
+
+    if (response.status === 401) {
+      setSaveState(copy.saveRequiresSignIn);
+      return;
+    }
+
     setSaveState(payload.message);
   }
 
@@ -223,14 +246,17 @@ export default function HomePage() {
           <span className="eyebrow">Horizon Zero</span>
           <h1>{copy.brand}</h1>
         </div>
-        <button
-          type="button"
-          className="lang-toggle"
-          onClick={() => setLanguage((current) => (current === "en" ? "zh" : "en"))}
-          aria-label="Toggle language"
-        >
-          {language === "en" ? "EN / CN" : "CN / EN"}
-        </button>
+        <div className="topbar-actions">
+          {hasClerk ? <AuthControls copy={copy} /> : null}
+          <button
+            type="button"
+            className="lang-toggle"
+            onClick={() => setLanguage((current) => (current === "en" ? "zh" : "en"))}
+            aria-label="Toggle language"
+          >
+            {language === "en" ? "EN / CN" : "CN / EN"}
+          </button>
+        </div>
       </header>
 
       <section className="hero">

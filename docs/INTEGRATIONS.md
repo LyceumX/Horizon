@@ -4,10 +4,22 @@
 
 Set environment variables in your Vercel project:
 
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
+- `NEXT_PUBLIC_CLERK_SIGN_UP_URL`
+- `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL`
+- `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (optional for current MVP)
 - `SUPABASE_TABLE_NAME` (default `planner_profiles`)
+
+## Clerk
+
+- `ClerkProvider` is wired in the app layout.
+- The save endpoint requires a signed-in Clerk user.
+- Saved rows include `clerk_user_id`.
 
 ## Supabase
 

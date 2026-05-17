@@ -10,6 +10,7 @@
     "test": "tsx --test tests/planner.test.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.24.3",
     "@supabase/supabase-js": "^2.49.8",
     "next": "^14.2.33",
     "react": "^18.3.1",
