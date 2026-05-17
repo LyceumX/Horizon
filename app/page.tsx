@@ -1,22 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
 
 type Language = "en" | "zh";
 type Theme = "light" | "dark";
-type BudgetMode = "low" | "full";
+type BudgetMode = "low" | "balanced" | "full";
 
 type Copy = {
   brand: string;
   brandAlt: string;
   since: string;
-  nav: { summary: string; customize: string; advanced: string; stories: string };
+  nav: { summary: string; customize: string; budget: string; stories: string };
   goal: string;
   slogan: string;
   interest: string;
+  heroBadge: string;
+  heroCaption: string;
   summaryTitle: string;
+  summaryLead: string;
   summaryItems: { k: string; v: string }[];
   customizeTitle: string;
   customizeDesc: string;
@@ -35,15 +39,19 @@ type Copy = {
   freeHint: string;
   signInHint: string;
   authMissing: string;
-  advancedTitle: string;
-  advancedDesc: string;
+  budgetTitle: string;
+  budgetLead: string;
+  budgetLocked: string;
   lowBudgetLabel: string;
   lowBudgetCopy: string;
+  balancedBudgetLabel: string;
+  balancedBudgetCopy: string;
   fullBudgetLabel: string;
   fullBudgetCopy: string;
-  advancedLocked: string;
+  selectedPlan: string;
   storiesTitle: string;
-  stories: { name: string; role: string; text: string }[];
+  storiesLead: string;
+  stories: { name: string; role: string; text: string; image: string }[];
 };
 
 const COPY: Record<Language, Copy> = {
@@ -51,13 +59,17 @@ const COPY: Record<Language, Copy> = {
     brand: "Horizon Day 1",
     brandAlt: "早日退休",
     since: "Since 2026",
-    nav: { summary: "Summary", customize: "Customize", advanced: "Advanced", stories: "Stories" },
+    nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
     goal: "Plan your retirement date and reach it wisely.",
     slogan:
       "To get what you want, you have to either increase sacrifice or reduce desire. Either way, I'll help you plan it wisely.",
     interest:
-      "This site helps you turn abstract retirement goals into a concrete date, with practical monthly actions based on your current life.",
+      "Horizon Day 1 turns retirement from a vague goal into a concrete date, then shows the monthly choices that move you there.",
+    heroBadge: "Early-retire vibe · date-first planning",
+    heroCaption: "A calmer, more intentional path to the day your work becomes optional.",
     summaryTitle: "What Horizon Day 1 gives you",
+    summaryLead:
+      "A quick overview of the value the site provides before you customize anything.",
     summaryItems: [
       { k: "Target Date", v: "Your projected Day 1 month" },
       { k: "Capital Target", v: "Estimated nest egg based on your inputs" },
@@ -80,30 +92,43 @@ const COPY: Record<Language, Copy> = {
     saveRequiresSignIn: "Sign in to save this scenario.",
     freeHint: "Everyone can use the planner for free.",
     signInHint: "Sign up / sign in only when you want account sync and personalized follow-ups.",
-    authMissing: "Clerk is not configured in env yet, so account sync is unavailable.",
-    advancedTitle: "Budget plan toggle (advanced)",
-    advancedDesc: "Advanced customization is available to registered users only.",
+    authMissing: "Clerk is not configured yet, so account sync is unavailable.",
+    budgetTitle: "Budget Plans",
+    budgetLead: "Different freedom paths for different life strategies. Registered users can tap to apply them.",
+    budgetLocked: "Sign in to unlock advanced budget plans.",
     lowBudgetLabel: "Low-budget freedom",
     lowBudgetCopy: "Reduce desire and reach Day 1 faster.",
+    balancedBudgetLabel: "Balanced freedom",
+    balancedBudgetCopy: "Keep a practical lifestyle while improving your savings rate.",
     fullBudgetLabel: "Full-budget freedom",
-    fullBudgetCopy: "Keep higher lifestyle and work/save harder.",
-    advancedLocked: "Sign in to unlock advanced budget mode.",
-    storiesTitle: "Real-life style stories (placeholder)",
+    fullBudgetCopy: "Protect a higher lifestyle standard and close the gap with stronger income or savings.",
+    selectedPlan: "Selected plan",
+    storiesTitle: "Real-life Stories",
+    storiesLead: "Attractive placeholder stories showing the emotional payoff of planning earlier.",
     stories: [
       {
         name: "Lina W.",
         role: "Product Lead · Shanghai",
+        image: "/assets/Stories_image_1.webp",
         text: "I used to chase a random number. Day 1 gave me a date, then I could finally plan life around it."
       },
       {
         name: "Jun K.",
         role: "Engineer · Shenzhen",
+        image: "/assets/Stories_image_2.jpeg",
         text: "Switching to low-budget mode cut three years off my timeline, without feeling deprived."
       },
       {
         name: "Maya C.",
         role: "Designer · Hangzhou",
+        image: "/assets/Stories_image_3.jpg",
         text: "I stayed in full-budget mode and built side income. Same freedom, different strategy."
+      },
+      {
+        name: "Arun P.",
+        role: "Founder · Singapore",
+        image: "/assets/Stories_image_4.jpg",
+        text: "Saving locally first made me start. Registering later gave me smarter follow-up across devices."
       }
     ]
   },
@@ -111,11 +136,14 @@ const COPY: Record<Language, Copy> = {
     brand: "早日退休",
     brandAlt: "Horizon Day 1",
     since: "日期：自2026",
-    nav: { summary: "摘要", customize: "参数", advanced: "高级", stories: "故事" },
+    nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
     goal: "规划你的退休日期，并更聪明地达成目标。",
     slogan: "想要得到你想要的，要么增加牺牲，要么减少欲望。无论哪条路，我都会帮你更明智地规划。",
-    interest: "本网站把抽象的退休目标变成具体日期，并给出与现实生活匹配的月度行动路径。",
+    interest: "Horizon Day 1 把退休从模糊目标变成明确日期，再告诉你哪些月度选择会把你带到那里。",
+    heroBadge: "早退氛围 · 先定日期再规划",
+    heroCaption: "让工作可选、让生活先行的更安静、更有意图的路径。",
     summaryTitle: "Horizon Day 1 会提供什么",
+    summaryLead: "先看清这个网站能给你什么，再开始自定义。",
     summaryItems: [
       { k: "目标日期", v: "你的 Day 1 预计月份" },
       { k: "本金目标", v: "基于当前输入的本金估算" },
@@ -139,32 +167,51 @@ const COPY: Record<Language, Copy> = {
     freeHint: "任何人都可免费使用测算器。",
     signInHint: "仅当你希望跨设备同步和获取个性化跟进时，再注册/登录即可。",
     authMissing: "当前环境未配置 Clerk，因此账户同步不可用。",
-    advancedTitle: "预算模式切换（高级）",
-    advancedDesc: "高级自定义仅对注册用户开放。",
+    budgetTitle: "预算方案",
+    budgetLead: "不同的自由路径适合不同的人生策略。已注册用户可点击应用。",
+    budgetLocked: "请先登录后解锁高级预算方案。",
     lowBudgetLabel: "低预算自由",
-    lowBudgetCopy: "降低欲望，更快抵达 Day 1。",
+    lowBudgetCopy: "减少欲望，更快抵达 Day 1。",
+    balancedBudgetLabel: "平衡自由",
+    balancedBudgetCopy: "保持现实生活方式，同时提高储蓄率。",
     fullBudgetLabel: "全预算自由",
-    fullBudgetCopy: "保持更高生活标准，同时增加努力与储蓄。",
-    advancedLocked: "请先登录后解锁高级预算模式。",
-    storiesTitle: "真实人生故事（占位示例）",
+    fullBudgetCopy: "保护更高生活标准，并用更强收入或储蓄缩小缺口。",
+    selectedPlan: "当前方案",
+    storiesTitle: "真实人生故事",
+    storiesLead: "更吸引人的占位故事，展示更早规划带来的真实感受。",
     stories: [
       {
         name: "林薇",
         role: "产品负责人 · 上海",
+        image: "/assets/Stories_image_1.webp",
         text: "以前我追的是一个模糊数字，现在我有了明确日期，生活节奏一下子变清晰了。"
       },
       {
         name: "俊凯",
         role: "工程师 · 深圳",
+        image: "/assets/Stories_image_2.jpeg",
         text: "切到低预算模式后，我的时间线直接提前了三年，而且并不痛苦。"
       },
       {
         name: "马娅",
         role: "设计师 · 杭州",
+        image: "/assets/Stories_image_3.jpg",
         text: "我选择全预算模式，同时做副业增收。自由同样能到，只是路线不同。"
+      },
+      {
+        name: "阿伦",
+        role: "创业者 · 新加坡",
+        image: "/assets/Stories_image_4.jpg",
+        text: "先本地保存让我马上开始，后来注册账户后，我可以跨设备继续优化。"
       }
     ]
   }
+};
+
+const BUDGETS: Record<BudgetMode, { low: number; save: number; spend: number }> = {
+  low: { low: 1, save: 1800, spend: 2100 },
+  balanced: { low: 0, save: 2400, spend: 2800 },
+  full: { low: 0, save: 3400, spend: 3800 }
 };
 
 function calcProjection(input: { age: number; save: number; spend: number }) {
@@ -207,7 +254,7 @@ export default function HomePage() {
   const [age, setAge] = useState(32);
   const [save, setSave] = useState(1800);
   const [spend, setSpend] = useState(2400);
-  const [budgetMode, setBudgetMode] = useState<BudgetMode>("full");
+  const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
   const [saveState, setSaveState] = useState("");
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
@@ -279,11 +326,9 @@ export default function HomePage() {
 
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
-    if (mode === "low") {
-      setSpend((v) => Math.max(800, Math.round(v * 0.85)));
-    } else {
-      setSpend((v) => Math.min(6000, Math.round(v * 1.2)));
-    }
+    const preset = BUDGETS[mode];
+    setSave(preset.save);
+    setSpend(preset.spend);
   }
 
   return (
@@ -299,7 +344,7 @@ export default function HomePage() {
           <div className="nav-links">
             <a href="#summary">{copy.nav.summary}</a>
             <a href="#customize">{copy.nav.customize}</a>
-            <a href="#advanced">{copy.nav.advanced}</a>
+            <a href="#budget">{copy.nav.budget}</a>
             <a href="#stories">{copy.nav.stories}</a>
           </div>
 
@@ -318,11 +363,26 @@ export default function HomePage() {
 
       <main>
         <header className="hero">
-          <div>
-            <span className="eyebrow"><span className="ln"></span>{copy.goal}</span>
-            <h1>{copy.brand}<br /><em>{copy.brandAlt}</em></h1>
-            <p className="lede">{copy.slogan}</p>
-            <p className="mode-copy">{copy.interest}</p>
+          <div className="hero-layout">
+            <div className="hero-copy">
+              <span className="eyebrow"><span className="ln"></span>{copy.goal}</span>
+              <h1>{copy.brand}<br /><em>{copy.brandAlt}</em></h1>
+              <p className="lede">{copy.slogan}</p>
+              <p className="mode-copy">{copy.interest}</p>
+              <div className="hero-actions">
+                <a className="btn" href="#customize">{language === "zh" ? "开始规划" : "Start planning"}</a>
+                <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
+              </div>
+            </div>
+
+            <aside className="hero-image-card">
+              <Image src="/assets/Homepage_image_1.webp" alt="Early retirement lifestyle scene" fill priority className="hero-image" />
+              <div className="hero-image-scrim" />
+              <div className="hero-image-copy">
+                <span>{copy.heroBadge}</span>
+                <p>{copy.heroCaption}</p>
+              </div>
+            </aside>
           </div>
         </header>
 
@@ -332,6 +392,7 @@ export default function HomePage() {
               <div className="sect-label"><span className="num">01</span> — {copy.nav.summary}</div>
               <h2>{copy.summaryTitle}</h2>
             </div>
+            <div className="desc">{copy.summaryLead}</div>
           </div>
           <div className="summary-grid">
             {copy.summaryItems.map((item) => (
@@ -371,7 +432,18 @@ export default function HomePage() {
 
               <div className="save-row">
                 <button type="button" className="btn ghost" onClick={saveLocal}>{copy.localSave}</button>
-                <button type="button" className="btn" onClick={saveCloud}>{copy.cloudSave}</button>
+                {hasClerk ? (
+                  <>
+                    <SignedIn>
+                      <button type="button" className="btn" onClick={saveCloud}>{copy.cloudSave}</button>
+                    </SignedIn>
+                    <SignedOut>
+                      <button type="button" className="btn" disabled>{copy.cloudSave}</button>
+                    </SignedOut>
+                  </>
+                ) : (
+                  <button type="button" className="btn" disabled>{copy.cloudSave}</button>
+                )}
               </div>
               <p className="mode-copy">{copy.freeHint}</p>
               <p className="mode-copy">{copy.signInHint}</p>
@@ -399,42 +471,66 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="calc" id="advanced">
+        <section className="calc" id="budget">
           <div className="calc-head">
             <div>
-              <div className="sect-label"><span className="num">03</span> — {copy.nav.advanced}</div>
-              <h2>{copy.advancedTitle}</h2>
+              <div className="sect-label"><span className="num">03</span> — {copy.nav.budget}</div>
+              <h2>{copy.budgetTitle}</h2>
             </div>
-            <div className="desc">{copy.advancedDesc}</div>
+            <div className="desc">{copy.budgetLead}</div>
           </div>
 
           {hasClerk ? (
             <>
               <SignedOut>
-                <p className="mode-copy auth-warning">{copy.advancedLocked}</p>
+                <p className="mode-copy auth-warning">{copy.budgetLocked}</p>
               </SignedOut>
               <SignedIn>
-                <div className="hero-actions">
-                  <button
-                    type="button"
-                    className={`btn ghost ${budgetMode === "low" ? "mode-on" : ""}`}
-                    onClick={() => applyBudgetMode("low")}
-                  >
-                    {copy.lowBudgetLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ghost ${budgetMode === "full" ? "mode-on" : ""}`}
-                    onClick={() => applyBudgetMode("full")}
-                  >
-                    {copy.fullBudgetLabel}
-                  </button>
+                <div className="budget-grid">
+                  {(
+                    [
+                      { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
+                      { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
+                      { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
+                    ] as const
+                  ).map((plan) => {
+                    const active = budgetMode === plan.key;
+                    return (
+                      <button
+                        key={plan.key}
+                        type="button"
+                        className={`budget-card ${active ? "budget-card-active" : ""}`}
+                        onClick={() => applyBudgetMode(plan.key)}
+                      >
+                        <div className="budget-pill">{copy.selectedPlan}</div>
+                        <h3>{plan.label}</h3>
+                        <p>{plan.text}</p>
+                      </button>
+                    );
+                  })}
                 </div>
-                <p className="mode-copy">{budgetMode === "low" ? copy.lowBudgetCopy : copy.fullBudgetCopy}</p>
+                <p className="mode-copy">{budgetMode === "low" ? copy.lowBudgetCopy : budgetMode === "balanced" ? copy.balancedBudgetCopy : copy.fullBudgetCopy}</p>
               </SignedIn>
             </>
           ) : (
-            <p className="mode-copy auth-warning">{copy.authMissing}</p>
+            <>
+              <p className="mode-copy auth-warning">{copy.authMissing}</p>
+              <div className="budget-grid">
+                {(
+                  [
+                    { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
+                    { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
+                    { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
+                  ] as const
+                ).map((plan) => (
+                  <div key={plan.key} className="budget-card budget-card-disabled" aria-disabled="true">
+                    <div className="budget-pill">{copy.selectedPlan}</div>
+                    <h3>{plan.label}</h3>
+                    <p>{plan.text}</p>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
 
@@ -444,10 +540,14 @@ export default function HomePage() {
               <div className="sect-label"><span className="num">04</span> — {copy.nav.stories}</div>
               <h2>{copy.storiesTitle}</h2>
             </div>
+            <div className="desc">{copy.storiesLead}</div>
           </div>
           <div className="stories-grid">
             {copy.stories.map((story) => (
               <article key={story.name} className="story-card">
+                <div className="story-media">
+                  <Image src={story.image} alt={story.name} fill className="story-image" />
+                </div>
                 <p className="story-quote">&ldquo;{story.text}&rdquo;</p>
                 <p className="story-name">{story.name}</p>
                 <p className="story-role">{story.role}</p>
