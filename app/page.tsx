@@ -239,7 +239,7 @@ const REGIONS: CountryOption[] = [
 
 const COPY: Record<Language, Copy> = {
   en: {
-    brand: "Horizon Day 1",
+    brand: "Let's Retire Early!",
     since: "Since 2026",
     nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
     goal: "Plan your retirement date and reach it wisely.",
@@ -285,7 +285,7 @@ const COPY: Record<Language, Copy> = {
     saveRequiresSignIn: "Sign in to save this scenario.",
     freeHint: "Everyone can use the planner for free.",
     signInHint: "Sign up / sign in only when you want account sync and personalized follow-ups.",
-    authMissing: "Clerk is not configured yet, so account sync is unavailable.",
+    authMissing: "Clerk is not configured in this workspace, so sign-in and account sync are unavailable.",
     budgetTitle: "Budget Plans",
     budgetLead: "Different freedom paths for different life strategies. Registered users can tap to apply them.",
     budgetLocked: "Sign in to unlock advanced budget plans.",
@@ -380,7 +380,7 @@ const COPY: Record<Language, Copy> = {
     saveRequiresSignIn: "请先登录后再保存方案。",
     freeHint: "任何人都可免费使用测算器。",
     signInHint: "仅当你希望跨设备同步和获取个性化跟进时，再注册/登录即可。",
-    authMissing: "当前环境未配置 Clerk，因此账户同步不可用。",
+    authMissing: "当前工作区未配置 Clerk，因此登录和账户同步不可用。",
     budgetTitle: "预算方案",
     budgetLead: "不同的自由路径适合不同的人生策略。已注册用户可点击应用。",
     budgetLocked: "请先登录后解锁高级预算方案。",
@@ -514,18 +514,26 @@ function yearOnly(date: Date) {
   return `${date.getFullYear()}`;
 }
 
-function buildShareText(language: Language, input: { brand: string; years: number; date: string; rank: string; tier: string; currency: string; countyLine: string }) {
+function buildShareText(language: Language, input: { brand: string; date: string; countyLine: string }) {
   if (language === "zh") {
-    return `${input.brand}｜我预测的自由日是 ${input.date}，还要 ${input.years} 年。${input.tier}，${input.rank}。${input.countyLine} ${input.currency}`;
+    return `我将在 ${input.date} 年退休。${input.brand} ${input.countyLine}`;
   }
 
-  return `${input.brand} | My projected Day 1 is ${input.date}, about ${input.years} years away. ${input.tier}, ${input.rank}. ${input.countyLine} ${input.currency}`;
+  return `I'm going to retire in the year of ${input.date}. ${input.brand} ${input.countyLine}`;
 }
 
 function socialChannels(language: Language) {
   return language === "zh"
-    ? ["WeChat", "Weibo", "Xiaohongshu"]
-    : ["X", "LinkedIn", "WhatsApp"];
+    ? [
+        { key: "wechat", label: "微信", icon: "W" },
+        { key: "weibo", label: "微博", icon: "WB" },
+        { key: "rednote", label: "小红书", icon: "RD" }
+      ]
+    : [
+        { key: "x", label: "X", icon: "X" },
+        { key: "linkedin", label: "LinkedIn", icon: "in" },
+        { key: "whatsapp", label: "WhatsApp", icon: "WA" }
+      ];
 }
 
 function summaryCards(language: Language): SummaryCard[] {
@@ -565,6 +573,7 @@ export default function HomePage() {
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
+  const [hideSensitive, setHideSensitive] = useState(false);
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const copy = COPY[language];
@@ -578,13 +587,13 @@ export default function HomePage() {
   const tier = getTier(projection.years);
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
+  const projectionVersion = useMemo(
+    () => `${dob}|${country}|${province}|${city}|${save}|${spend}|${language}|${hideSensitive ? "hide" : "show"}`,
+    [dob, country, province, city, save, spend, language, hideSensitive]
+  );
   const shareText = buildShareText(language, {
     brand: copy.brand,
-    years: projection.years,
     date: yearOnly(projection.date),
-    rank: language === "zh" ? `全站排名第 ${rank.rank} / ${rank.outOf}` : `ranked #${rank.rank}/${rank.outOf}`,
-    tier: language === "zh" ? `层级：${tier.zhLabel}` : `Tier: ${tier.label}`,
-    currency: money(projection.target, language),
     countyLine: language === "zh" ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`
   });
 
@@ -900,14 +909,38 @@ export default function HomePage() {
               <p className="mode-copy">{copy.signInHint}</p>
               {!hasClerk ? <p className="mode-copy auth-warning">{copy.authMissing}</p> : null}
               {saveState ? <p className="mode-copy">{saveState}</p> : null}
+
+              <details className="insurance-fold">
+                <summary>
+                  <div>
+                    <span className="fold-label">{copy.insuranceTitle}</span>
+                    <strong>{language === "zh" ? currentCity.label.zh : currentCity.label.en}</strong>
+                  </div>
+                  <span className="fold-hint">{language === "zh" ? "点击展开" : "Click to expand"}</span>
+                </summary>
+                <p>{copy.insuranceLead}</p>
+                <div className="insurance-grid">
+                  <div className="insurance-item"><span>{copy.insuranceFields.pension}</span><strong>{insurance.pension}</strong></div>
+                  <div className="insurance-item"><span>{copy.insuranceFields.medical}</span><strong>{insurance.medical}</strong></div>
+                  <div className="insurance-item"><span>{copy.insuranceFields.housing}</span><strong>{insurance.housing}</strong></div>
+                  <div className="insurance-item"><span>{copy.insuranceFields.unemployment}</span><strong>{insurance.unemployment}</strong></div>
+                  <div className="insurance-item full"><span>{copy.insuranceFields.workplace}</span><strong>{insurance.workplace}</strong></div>
+                  <div className="insurance-item full"><span>{copy.insuranceFields.note}</span><strong>{insurance.note}</strong></div>
+                </div>
+              </details>
             </div>
 
             <div className="calc-out">
-              <div className="projection-card">
+              <div className="projection-card" key={projectionVersion}>
                 <div className="k">{copy.projectionTitle}</div>
                 <div className="projection-topline">
-                  <span className={`tier-badge tier-${tier.key}`}>{language === "zh" ? tier.zhLabel : tier.label}</span>
-                  <span className="projection-years-mini">{projection.years} {language === "zh" ? "年" : "years"}</span>
+                  <div className="projection-title-stack">
+                    <span className={`tier-badge tier-${tier.key}`}>{language === "zh" ? tier.zhLabel : tier.label}</span>
+                    <span className="projection-years-mini">{projection.years} {language === "zh" ? "年" : "years"}</span>
+                  </div>
+                  <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>
+                    {hideSensitive ? (language === "zh" ? "显示年龄和本金" : "Show age and capital") : (language === "zh" ? "隐藏年龄和本金" : "Hide age and capital")}
+                  </button>
                 </div>
                 {tier.fireworks ? (
                   <div className="fireworks" aria-hidden="true">
@@ -919,37 +952,41 @@ export default function HomePage() {
                 ) : null}
                 <div className="projection-year">
                   <span className="projection-year-label">{copy.projectionYear}</span>
-                  <strong>{yearOnly(projection.date)}</strong>
+                  <strong><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(projection.date)}</span></strong>
                 </div>
                 <div className="projection-grid">
                   <div className="metric-card">
                     <span className="metric-icon">⏳</span>
                     <div>
                       <small>{copy.projectionYears}</small>
-                      <strong>{projection.years}</strong>
+                      <strong><span key={`${projectionVersion}-years`} className="flip-number">{projection.years}</span></strong>
                     </div>
                   </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">🎂</span>
-                    <div>
-                      <small>{copy.projectionAge}</small>
-                      <strong>{(age + projection.years).toFixed(1)}</strong>
+                  {hideSensitive ? null : (
+                    <div className="metric-card">
+                      <span className="metric-icon">🎂</span>
+                      <div>
+                        <small>{copy.projectionAge}</small>
+                        <strong><span key={`${projectionVersion}-age`} className="flip-number">{(age + projection.years).toFixed(1)}</span></strong>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="metric-card">
                     <span className="metric-icon">🏆</span>
                     <div>
                       <small>{copy.rankLabel}</small>
-                      <strong>{language === "zh" ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</strong>
+                      <strong><span key={`${projectionVersion}-rank`} className="flip-number">{language === "zh" ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
                     </div>
                   </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">💰</span>
-                    <div>
-                      <small>{copy.projectionCapital}</small>
-                      <strong>{money(projection.target, language)}</strong>
+                  {hideSensitive ? null : (
+                    <div className="metric-card">
+                      <span className="metric-icon">💰</span>
+                      <div>
+                        <small>{copy.projectionCapital}</small>
+                        <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(projection.target, language)}</span></strong>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div className="projection-footer">
                   <div>
@@ -966,32 +1003,19 @@ export default function HomePage() {
               <div className="share-card">
                 <div className="k">{copy.shareTitle}</div>
                 <p>{copy.shareLead}</p>
-                <textarea readOnly value={`${shareText}\n${shareUrl}`} />
+                <div className="share-preview">{shareText} {shareUrl}</div>
                 <div className="save-row">
                   <button type="button" className="btn ghost" onClick={copyShareText}>{copy.shareCopy}</button>
                   <button type="button" className="btn" onClick={shareNative}>{language === "zh" ? "系统分享" : "Native share"}</button>
                 </div>
                 <div className="share-links">
                   {socialChannels(language).map((channel) => (
-                    <a key={channel} className="share-link" href={socialShareLink(channel)} target="_blank" rel="noreferrer">
-                      {copy.shareLink} · {channel}
+                    <a key={channel.key} className="share-link icon-only" href={socialShareLink(channel.key)} target="_blank" rel="noreferrer" aria-label={channel.label} title={channel.label}>
+                      <span aria-hidden="true">{channel.icon}</span>
                     </a>
                   ))}
                 </div>
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
-              </div>
-
-              <div className="insurance-card">
-                <div className="k">{copy.insuranceTitle}</div>
-                <p>{copy.insuranceLead}</p>
-                <div className="insurance-grid">
-                  <div className="insurance-item"><span>{copy.insuranceFields.pension}</span><strong>{insurance.pension}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.medical}</span><strong>{insurance.medical}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.housing}</span><strong>{insurance.housing}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.unemployment}</span><strong>{insurance.unemployment}</strong></div>
-                  <div className="insurance-item full"><span>{copy.insuranceFields.workplace}</span><strong>{insurance.workplace}</strong></div>
-                  <div className="insurance-item full"><span>{copy.insuranceFields.note}</span><strong>{insurance.note}</strong></div>
-                </div>
               </div>
             </div>
           </div>

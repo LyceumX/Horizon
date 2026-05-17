@@ -280,6 +280,7 @@ main {
   line-height: 0.96;
   letter-spacing: -0.012em;
   margin: 24px 0 0;
+  white-space: nowrap;
 }
 
 .hero h1 em {
@@ -629,12 +630,17 @@ main {
 }
 
 .projection-card,
-.share-card,
-.insurance-card {
+.share-card {
   border: 0.5px solid var(--line);
   border-radius: 18px;
   padding: 24px;
   background: var(--paper-2);
+}
+
+.projection-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--paper-2) 92%, var(--accent-soft)), var(--paper-2));
 }
 
 .projection-topline,
@@ -651,6 +657,24 @@ main {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--mute);
+}
+
+.projection-title-stack {
+  display: grid;
+  gap: 6px;
+}
+
+.ghost-toggle {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--ink);
+  padding: 10px 14px;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .tier-badge {
@@ -685,9 +709,11 @@ main {
 
 .projection-year strong {
   font-family: var(--serif);
+  font-style: italic;
   font-size: clamp(72px, 11vw, 130px);
   line-height: 0.88;
   letter-spacing: -0.04em;
+  color: var(--accent);
 }
 
 .projection-grid {
@@ -732,6 +758,32 @@ main {
   margin-top: 4px;
   font-size: 18px;
   line-height: 1.2;
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--accent);
+}
+
+.flip-number {
+  display: inline-block;
+  transform-origin: center top;
+  animation: numberFlip 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes numberFlip {
+  0% {
+    transform: perspective(900px) rotateX(82deg) translateY(-10px);
+    opacity: 0;
+  }
+
+  55% {
+    transform: perspective(900px) rotateX(-12deg) translateY(2px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: perspective(900px) rotateX(0) translateY(0);
+    opacity: 1;
+  }
 }
 
 .projection-footer {
@@ -741,16 +793,15 @@ main {
 }
 
 .share-card p,
-.insurance-card p {
+.insurance-fold p {
   margin: 10px 0 0;
   color: var(--ink-2);
   line-height: 1.55;
 }
 
-.share-card textarea {
+.share-preview {
   width: 100%;
-  min-height: 132px;
-  resize: vertical;
+  min-height: 84px;
   border-radius: 14px;
   border: 0.5px solid var(--line);
   background: color-mix(in srgb, var(--paper) 84%, transparent);
@@ -762,9 +813,10 @@ main {
 
 .share-links {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   margin-top: 14px;
+  overflow-x: auto;
 }
 
 .share-link {
@@ -775,6 +827,22 @@ main {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink);
+}
+
+.share-link.icon-only {
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  flex: 0 0 auto;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+}
+
+.share-link.icon-only span {
+  font: 600 12px var(--mono);
+  letter-spacing: 0.08em;
 }
 
 .insurance-grid {
@@ -801,6 +869,43 @@ main {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--mute);
+}
+
+.insurance-fold {
+  border: 0.5px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+}
+
+.insurance-fold summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.insurance-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.insurance-fold .fold-label,
+.insurance-fold .fold-hint {
+  display: block;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.insurance-fold strong {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--accent);
 }
 
 .fireworks {
@@ -999,6 +1104,22 @@ main {
   .insurance-grid {
     grid-template-columns: 1fr;
   }
+
+  .hero h1 {
+    white-space: nowrap;
+    font-size: clamp(34px, 8.2vw, 68px);
+  }
+
+  .projection-topline,
+  .projection-footer,
+  .insurance-fold summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .share-links {
+    overflow-x: visible;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1017,5 +1138,9 @@ main {
 
   .hero-image-copy p {
     font-size: 16px;
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 11vw, 52px);
   }
 }
