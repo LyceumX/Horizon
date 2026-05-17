@@ -11,7 +11,6 @@ type BudgetMode = "low" | "balanced" | "full";
 
 type Copy = {
   brand: string;
-  brandAlt: string;
   since: string;
   nav: { summary: string; customize: string; budget: string; stories: string };
   goal: string;
@@ -57,7 +56,6 @@ type Copy = {
 const COPY: Record<Language, Copy> = {
   en: {
     brand: "Horizon Day 1",
-    brandAlt: "早日退休",
     since: "Since 2026",
     nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
     goal: "Plan your retirement date and reach it wisely.",
@@ -134,7 +132,6 @@ const COPY: Record<Language, Copy> = {
   },
   zh: {
     brand: "早日退休",
-    brandAlt: "Horizon Day 1",
     since: "日期：自2026",
     nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
     goal: "规划你的退休日期，并更聪明地达成目标。",
@@ -366,7 +363,7 @@ export default function HomePage() {
           <div className="hero-layout">
             <div className="hero-copy">
               <span className="eyebrow"><span className="ln"></span>{copy.goal}</span>
-              <h1>{copy.brand}<br /><em>{copy.brandAlt}</em></h1>
+              <h1>{copy.brand}</h1>
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-actions">
