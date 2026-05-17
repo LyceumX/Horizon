@@ -1,7 +1,7 @@
 :root {
-  --serif: "Cormorant Garamond", "Noto Serif SC", ui-serif, Georgia, serif;
-  --sans: "DM Sans", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --serif: var(--font-cormorant), var(--font-noto-serif-sc), ui-serif, Georgia, serif;
+  --sans: var(--font-dm-sans), var(--font-noto-sans-sc), ui-sans-serif, system-ui, sans-serif;
+  --mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
 
   --paper: #f4efe5;
   --paper-2: #ece6d8;
