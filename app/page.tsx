@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
 
 type Language = "en" | "zh";
 type Theme = "light" | "dark";
 type BudgetMode = "low" | "balanced" | "full";
+type GenderCategory = "male" | "female_pro" | "female_worker";
 
 type SummaryCard = {
   key: string;
@@ -62,6 +63,11 @@ type Copy = {
   country: string;
   province: string;
   city: string;
+  gender: string;
+  genderOptions: { male: string; femalePro: string; femaleWorker: string };
+  defaultRetireLabel: string;
+  defaultRetireValue: string;
+  yearsSavedLabel: string;
   save: string;
   spend: string;
   projectionTitle: string;
@@ -258,6 +264,15 @@ const COPY: Record<Language, Copy> = {
     country: "Country",
     province: "Province / state",
     city: "City",
+    gender: "Retirement category",
+    genderOptions: {
+      male: "Male (general)",
+      femalePro: "Female (cadre / professional)",
+      femaleWorker: "Female (blue-collar)"
+    },
+    defaultRetireLabel: "Local statutory retirement",
+    defaultRetireValue: "Default retirement age",
+    yearsSavedLabel: "Years saved",
     save: "Monthly savings",
     spend: "Monthly cost of enough",
     projectionTitle: "Live projection",
@@ -337,12 +352,12 @@ const COPY: Record<Language, Copy> = {
   },
   zh: {
     brand: "锁定你的自由之日。",
-    since: "日期：自2026",
+    since: "自2026",
     nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
     goal: "锁定你的自由之日。",
     slogan: "提早实现独立，靠的不是牺牲与克制，而是清晰与笃定。这是一个有意识的选择：要么去投资真正对你重要的生活方式，要么去加速那一天的到来——让你彻底、100% 地掌控自己的时间。",
     interest: "Horizon Day 1 将模糊的“退休”概念，转化为一个触手可及的精准倒计时，并通过规划每个月的自主抉择，让属于你的自由之日加速到来。",
-    heroBadge: "早退氛围 · 先定日期再规划",
+    heroBadge: "早退氛围 · 主动规划",
     heroCaption: "让工作可选、让生活先行的更安静、更有意图的路径。",
     summaryTitle: "Horizon Day 1 会提供什么",
     summaryLead: "四张默认折叠的卡片，点击即可展开更深的信息。",
@@ -353,6 +368,15 @@ const COPY: Record<Language, Copy> = {
     country: "国家",
     province: "省 / 州",
     city: "城市",
+    gender: "退休类别",
+    genderOptions: {
+      male: "男性（通用）",
+      femalePro: "女性（干部 / 管理 / 专业）",
+      femaleWorker: "女性（工人 / 蓝领）"
+    },
+    defaultRetireLabel: "法定退休基准",
+    defaultRetireValue: "默认退休年龄",
+    yearsSavedLabel: "提前年数",
     save: "每月可储蓄",
     spend: "你认为“足够”的月花费",
     projectionTitle: "实时测算",
@@ -489,6 +513,85 @@ function getInsurance(country: string, province: string, city: string): SocialIn
   return getCity(country, province, city).insurance;
 }
 
+function calcCnStatutoryAge(gender: GenderCategory, today = new Date()) {
+  const baseAge = gender === "female_worker" ? 50 : gender === "female_pro" ? 55 : 60;
+  const targetAge = gender === "female_worker" ? 55 : gender === "female_pro" ? 58 : 63;
+  const paceMonths = gender === "female_worker" ? 2 : 4;
+
+  const monthsSince2025 = Math.max(0, (today.getFullYear() - 2025) * 12 + today.getMonth());
+  const increaseMonths = Math.min(Math.floor(monthsSince2025 / paceMonths), (targetAge - baseAge) * 12);
+
+  return baseAge + increaseMonths / 12;
+}
+
+function getDefaultRetireAge(country: string, gender: GenderCategory) {
+  if (country === "cn") {
+    return calcCnStatutoryAge(gender);
+  }
+
+  if (country === "us") {
+    return 67;
+  }
+
+  if (country === "sg") {
+    return 65;
+  }
+
+  return 65;
+}
+
+function PreferenceSync({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
+  const { isSignedIn } = useUser();
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      setLoaded(false);
+      return;
+    }
+
+    let cancelled = false;
+    fetch("/api/preferences")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) {
+          return;
+        }
+        if (data.language === "en" || data.language === "zh") {
+          setLanguage(data.language);
+        }
+      })
+      .catch(() => {
+        // Ignore preference fetch errors.
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoaded(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, setLanguage]);
+
+  useEffect(() => {
+    if (!isSignedIn || !loaded) {
+      return;
+    }
+
+    fetch("/api/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language })
+    }).catch(() => {
+      // Ignore preference save errors.
+    });
+  }, [language, isSignedIn, loaded]);
+
+  return null;
+}
+
 function getTier(years: number) {
   if (years <= 6) {
     return { key: "top", label: "Top", zhLabel: "顶层", percentile: 95, fireworks: true };
@@ -567,6 +670,7 @@ export default function HomePage() {
   const [country, setCountry] = useState("cn");
   const [province, setProvince] = useState("zhejiang");
   const [city, setCity] = useState("hangzhou");
+  const [gender, setGender] = useState<GenderCategory>("male");
   const [save, setSave] = useState(1800);
   const [spend, setSpend] = useState(2400);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
@@ -580,6 +684,20 @@ export default function HomePage() {
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
   const projection = useMemo(() => calcProjection({ age, save, spend }), [age, save, spend]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
+  const defaultRetireAge = useMemo(() => getDefaultRetireAge(country, gender), [country, gender]);
+  const defaultRetireYear = useMemo(() => {
+    const birthDate = new Date(dob);
+    if (Number.isNaN(birthDate.getTime())) {
+      return "--";
+    }
+    const retirementDate = new Date(birthDate);
+    retirementDate.setMonth(retirementDate.getMonth() + Math.round(defaultRetireAge * 12));
+    return yearOnly(retirementDate);
+  }, [dob, defaultRetireAge]);
+  const yearsSaved = useMemo(() => {
+    const saved = defaultRetireAge - (age + projection.years);
+    return Math.max(0, Number(saved.toFixed(1)));
+  }, [defaultRetireAge, age, projection.years]);
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
@@ -599,8 +717,23 @@ export default function HomePage() {
 
   useEffect(() => {
     const storedLanguage = window.localStorage.getItem("horizon-language");
+    let resolvedLanguage: Language | null = null;
     if (storedLanguage === "en" || storedLanguage === "zh") {
-      setLanguage(storedLanguage);
+      resolvedLanguage = storedLanguage;
+    }
+
+    if (!resolvedLanguage) {
+      const cookieMatch = document.cookie.match(/(?:^|; )horizon-lang=([^;]+)/);
+      if (cookieMatch) {
+        const cookieLang = decodeURIComponent(cookieMatch[1]);
+        if (cookieLang === "en" || cookieLang === "zh") {
+          resolvedLanguage = cookieLang;
+        }
+      }
+    }
+
+    if (resolvedLanguage) {
+      setLanguage(resolvedLanguage);
     }
 
     const storedTheme = window.localStorage.getItem("horizon-theme");
@@ -616,6 +749,7 @@ export default function HomePage() {
           country: string;
           province: string;
           city: string;
+          gender?: GenderCategory;
           save: number;
           spend: number;
           budgetMode: BudgetMode;
@@ -624,6 +758,9 @@ export default function HomePage() {
         setCountry(parsed.country);
         setProvince(parsed.province);
         setCity(parsed.city);
+        if (parsed.gender) {
+          setGender(parsed.gender);
+        }
         setSave(parsed.save);
         setSpend(parsed.spend);
         setBudgetMode(parsed.budgetMode);
@@ -648,7 +785,7 @@ export default function HomePage() {
   }, []);
 
   function saveLocal() {
-    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, save, spend, budgetMode }));
+    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, save, spend, budgetMode }));
     setSaveState(copy.localSaved);
   }
 
@@ -658,7 +795,7 @@ export default function HomePage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        profile: { dob, age, country, province, city, save, spend, budgetMode, language, theme, insurance },
+        profile: { dob, age, country, province, city, gender, save, spend, budgetMode, language, theme, insurance },
         projection: {
           years: projection.years,
           year: projection.date.getFullYear(),
@@ -721,6 +858,7 @@ export default function HomePage() {
 
   return (
     <>
+      {hasClerk ? <PreferenceSync language={language} setLanguage={setLanguage} /> : null}
       <nav className="nav">
         <div className="nav-inner">
           <a className="brand" href="#">
@@ -757,6 +895,16 @@ export default function HomePage() {
               <h1>{copy.brand}</h1>
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
+              <div className="hero-callout" aria-live="polite">
+                <div>
+                  <span className="k">{copy.defaultRetireLabel}</span>
+                  <strong>{copy.defaultRetireValue}: {defaultRetireAge.toFixed(1)} {language === "zh" ? "岁" : "yrs"} · {defaultRetireYear}</strong>
+                </div>
+                <div>
+                  <span className="k">{copy.yearsSavedLabel}</span>
+                  <strong>{yearsSaved.toFixed(1)} {language === "zh" ? "年" : "yrs"}</strong>
+                </div>
+              </div>
               <div className="hero-actions">
                 <a className="btn" href="#customize">{language === "zh" ? "开始规划" : "Start planning"}</a>
                 <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
@@ -876,6 +1024,15 @@ export default function HomePage() {
                         {language === "zh" ? item.label.zh : item.label.en}
                       </option>
                     ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <div className="lbl"><span>{copy.gender}</span><span className="val">{copy.genderOptions[gender === "female_pro" ? "femalePro" : gender === "female_worker" ? "femaleWorker" : "male"]}</span></div>
+                  <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                    <option value="male">{copy.genderOptions.male}</option>
+                    <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                    <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
                   </select>
                 </label>
               </div>

@@ -11,6 +11,19 @@
   --line: rgba(26, 24, 20, 0.14);
   --accent: #c97a3a;
   --accent-soft: rgba(201, 122, 58, 0.12);
+  --btn-bg: var(--ink);
+  --btn-text: var(--paper);
+  --btn-border: var(--ink);
+  --btn-hover-bg: color-mix(in srgb, var(--ink) 86%, var(--accent));
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--ink);
+  --btn-ghost-border: var(--line);
+  --btn-disabled-bg: color-mix(in srgb, var(--line) 40%, var(--paper));
+  --btn-disabled-text: var(--mute);
+  --btn-disabled-border: var(--line);
+  --btn-highlight-bg: var(--accent);
+  --btn-highlight-text: #fff;
+  --btn-highlight-border: var(--accent);
 
   --x: clamp(20px, 4vw, 56px);
 }
@@ -314,6 +327,33 @@ main {
   font-style: italic;
 }
 
+.hero-callout {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 0.5px solid var(--line);
+  background: color-mix(in srgb, var(--paper-2) 70%, transparent);
+}
+
+.hero-callout .k {
+  display: block;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 6px;
+}
+
+.hero-callout strong {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--ink);
+}
+
 .hero-actions {
   display: flex;
   gap: 12px;
@@ -323,10 +363,10 @@ main {
 
 .btn {
   appearance: none;
-  border: 0.5px solid var(--ink);
+  border: 0.5px solid var(--btn-border);
   border-radius: 999px;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--btn-bg);
+  color: var(--btn-text);
   font: 500 14px var(--sans);
   padding: 13px 20px;
   cursor: pointer;
@@ -335,29 +375,31 @@ main {
 
 .btn:hover:not(:disabled),
 .btn:focus-visible:not(:disabled) {
+  background: var(--btn-hover-bg);
+  border-color: color-mix(in srgb, var(--btn-border) 70%, var(--accent));
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(36, 30, 20, 0.14);
 }
 
 .btn:disabled {
   cursor: not-allowed;
-  color: var(--mute);
-  border-color: var(--line);
-  background: color-mix(in srgb, var(--line) 40%, var(--paper));
+  color: var(--btn-disabled-text);
+  border-color: var(--btn-disabled-border);
+  background: var(--btn-disabled-bg);
   box-shadow: none;
   transform: none;
 }
 
 .btn.ghost {
-  background: transparent;
-  color: var(--ink);
-  border-color: var(--line);
+  background: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
+  border-color: var(--btn-ghost-border);
 }
 
 .btn.locked {
-  background: color-mix(in srgb, var(--line) 40%, var(--paper));
-  color: var(--mute);
-  border-color: var(--line);
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
+  border-color: var(--btn-disabled-border);
 }
 
 .btn.locked:hover,
@@ -739,8 +781,8 @@ main {
   appearance: none;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--ink);
+  background: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
   padding: 10px 14px;
   font: 500 11px var(--mono);
   letter-spacing: 0.14em;
@@ -748,10 +790,17 @@ main {
   cursor: pointer;
 }
 
+.auth-toggle:hover,
+.auth-toggle:focus-visible {
+  border-color: color-mix(in srgb, var(--btn-ghost-border) 70%, var(--accent));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(36, 30, 20, 0.12);
+}
+
 .tier-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
+  background: var(--btn-highlight-bg);
+  color: var(--btn-highlight-text);
+  border-color: var(--btn-highlight-border);
   padding: 8px 12px;
   font: 500 10px var(--mono);
   letter-spacing: 0.2em;
@@ -1032,8 +1081,8 @@ main {
 .budget-card-locked {
   cursor: pointer;
   opacity: 0.65;
-  color: var(--mute);
-  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  color: var(--btn-disabled-text);
+  background: var(--btn-disabled-bg);
 }
 
 .budget-card-locked:hover {
@@ -1045,8 +1094,8 @@ main {
 .budget-card-disabled {
   cursor: not-allowed;
   opacity: 0.55;
-  color: var(--mute);
-  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  color: var(--btn-disabled-text);
+  background: var(--btn-disabled-bg);
 }
 
 .budget-card-disabled:hover {
@@ -1176,6 +1225,10 @@ main {
     grid-template-columns: 1fr;
     gap: 28px;
     padding: 52px var(--x) 70px;
+  }
+
+  .hero-callout {
+    grid-template-columns: 1fr;
   }
 
   .hero-image-card {
