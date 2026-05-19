@@ -1,6 +1,6 @@
 "use client";
 
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 type AuthControlsProps = {
   language: "en" | "zh";
@@ -10,14 +10,12 @@ export function AuthControls({ language }: AuthControlsProps) {
   const text = language === "zh"
     ? {
         label: "账户",
-        signIn: "登录",
-        signUp: "注册",
+        signIn: "登录 / 注册",
         hint: "登录后可保存方案"
       }
     : {
         label: "Account",
-        signIn: "Sign in",
-        signUp: "Sign up",
+        signIn: "Sign in / Sign up",
         hint: "Signed-in users can save plans"
       };
 
@@ -29,11 +27,6 @@ export function AuthControls({ language }: AuthControlsProps) {
             {text.signIn}
           </button>
         </SignInButton>
-        <SignUpButton mode="modal">
-          <button type="button" className="auth-toggle auth-toggle-secondary">
-            {text.signUp}
-          </button>
-        </SignUpButton>
       </SignedOut>
       <SignedIn>
         <span className="auth-hint">{text.hint}</span>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
 
 type Language = "en" | "zh";
@@ -898,7 +898,9 @@ export default function HomePage() {
                       <button type="button" className="btn" onClick={saveCloud}>{copy.cloudSave}</button>
                     </SignedIn>
                     <SignedOut>
-                      <button type="button" className="btn" disabled>{copy.cloudSave}</button>
+                      <SignInButton mode="modal">
+                        <button type="button" className="btn locked" aria-disabled="true">{copy.cloudSave}</button>
+                      </SignInButton>
                     </SignedOut>
                   </>
                 ) : (
@@ -1068,11 +1070,13 @@ export default function HomePage() {
                       { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
                     ] as const
                   ).map((plan) => (
-                    <div key={plan.key} className="budget-card budget-card-disabled" aria-disabled="true">
-                      <div className="budget-pill">{copy.selectedPlan}</div>
-                      <h3>{plan.label}</h3>
-                      <p>{plan.text}</p>
-                    </div>
+                    <SignInButton key={plan.key} mode="modal">
+                      <button type="button" className="budget-card budget-card-locked" aria-disabled="true">
+                        <div className="budget-pill">{copy.selectedPlan}</div>
+                        <h3>{plan.label}</h3>
+                        <p>{plan.text}</p>
+                      </button>
+                    </SignInButton>
                   ))}
                 </div>
               </SignedOut>
