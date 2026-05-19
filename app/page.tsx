@@ -239,14 +239,14 @@ const REGIONS: CountryOption[] = [
 
 const COPY: Record<Language, Copy> = {
   en: {
-    brand: "Let's Retire Early!",
+    brand: "Meet Your Freedom Date.",
     since: "Since 2026",
     nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
-    goal: "Plan your retirement date and reach it wisely.",
+    goal: "Meet Your Freedom Date.",
     slogan:
-      "To get what you want, you have to either increase sacrifice or reduce desire. Either way, I'll help you plan it wisely.",
+      "Reaching independence sooner isn’t about deprivation—it’s about clarity. It’s a conscious choice between funding a lifestyle that matters to you or accelerating the day you own 100% of your time.",
     interest:
-      "Horizon Day 1 turns retirement from a vague goal into a concrete date, then shows the monthly choices that move you there.",
+      "Horizon Day 1 turns the vague concept of retirement into a concrete, countdown-ready date, then maps out the intentional monthly choices that will bring that day closer.",
     heroBadge: "Early-retire vibe · date-first planning",
     heroCaption: "A calmer, more intentional path to the day your work becomes optional.",
     summaryTitle: "What Horizon Day 1 gives you",
@@ -336,12 +336,12 @@ const COPY: Record<Language, Copy> = {
     ]
   },
   zh: {
-    brand: "早日退休",
+    brand: "锁定你的自由之日。",
     since: "日期：自2026",
     nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
-    goal: "规划你的退休日期，并更聪明地达成目标。",
-    slogan: "想要得到你想要的，要么增加牺牲，要么减少欲望。无论哪条路，我都会帮你更明智地规划。",
-    interest: "Horizon Day 1 把退休从模糊目标变成明确日期，再告诉你哪些月度选择会把你带到那里。",
+    goal: "锁定你的自由之日。",
+    slogan: "提早实现独立，靠的不是牺牲与克制，而是清晰与笃定。这是一个有意识的选择：要么去投资真正对你重要的生活方式，要么去加速那一天的到来——让你彻底、100% 地掌控自己的时间。",
+    interest: "Horizon Day 1 将模糊的“退休”概念，转化为一个触手可及的精准倒计时，并通过规划每个月的自主抉择，让属于你的自由之日加速到来。",
     heroBadge: "早退氛围 · 先定日期再规划",
     heroCaption: "让工作可选、让生活先行的更安静、更有意图的路径。",
     summaryTitle: "Horizon Day 1 会提供什么",
@@ -783,7 +783,7 @@ export default function HomePage() {
             <div className="desc">{copy.summaryLead}</div>
           </div>
           <p className="summary-lead">{copy.summaryIntro}</p>
-          <div className="summary-grid four-col">
+          <div className="summary-grid summary-process four-col">
             {cards.map((card, index) => {
               const expanded = expandedSummary === card.key;
               return (

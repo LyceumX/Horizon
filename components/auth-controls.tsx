@@ -10,12 +10,12 @@ export function AuthControls({ language }: AuthControlsProps) {
   const text = language === "zh"
     ? {
         label: "账户",
-        signIn: "登录 / 注册",
+        signIn: "登录",
         hint: "登录后可保存方案"
       }
     : {
         label: "Account",
-        signIn: "Sign in / Sign up",
+        signIn: "Sign in",
         hint: "Signed-in users can save plans"
       };
 
@@ -23,7 +23,7 @@ export function AuthControls({ language }: AuthControlsProps) {
     <div className="auth-group" aria-label={text.label}>
       <SignedOut>
         <SignInButton mode="modal">
-          <button type="button" className="auth-toggle">
+          <button type="button" className="auth-toggle auth-toggle-primary">
             {text.signIn}
           </button>
         </SignInButton>
