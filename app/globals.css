@@ -191,13 +191,14 @@ main {
 
 .hero-layout {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 48px;
   align-items: flex-end;
 }
 
 .hero-copy {
   min-width: 0;
+  container-type: inline-size;
 }
 
 .hero-image-card {
@@ -276,11 +277,18 @@ main {
   font-family: var(--serif);
   font-weight: 300;
   font-style: italic;
-  font-size: clamp(46px, 9vw, 124px);
+  font-size: clamp(40px, 7vw, 112px);
   line-height: 0.96;
   letter-spacing: -0.012em;
   margin: 24px 0 0;
   white-space: nowrap;
+  max-inline-size: 100%;
+}
+
+@supports (font-size: 1cqi) {
+  .hero h1 {
+    font-size: clamp(40px, 9cqi, 112px);
+  }
 }
 
 .hero h1 em {
