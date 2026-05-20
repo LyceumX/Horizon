@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
+import { getDefaultRetireDate } from "@/lib/retirement";
 
 type Language = "en" | "zh";
 type Theme = "light" | "dark";
 type BudgetMode = "low" | "balanced" | "full";
 type GenderCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female";
+type EmploymentType = "private" | "government_civilian" | "government_disciplined";
 
 type SummaryCard = {
   key: string;
@@ -64,10 +66,13 @@ type Copy = {
   province: string;
   city: string;
   gender: string;
+  employmentType: string;
+  employmentOptions: { private: string; governmentCivilian: string; governmentDisciplined: string };
   genderOptions: { male: string; femalePro: string; femaleWorker: string; specialMale: string; specialFemale: string };
   defaultRetireLabel: string;
   defaultRetireValue: string;
   yearsSavedLabel: string;
+  retirementDisclaimer: string;
   save: string;
   spend: string;
   projectionTitle: string;
@@ -183,7 +188,7 @@ const REGIONS: CountryOption[] = [
   },
   {
     value: "us",
-    label: { en: "United States", zh: "美国" },
+    label: { en: "United States (Coming soon)", zh: "美国（即将上线）" },
     provinces: [
       {
         value: "california",
@@ -218,8 +223,104 @@ const REGIONS: CountryOption[] = [
     ]
   },
   {
+    value: "hk",
+    label: { en: "Hong Kong", zh: "中国香港" },
+    provinces: [
+      {
+        value: "hk-island",
+        label: { en: "Hong Kong", zh: "香港" },
+        cities: [
+          {
+            value: "hong-kong",
+            label: { en: "Hong Kong", zh: "香港" },
+            insurance: {
+              pension: "MPF withdrawal age 65",
+              medical: "Public + private mix",
+              housing: "Housing support varies",
+              unemployment: "Low unemployment aid",
+              workplace: "Employer MPF match",
+              note: "Mock data for Hong Kong." 
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    value: "mo",
+    label: { en: "Macao", zh: "中国澳门" },
+    provinces: [
+      {
+        value: "macau",
+        label: { en: "Macao", zh: "澳门" },
+        cities: [
+          {
+            value: "macau",
+            label: { en: "Macao", zh: "澳门" },
+            insurance: {
+              pension: "Pension age 60/65",
+              medical: "Public health system",
+              housing: "Housing support varies",
+              unemployment: "Limited coverage",
+              workplace: "Mandatory fund",
+              note: "Mock data for Macao." 
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    value: "tw",
+    label: { en: "Taiwan", zh: "中国台湾" },
+    provinces: [
+      {
+        value: "taiwan",
+        label: { en: "Taiwan", zh: "台湾" },
+        cities: [
+          {
+            value: "taipei",
+            label: { en: "Taipei", zh: "台北" },
+            insurance: {
+              pension: "Labor insurance pension",
+              medical: "National health insurance",
+              housing: "Housing support varies",
+              unemployment: "Labor insurance coverage",
+              workplace: "Labor pension",
+              note: "Mock data for Taiwan." 
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
     value: "sg",
     label: { en: "Singapore", zh: "新加坡" },
+      {
+        value: "uk",
+        label: { en: "United Kingdom (Coming soon)", zh: "英国（即将上线）" },
+        provinces: [
+          {
+            value: "uk",
+            label: { en: "United Kingdom", zh: "英国" },
+            cities: [
+              {
+                value: "london",
+                label: { en: "London", zh: "伦敦" },
+                insurance: {
+                  pension: "State pension (coming soon)",
+                  medical: "NHS (coming soon)",
+                  housing: "Housing support (coming soon)",
+                  unemployment: "Benefits (coming soon)",
+                  workplace: "Workplace pension (coming soon)",
+                  note: "Coming soon for the UK."
+                }
+              }
+            ]
+          }
+        ]
+      }
     provinces: [
       {
         value: "central",
@@ -243,27 +344,35 @@ const REGIONS: CountryOption[] = [
   }
 ];
 
+const COMING_SOON_COUNTRIES = new Set(["us", "uk"]);
+
 const COPY: Record<Language, Copy> = {
   en: {
     brand: "Meet Your Freedom Date.",
     since: "Since 2026",
     nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
-    goal: "Meet Your Freedom Date.",
+    goal: "Retire with clarity, not spreadsheets.",
     slogan:
-      "Reaching independence sooner isn’t about deprivation—it’s about clarity. It’s a conscious choice between funding a lifestyle that matters to you or accelerating the day you own 100% of your time.",
+      "Horizon turns complex regional rules into a simple plan, updated in real time. See your freedom date, then shorten it with intentional monthly choices.",
     interest:
-      "Horizon Day 1 turns the vague concept of retirement into a concrete, countdown-ready date, then maps out the intentional monthly choices that will bring that day closer.",
-    heroBadge: "Early-retire vibe · date-first planning",
-    heroCaption: "A calmer, more intentional path to the day your work becomes optional.",
-    summaryTitle: "What Horizon Day 1 gives you",
-    summaryLead: "Four folded cards that open into a deeper planning view.",
-    summaryIntro: "Click any card to expand more details.",
+      "Discard Excel. Follow proven playbooks, compare years saved with Horizon, and stay accountable with people on the same timeline.",
+    heroBadge: "Date-first planning · community-driven",
+    heroCaption: "Plan faster, follow proven paths, and reach your freedom date sooner.",
+    summaryTitle: "Why Horizon Day 1 works",
+    summaryLead: "Simplify the math, localize the rules, and build momentum with others.",
+    summaryIntro: "Discard spreadsheets. Get a clear retirement date, a plan, and a community to improve it.",
     customizeTitle: "Customize your base parameters",
     customizeDesc: "No sign-up needed. Play freely and save to your browser locally.",
     dob: "Date of birth",
     country: "Country",
     province: "Province / state",
     city: "City",
+    employmentType: "Employment type (HK)",
+    employmentOptions: {
+      private: "Private sector",
+      governmentCivilian: "Government (civilian)",
+      governmentDisciplined: "Government (disciplined)"
+    },
     gender: "Retirement category",
     genderOptions: {
       male: "Male (general)",
@@ -274,7 +383,8 @@ const COPY: Record<Language, Copy> = {
     },
     defaultRetireLabel: "Local statutory retirement",
     defaultRetireValue: "Default retirement age",
-    yearsSavedLabel: "Years saved",
+    yearsSavedLabel: "Years saved with Horizon",
+    retirementDisclaimer: "Informational estimates only. Policies vary by region.",
     save: "Monthly savings",
     spend: "Monthly cost of enough",
     projectionTitle: "Live projection",
@@ -323,32 +433,32 @@ const COPY: Record<Language, Copy> = {
       workplace: "Workplace pension",
       note: "Note"
     },
-    storiesTitle: "Real-life Stories",
-    storiesLead: "Attractive placeholder stories showing the emotional payoff of planning earlier.",
+    storiesTitle: "Best Practices",
+    storiesLead: "Follow playbooks from people who saved years. Share your own and grow together (coming soon).",
     stories: [
       {
         name: "Lina W.",
         role: "Product Lead · Shanghai",
         image: "/assets/Stories_image_1.webp",
-        text: "I used to chase a random number. Day 1 gave me a date, then I could finally plan life around it."
+        text: "Horizon turned a vague goal into a date, then a plan I could actually follow."
       },
       {
         name: "Jun K.",
         role: "Engineer · Shenzhen",
         image: "/assets/Stories_image_2.jpeg",
-        text: "Switching to low-budget mode cut three years off my timeline, without feeling deprived."
+        text: "The plan showed me where I could save years without feeling deprived."
       },
       {
         name: "Maya C.",
         role: "Designer · Hangzhou",
         image: "/assets/Stories_image_3.jpg",
-        text: "I stayed in full-budget mode and built side income. Same freedom, different strategy."
+        text: "Different strategy, same freedom date. The tracker kept me focused."
       },
       {
         name: "Arun P.",
         role: "Founder · Singapore",
         image: "/assets/Stories_image_4.jpg",
-        text: "Saving locally first made me start. Registering later gave me smarter follow-up across devices."
+        text: "I started local, then shared my playbook with others and refined it." 
       }
     ]
   },
@@ -356,20 +466,26 @@ const COPY: Record<Language, Copy> = {
     brand: "锁定你的自由之日。",
     since: "自2026",
     nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
-    goal: "锁定你的自由之日。",
-    slogan: "提早实现独立，靠的不是牺牲与克制，而是清晰与笃定。这是一个有意识的选择：要么去投资真正对你重要的生活方式，要么去加速那一天的到来——让你彻底、100% 地掌控自己的时间。",
-    interest: "Horizon Day 1 将模糊的“退休”概念，转化为一个触手可及的精准倒计时，并通过规划每个月的自主抉择，让属于你的自由之日加速到来。",
-    heroBadge: "早退氛围 · 主动规划",
-    heroCaption: "让工作可选、让生活先行的更安静、更有意图的路径。",
-    summaryTitle: "Horizon Day 1 会提供什么",
-    summaryLead: "四张默认折叠的卡片，点击即可展开更深的信息。",
-    summaryIntro: "点击任一卡片，查看更完整的规划逻辑。",
+    goal: "退休规划，不再靠表格。",
+    slogan: "Horizon 把复杂的地区规则变成极简方案，并实时更新。先看自由日期，再用每月选择把它提前。",
+    interest: "丢掉 Excel，参考最佳实践，看到使用 Horizon 节省的年数，与同路人一起坚持。",
+    heroBadge: "先定日期 · 共同规划",
+    heroCaption: "更快制定计划，跟随成功路径，加速自由之日。",
+    summaryTitle: "为什么选择 Horizon Day 1",
+    summaryLead: "把复杂计算变简单，把规则本地化，与同路人一起迭代。",
+    summaryIntro: "丢掉表格，得到清晰日期、可执行方案和成长社群。",
     customizeTitle: "先自定义基础参数",
     customizeDesc: "无需注册，先免费体验，并可保存到本地浏览器。",
     dob: "出生日期",
     country: "国家",
     province: "省 / 州",
     city: "城市",
+    employmentType: "雇佣类型（香港）",
+    employmentOptions: {
+      private: "私营部门",
+      governmentCivilian: "政府文职",
+      governmentDisciplined: "纪律部队"
+    },
     gender: "退休类别",
     genderOptions: {
       male: "男性（通用）",
@@ -380,7 +496,8 @@ const COPY: Record<Language, Copy> = {
     },
     defaultRetireLabel: "法定退休基准",
     defaultRetireValue: "默认退休年龄",
-    yearsSavedLabel: "提前年数",
+    yearsSavedLabel: "使用 Horizon 节省年数",
+    retirementDisclaimer: "仅供参考，具体政策以当地规定为准。",
     save: "每月可储蓄",
     spend: "你认为“足够”的月花费",
     projectionTitle: "实时测算",
@@ -429,32 +546,32 @@ const COPY: Record<Language, Copy> = {
       workplace: "职业养老金",
       note: "备注"
     },
-    storiesTitle: "真实人生故事",
-    storiesLead: "更吸引人的占位故事，展示更早规划带来的真实感受。",
+    storiesTitle: "最佳实践",
+    storiesLead: "跟随那些节省多年的人，分享你的方法并一起成长（即将上线）。",
     stories: [
       {
         name: "林薇",
         role: "产品负责人 · 上海",
         image: "/assets/Stories_image_1.webp",
-        text: "以前我追的是一个模糊数字，现在我有了明确日期，生活节奏一下子变清晰了。"
+        text: "Horizon 把模糊目标变成了日期，再变成了我能坚持的计划。"
       },
       {
         name: "俊凯",
         role: "工程师 · 深圳",
         image: "/assets/Stories_image_2.jpeg",
-        text: "切到低预算模式后，我的时间线直接提前了三年，而且并不痛苦。"
+        text: "方案让我看到哪里能省下几年，而且不牺牲生活感。"
       },
       {
         name: "马娅",
         role: "设计师 · 杭州",
         image: "/assets/Stories_image_3.jpg",
-        text: "我选择全预算模式，同时做副业增收。自由同样能到，只是路线不同。"
+        text: "路线不同，但自由日期一样清晰。持续跟踪让我稳住节奏。"
       },
       {
         name: "阿伦",
         role: "创业者 · 新加坡",
         image: "/assets/Stories_image_4.jpg",
-        text: "先本地保存让我马上开始，后来注册账户后，我可以跨设备继续优化。"
+        text: "我从本地开始，后来把方法分享给更多人，一起优化。"
       }
     ]
   }
@@ -550,20 +667,6 @@ function getCnRetireDate(dob: string, gender: GenderCategory) {
   const capDate = addMonths(birthDate, capAge * 12);
 
   return toMonthIndex(delayedDate) > toMonthIndex(capDate) ? capDate : delayedDate;
-}
-
-function getDefaultRetireDate(country: string, dob: string, gender: GenderCategory) {
-  if (country === "cn") {
-    return getCnRetireDate(dob, gender);
-  }
-
-  const birthDate = new Date(dob);
-  if (Number.isNaN(birthDate.getTime())) {
-    return null;
-  }
-
-  const defaultAge = country === "us" ? 67 : country === "sg" ? 65 : 65;
-  return addMonths(birthDate, defaultAge * 12);
 }
 
 function PreferenceSync({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -668,16 +771,16 @@ function socialChannels(language: Language) {
 function summaryCards(language: Language): SummaryCard[] {
   return language === "zh"
     ? [
-        { key: "target", title: "目标日期", value: "看见你真正开始自由的年份", details: ["把退休从目标变成日期。", "默认折叠，点击后查看路径逻辑。"], accent: "#c97a3a" },
-        { key: "capital", title: "本金目标", value: "看见你大概要准备多少", details: ["基于月支出与安全倍数。", "支持后续按城市和生活方式调整。"], accent: "#4b6f5a" },
-        { key: "gap", title: "行动缺口", value: "看见你还差多少", details: ["每月要存多少、每年要做什么。", "帮助你把抽象问题拆成小行动。"], accent: "#2f4a6b" },
-        { key: "follow", title: "持续优化", value: "看见你下一次该怎么升级", details: ["本地保存、账户同步、后续跟进。", "适合每月回看与迭代。"], accent: "#8b5cf6" }
+        { key: "simplify", title: "极简规划", value: "一张表的复杂，变成几项输入", details: ["复杂规则一键简化。", "算法实时更新保持最新。"], accent: "#c97a3a" },
+        { key: "local", title: "地区规则", value: "按地区退休政策计算", details: ["内地规则已内置。", "港澳台新已覆盖，更多即将上线。"], accent: "#4b6f5a" },
+        { key: "save", title: "提前年数", value: "显示使用 Horizon 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
+        { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"], accent: "#8b5cf6" }
       ]
     : [
-        { key: "target", title: "Target Date", value: "See the year you can become free", details: ["Turn retirement into a date on the calendar.", "Folded by default, expanded on click."], accent: "#c97a3a" },
-        { key: "capital", title: "Capital Target", value: "See the nest egg you likely need", details: ["Based on monthly spend and safety multiples.", "Can be localized by city and lifestyle."], accent: "#4b6f5a" },
-        { key: "gap", title: "Action Gap", value: "See how much remains", details: ["Monthly savings target and yearly action steps.", "Turns a vague question into a concrete plan."], accent: "#2f4a6b" },
-        { key: "follow", title: "Follow-up", value: "See what to do next", details: ["Local save, account sync, and reminders.", "Built for monthly revisits and improvement."], accent: "#8b5cf6" }
+        { key: "simplify", title: "Simplified Plan", value: "Complex math reduced to a few inputs", details: ["We compress dense rules into a clean workflow.", "Real-time updates keep it current."], accent: "#c97a3a" },
+        { key: "local", title: "Regional Rules", value: "Built for your retirement policy", details: ["Mainland rules are embedded.", "HK/MO/TW/SG covered, more coming."], accent: "#4b6f5a" },
+        { key: "save", title: "Years Saved", value: "See years saved with Horizon", details: ["Compare default retirement vs your plan.", "Every adjustment updates the savings."], accent: "#2f4a6b" },
+        { key: "community", title: "Best Practices", value: "Learn, share, earn (coming soon)", details: ["Follow playbooks from people like you.", "Share your plan and improve together."], accent: "#8b5cf6" }
       ];
 }
 
@@ -697,6 +800,7 @@ export default function HomePage() {
   const [province, setProvince] = useState("zhejiang");
   const [city, setCity] = useState("hangzhou");
   const [gender, setGender] = useState<GenderCategory>("male");
+  const [employmentType, setEmploymentType] = useState<EmploymentType>("private");
   const [save, setSave] = useState(1800);
   const [spend, setSpend] = useState(2400);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
@@ -710,7 +814,10 @@ export default function HomePage() {
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
   const projection = useMemo(() => calcProjection({ age, save, spend }), [age, save, spend]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
-  const defaultRetireDate = useMemo(() => getDefaultRetireDate(country, dob, gender), [country, dob, gender]);
+  const defaultRetireDate = useMemo(
+    () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
+    [country, dob, gender, employmentType]
+  );
   const defaultRetireAge = useMemo(() => {
     if (!defaultRetireDate) {
       return null;
@@ -749,7 +856,9 @@ export default function HomePage() {
   const shareText = buildShareText(language, {
     brand: copy.brand,
     date: yearOnly(projection.date),
-    countyLine: language === "zh" ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`
+    countyLine: country === "cn"
+      ? (language === "zh" ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
+      : (language === "zh" ? currentCountry.label.zh : currentCountry.label.en)
   });
 
   useEffect(() => {
@@ -787,16 +896,27 @@ export default function HomePage() {
           province: string;
           city: string;
           gender?: GenderCategory;
+          employmentType?: EmploymentType;
           save: number;
           spend: number;
           budgetMode: BudgetMode;
         };
         setDob(parsed.dob);
-        setCountry(parsed.country);
-        setProvince(parsed.province);
-        setCity(parsed.city);
+        if (COMING_SOON_COUNTRIES.has(parsed.country)) {
+          const fallbackCountry = getCountry("cn");
+          setCountry(fallbackCountry.value);
+          setProvince(fallbackCountry.provinces[0].value);
+          setCity(fallbackCountry.provinces[0].cities[0].value);
+        } else {
+          setCountry(parsed.country);
+          setProvince(parsed.province);
+          setCity(parsed.city);
+        }
         if (parsed.gender) {
           setGender(parsed.gender);
+        }
+        if (parsed.employmentType) {
+          setEmploymentType(parsed.employmentType);
         }
         setSave(parsed.save);
         setSpend(parsed.spend);
@@ -822,7 +942,7 @@ export default function HomePage() {
   }, []);
 
   function saveLocal() {
-    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, save, spend, budgetMode }));
+    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, save, spend, budgetMode }));
     setSaveState(copy.localSaved);
   }
 
@@ -832,7 +952,7 @@ export default function HomePage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        profile: { dob, age, country, province, city, gender, save, spend, budgetMode, language, theme, insurance },
+        profile: { dob, age, country, province, city, gender, employmentType, save, spend, budgetMode, language, theme, insurance },
         projection: {
           years: projection.years,
           year: projection.date.getFullYear(),
@@ -942,6 +1062,7 @@ export default function HomePage() {
                   <strong>{yearsSaved.toFixed(1)} {language === "zh" ? "年" : "yrs"}</strong>
                 </div>
               </div>
+              <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
                 <a className="btn" href="#customize">{language === "zh" ? "开始规划" : "Start planning"}</a>
                 <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
@@ -1019,6 +1140,9 @@ export default function HomePage() {
                     value={country}
                     onChange={(e) => {
                       const nextCountry = e.target.value;
+                      if (COMING_SOON_COUNTRIES.has(nextCountry)) {
+                        return;
+                      }
                       const nextCountryRecord = getCountry(nextCountry);
                       const nextProvince = nextCountryRecord.provinces[0];
                       const nextCity = nextProvince.cities[0];
@@ -1028,52 +1152,73 @@ export default function HomePage() {
                     }}
                   >
                     {REGIONS.map((item) => (
-                      <option key={item.value} value={item.value}>
+                      <option key={item.value} value={item.value} disabled={COMING_SOON_COUNTRIES.has(item.value)}>
                         {language === "zh" ? item.label.zh : item.label.en}
                       </option>
                     ))}
                   </select>
                 </label>
 
-                <label className="field">
-                  <div className="lbl"><span>{copy.province}</span><span className="val">{language === "zh" ? currentProvince.label.zh : currentProvince.label.en}</span></div>
-                  <select
-                    value={province}
-                    onChange={(e) => {
-                      const nextProvince = getCountry(country).provinces.find((item) => item.value === e.target.value) ?? getCountry(country).provinces[0];
-                      setProvince(nextProvince.value);
-                      setCity(nextProvince.cities[0].value);
-                    }}
-                  >
-                    {currentCountry.provinces.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {language === "zh" ? item.label.zh : item.label.en}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {COMING_SOON_COUNTRIES.has(country) ? (
+                  <p className="mode-copy">{language === "zh" ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</p>
+                ) : null}
 
-                <label className="field">
-                  <div className="lbl"><span>{copy.city}</span><span className="val">{language === "zh" ? currentCity.label.zh : currentCity.label.en}</span></div>
-                  <select value={city} onChange={(e) => setCity(e.target.value)}>
-                    {currentProvince.cities.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {language === "zh" ? item.label.zh : item.label.en}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {country === "cn" || country === "sg" || country === "us" ? (
+                  <>
+                    <label className="field">
+                      <div className="lbl"><span>{copy.province}</span><span className="val">{language === "zh" ? currentProvince.label.zh : currentProvince.label.en}</span></div>
+                      <select
+                        value={province}
+                        onChange={(e) => {
+                          const nextProvince = getCountry(country).provinces.find((item) => item.value === e.target.value) ?? getCountry(country).provinces[0];
+                          setProvince(nextProvince.value);
+                          setCity(nextProvince.cities[0].value);
+                        }}
+                      >
+                        {currentCountry.provinces.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {language === "zh" ? item.label.zh : item.label.en}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                <label className="field">
-                  <div className="lbl"><span>{copy.gender}</span><span className="val">{gender === "female_pro" ? copy.genderOptions.femalePro : gender === "female_worker" ? copy.genderOptions.femaleWorker : gender === "special_male" ? copy.genderOptions.specialMale : gender === "special_female" ? copy.genderOptions.specialFemale : copy.genderOptions.male}</span></div>
-                  <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                    <option value="male">{copy.genderOptions.male}</option>
-                    <option value="female_pro">{copy.genderOptions.femalePro}</option>
-                    <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
-                    <option value="special_male">{copy.genderOptions.specialMale}</option>
-                    <option value="special_female">{copy.genderOptions.specialFemale}</option>
-                  </select>
-                </label>
+                    <label className="field">
+                      <div className="lbl"><span>{copy.city}</span><span className="val">{language === "zh" ? currentCity.label.zh : currentCity.label.en}</span></div>
+                      <select value={city} onChange={(e) => setCity(e.target.value)}>
+                        {currentProvince.cities.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {language === "zh" ? item.label.zh : item.label.en}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </>
+                ) : null}
+
+                {country === "hk" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.employmentType}</span><span className="val">{employmentType === "government_disciplined" ? copy.employmentOptions.governmentDisciplined : employmentType === "government_civilian" ? copy.employmentOptions.governmentCivilian : copy.employmentOptions.private}</span></div>
+                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
+                      <option value="private">{copy.employmentOptions.private}</option>
+                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
+                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
+                    </select>
+                  </label>
+                ) : null}
+
+                {country === "cn" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.gender}</span><span className="val">{gender === "female_pro" ? copy.genderOptions.femalePro : gender === "female_worker" ? copy.genderOptions.femaleWorker : gender === "special_male" ? copy.genderOptions.specialMale : gender === "special_female" ? copy.genderOptions.specialFemale : copy.genderOptions.male}</span></div>
+                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                      <option value="male">{copy.genderOptions.male}</option>
+                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
+                      <option value="special_male">{copy.genderOptions.specialMale}</option>
+                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
+                    </select>
+                  </label>
+                ) : null}
               </div>
 
               <div className="field">
