@@ -11,57 +11,29 @@ Rate limit: (X% used, resets at HH:MM)
 
 ---
 
-## Pre-flight: Clean working tree
-
-The working tree has uncommitted changes on main including feature files that must NOT go to main. Run these in order, no confirmation needed:
-
-```bash
-# Create the feature branch from current state (captures all uncommitted changes)
-git checkout -b refactor/cn-global-split
-
-# Commit only the layout files Yuhan created
-git add app/cn/layout.tsx app/global/layout.tsx
-git commit -m "refactor: add cn and global layout files"
-
-# Stash everything else so the tree is clean for Task 1
-git stash
-
-# Switch to the Monte Carlo branch for Task 1
-git checkout feat/monte-carlo-engine
-```
-
-After Task 1 is complete, return here:
-```bash
-git checkout refactor/cn-global-split
-git stash pop
-```
-
----
-
 ## Task 1: Open Monte Carlo PR
 
 **Branch:** `feat/monte-carlo-engine`
-
-`lib/monte-carlo.ts` is complete. Open a PR:
+**Repo:** `C:\Users\ianxi\GitHub\Horizon` (Windows)
 
 ```bash
-git add lib/monte-carlo.ts
-git status  # confirm tests/monte-carlo.test.ts is also staged if it exists
-git commit -m "feat: Monte Carlo simulation engine" --allow-empty
-git push origin feat/monte-carlo-engine
+git checkout feat/monte-carlo-engine
+git pull origin feat/monte-carlo-engine
 ```
 
-Then open PR on GitHub: `feat/monte-carlo-engine` → `main`
-- Title: `feat: Monte Carlo simulation engine`
-- Label: `needs-review`
-- Body: reference spec at `C:\Users\ianxi\Obsidian\Lyceum\5_Horizon\Specs\2026-05-20-monte-carlo-engine.md`
+`lib/monte-carlo.ts` and `tests/monte-carlo.test.ts` are already committed. Open the PR:
+
+```bash
+gh pr create --title "feat: Monte Carlo simulation engine" --body "Adds Monte Carlo simulation engine with Box-Muller transform for retirement date uncertainty modelling. Spec: C:\Users\ianxi\Obsidian\Lyceum\5_Horizon\Specs\2026-05-20-monte-carlo-engine.md" --label "needs-review" --base main
+```
 
 ---
 
-## Task 2: Middleware rewrite (⚠️ Start ONLY after Codi confirms she has pushed app/cn/page.tsx and app/global/page.tsx)
+## Task 2: Middleware rewrite
 
 **Branch:** `refactor/cn-global-split`
-**Risk:** HIGH — controls all URL routing. Test all three local routes before committing.
+**Risk:** HIGH — controls all URL routing.
+**⚠️ Start ONLY after tasks/codi/current.md shows Status: ✅ Done**
 
 ```bash
 git checkout refactor/cn-global-split
@@ -112,14 +84,15 @@ export const config = {
 };
 ```
 
-Verify all three before committing:
+Verify before committing:
 - `localhost:4000/` → redirects to `/global`
 - `localhost:4000/cn` → CN page loads
 - `localhost:4000/global` → Global page loads
 
-If all pass:
 ```bash
 git add middleware.ts
 git commit -m "feat: subdomain routing middleware"
 git push origin refactor/cn-global-split
 ```
+
+Write Agent Result when both tasks are done.

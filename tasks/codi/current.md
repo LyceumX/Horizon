@@ -10,7 +10,7 @@ Rate limit: (N/A — Codi is a Hermes agent)
 # Codi Task 1: Create app/cn/page.tsx and app/global/page.tsx
 
 **Branch:** `refactor/cn-global-split`
-**Repo:** `/Users/ianxie/Horizon`
+**Repo:** `/Users/ianxie/GitHub/Horizon`
 **Protocol:** Ian has already approved this plan. Execute now.
 
 Pull the branch first to pick up Yuhan's layouts:

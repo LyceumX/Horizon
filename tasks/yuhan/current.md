@@ -1,47 +1,64 @@
 ## Agent Result
-Status: ✅ Done
-Completed: Created `supabase/migrations/20260520_add_site_column.sql` with the requested migration SQL.
-Deviations: None.
-Blockers: None.
+Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
+Completed:
+Deviations:
+Blockers:
 Rate limit: (X% used, resets at HH:MM)
 
 ---
 
-# Task: Write DB migration SQL file
+# Task: Root layout cleanup
 
 **Branch:** `refactor/cn-global-split`
-**File to create:** `supabase/migrations/20260520_add_site_column.sql`
-**Do NOT apply this migration** — write the file only. Ian will apply it via Supabase dashboard.
+**Repo:** `/Users/ianxie/GitHub/Horizon` (Mac)
+**⚠️ Start ONLY after tasks/codi/current.md shows Status: ✅ Done**
 
-Do NOT touch any other files. Do NOT modify `.vscode/`, `tasks.json`, or any config files.
+Pull latest before starting:
+```bash
+git checkout refactor/cn-global-split
+git pull origin refactor/cn-global-split
+```
 
 ---
 
-## Step 1: Create the migrations folder if it doesn't exist
+## Step 1: Simplify `app/layout.tsx`
 
-```bash
-mkdir -p supabase/migrations
+Replace the entire contents with:
+
+```tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
 ```
 
-## Step 2: Create `supabase/migrations/20260520_add_site_column.sql` with this exact content
+---
 
-```sql
--- Migration: add site column to planner_profiles
--- Date: 2026-05-20
--- Purpose: track whether a user profile belongs to the CN or Global site
--- DO NOT apply manually — applied via Supabase MCP by Ian
+## Step 2: Convert `app/page.tsx` to a redirect
 
-ALTER TABLE planner_profiles
-ADD COLUMN IF NOT EXISTS site TEXT NOT NULL DEFAULT 'global'
-CHECK (site IN ('cn', 'global'));
+Replace the entire contents with:
+
+```tsx
+import { redirect } from "next/navigation";
+
+export default function RootPage() {
+  redirect("/global");
+}
 ```
 
-## Step 3: Commit
+---
+
+## Step 3: Verify and commit
 
 ```bash
-git add supabase/migrations/20260520_add_site_column.sql
-git commit -m "chore: add site column migration SQL"
+npm run build
+```
+
+Fix any TypeScript errors. Then:
+
+```bash
+git add app/layout.tsx app/page.tsx
+git commit -m "refactor: simplify root layout and redirect root to /global"
 git push origin refactor/cn-global-split
 ```
 
-Write Agent Result (including rate limit %) when done.
+Write Agent Result when done.
