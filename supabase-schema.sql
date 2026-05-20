@@ -21,3 +21,23 @@ create table if not exists user_preferences (
 
 create index if not exists user_preferences_clerk_user_id_idx
   on user_preferences (clerk_user_id);
+
+create table if not exists retirement_lookup (
+  id bigint generated always as identity primary key,
+  rule_group text not null,
+  birth_year smallint not null,
+  birth_month smallint not null,
+  retire_year smallint not null,
+  retire_month smallint not null,
+  unique (rule_group, birth_year, birth_month)
+);
+
+create table if not exists retirement_special_lookup (
+  id bigint generated always as identity primary key,
+  rule_group text not null,
+  birth_year smallint not null,
+  birth_month smallint not null,
+  retire_year smallint not null,
+  retire_month smallint not null,
+  unique (rule_group, birth_year, birth_month)
+);

@@ -8,7 +8,7 @@ import { AuthControls } from "@/components/auth-controls";
 type Language = "en" | "zh";
 type Theme = "light" | "dark";
 type BudgetMode = "low" | "balanced" | "full";
-type GenderCategory = "male" | "female_pro" | "female_worker";
+type GenderCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female";
 
 type SummaryCard = {
   key: string;
@@ -64,7 +64,7 @@ type Copy = {
   province: string;
   city: string;
   gender: string;
-  genderOptions: { male: string; femalePro: string; femaleWorker: string };
+  genderOptions: { male: string; femalePro: string; femaleWorker: string; specialMale: string; specialFemale: string };
   defaultRetireLabel: string;
   defaultRetireValue: string;
   yearsSavedLabel: string;
@@ -268,7 +268,9 @@ const COPY: Record<Language, Copy> = {
     genderOptions: {
       male: "Male (general)",
       femalePro: "Female (cadre / professional)",
-      femaleWorker: "Female (blue-collar)"
+      femaleWorker: "Female (blue-collar)",
+      specialMale: "Special work (male)",
+      specialFemale: "Special work (female)"
     },
     defaultRetireLabel: "Local statutory retirement",
     defaultRetireValue: "Default retirement age",
@@ -372,7 +374,9 @@ const COPY: Record<Language, Copy> = {
     genderOptions: {
       male: "男性（通用）",
       femalePro: "女性（干部 / 管理 / 专业）",
-      femaleWorker: "女性（工人 / 蓝领）"
+      femaleWorker: "女性（工人 / 蓝领）",
+      specialMale: "特殊工种（男）",
+      specialFemale: "特殊工种（女）"
     },
     defaultRetireLabel: "法定退休基准",
     defaultRetireValue: "默认退休年龄",
@@ -513,31 +517,53 @@ function getInsurance(country: string, province: string, city: string): SocialIn
   return getCity(country, province, city).insurance;
 }
 
-function calcCnStatutoryAge(gender: GenderCategory, today = new Date()) {
-  const baseAge = gender === "female_worker" ? 50 : gender === "female_pro" ? 55 : 60;
-  const targetAge = gender === "female_worker" ? 55 : gender === "female_pro" ? 58 : 63;
-  const paceMonths = gender === "female_worker" ? 2 : 4;
-
-  const monthsSince2025 = Math.max(0, (today.getFullYear() - 2025) * 12 + today.getMonth());
-  const increaseMonths = Math.min(Math.floor(monthsSince2025 / paceMonths), (targetAge - baseAge) * 12);
-
-  return baseAge + increaseMonths / 12;
+function toMonthIndex(date: Date) {
+  return date.getFullYear() * 12 + date.getMonth();
 }
 
-function getDefaultRetireAge(country: string, gender: GenderCategory) {
+function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function getCnRetireDate(dob: string, gender: GenderCategory) {
+  const birthDate = new Date(dob);
+  if (Number.isNaN(birthDate.getTime())) {
+    return null;
+  }
+
+  const baseAge = gender === "female_worker" ? 50 : gender === "female_pro" ? 55 : gender === "special_female" ? 45 : gender === "special_male" ? 55 : 60;
+  const capAge = gender === "female_worker" ? 55 : gender === "female_pro" ? 58 : gender === "special_female" ? 50 : gender === "special_male" ? 58 : 63;
+  const paceMonths = gender === "female_worker" || gender === "special_female" ? 2 : 4;
+
+  const baseRetireDate = addMonths(birthDate, baseAge * 12);
+  const reformStart = new Date(2025, 0, 1);
+
+  if (toMonthIndex(baseRetireDate) < toMonthIndex(reformStart)) {
+    return baseRetireDate;
+  }
+
+  const diffMonths = toMonthIndex(baseRetireDate) - toMonthIndex(reformStart);
+  const delayMonths = Math.floor(diffMonths / paceMonths);
+  const delayedDate = addMonths(baseRetireDate, delayMonths);
+  const capDate = addMonths(birthDate, capAge * 12);
+
+  return toMonthIndex(delayedDate) > toMonthIndex(capDate) ? capDate : delayedDate;
+}
+
+function getDefaultRetireDate(country: string, dob: string, gender: GenderCategory) {
   if (country === "cn") {
-    return calcCnStatutoryAge(gender);
+    return getCnRetireDate(dob, gender);
   }
 
-  if (country === "us") {
-    return 67;
+  const birthDate = new Date(dob);
+  if (Number.isNaN(birthDate.getTime())) {
+    return null;
   }
 
-  if (country === "sg") {
-    return 65;
-  }
-
-  return 65;
+  const defaultAge = country === "us" ? 67 : country === "sg" ? 65 : 65;
+  return addMonths(birthDate, defaultAge * 12);
 }
 
 function PreferenceSync({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -684,17 +710,28 @@ export default function HomePage() {
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
   const projection = useMemo(() => calcProjection({ age, save, spend }), [age, save, spend]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
-  const defaultRetireAge = useMemo(() => getDefaultRetireAge(country, gender), [country, gender]);
-  const defaultRetireYear = useMemo(() => {
+  const defaultRetireDate = useMemo(() => getDefaultRetireDate(country, dob, gender), [country, dob, gender]);
+  const defaultRetireAge = useMemo(() => {
+    if (!defaultRetireDate) {
+      return null;
+    }
     const birthDate = new Date(dob);
     if (Number.isNaN(birthDate.getTime())) {
+      return null;
+    }
+    const months = toMonthIndex(defaultRetireDate) - toMonthIndex(birthDate);
+    return months / 12;
+  }, [dob, defaultRetireDate]);
+  const defaultRetireYear = useMemo(() => {
+    if (!defaultRetireDate) {
       return "--";
     }
-    const retirementDate = new Date(birthDate);
-    retirementDate.setMonth(retirementDate.getMonth() + Math.round(defaultRetireAge * 12));
-    return yearOnly(retirementDate);
-  }, [dob, defaultRetireAge]);
+    return yearOnly(defaultRetireDate);
+  }, [defaultRetireDate]);
   const yearsSaved = useMemo(() => {
+    if (defaultRetireAge === null) {
+      return 0;
+    }
     const saved = defaultRetireAge - (age + projection.years);
     return Math.max(0, Number(saved.toFixed(1)));
   }, [defaultRetireAge, age, projection.years]);
@@ -898,7 +935,7 @@ export default function HomePage() {
               <div className="hero-callout" aria-live="polite">
                 <div>
                   <span className="k">{copy.defaultRetireLabel}</span>
-                  <strong>{copy.defaultRetireValue}: {defaultRetireAge.toFixed(1)} {language === "zh" ? "岁" : "yrs"} · {defaultRetireYear}</strong>
+                  <strong>{copy.defaultRetireValue}: {defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"} {language === "zh" ? "岁" : "yrs"} · {defaultRetireYear}</strong>
                 </div>
                 <div>
                   <span className="k">{copy.yearsSavedLabel}</span>
@@ -1028,11 +1065,13 @@ export default function HomePage() {
                 </label>
 
                 <label className="field">
-                  <div className="lbl"><span>{copy.gender}</span><span className="val">{copy.genderOptions[gender === "female_pro" ? "femalePro" : gender === "female_worker" ? "femaleWorker" : "male"]}</span></div>
+                  <div className="lbl"><span>{copy.gender}</span><span className="val">{gender === "female_pro" ? copy.genderOptions.femalePro : gender === "female_worker" ? copy.genderOptions.femaleWorker : gender === "special_male" ? copy.genderOptions.specialMale : gender === "special_female" ? copy.genderOptions.specialFemale : copy.genderOptions.male}</span></div>
                   <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
                     <option value="male">{copy.genderOptions.male}</option>
                     <option value="female_pro">{copy.genderOptions.femalePro}</option>
                     <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
+                    <option value="special_male">{copy.genderOptions.specialMale}</option>
+                    <option value="special_female">{copy.genderOptions.specialFemale}</option>
                   </select>
                 </label>
               </div>
