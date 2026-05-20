@@ -297,30 +297,6 @@ const REGIONS: CountryOption[] = [
   {
     value: "sg",
     label: { en: "Singapore", zh: "新加坡" },
-      {
-        value: "uk",
-        label: { en: "United Kingdom (Coming soon)", zh: "英国（即将上线）" },
-        provinces: [
-          {
-            value: "uk",
-            label: { en: "United Kingdom", zh: "英国" },
-            cities: [
-              {
-                value: "london",
-                label: { en: "London", zh: "伦敦" },
-                insurance: {
-                  pension: "State pension (coming soon)",
-                  medical: "NHS (coming soon)",
-                  housing: "Housing support (coming soon)",
-                  unemployment: "Benefits (coming soon)",
-                  workplace: "Workplace pension (coming soon)",
-                  note: "Coming soon for the UK."
-                }
-              }
-            ]
-          }
-        ]
-      }
     provinces: [
       {
         value: "central",
@@ -336,6 +312,30 @@ const REGIONS: CountryOption[] = [
               unemployment: "Unemployment cover: low",
               workplace: "Private pension: optional",
               note: "Illustrative preset only."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    value: "uk",
+    label: { en: "United Kingdom (Coming soon)", zh: "英国（即将上线）" },
+    provinces: [
+      {
+        value: "uk",
+        label: { en: "United Kingdom", zh: "英国" },
+        cities: [
+          {
+            value: "london",
+            label: { en: "London", zh: "伦敦" },
+            insurance: {
+              pension: "State pension (coming soon)",
+              medical: "NHS (coming soon)",
+              housing: "Housing support (coming soon)",
+              unemployment: "Benefits (coming soon)",
+              workplace: "Workplace pension (coming soon)",
+              note: "Coming soon for the UK."
             }
           }
         ]
