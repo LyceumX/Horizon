@@ -847,22 +847,24 @@ export default function HomePage() {
                     </div>
                   </div>
                   {hideSensitive ? null : (
-                    <div className="metric-card">
-                      <span className="metric-icon">💰</span>
-                      <div>
-                        <small>{copy.nestEgg}</small>
-                        <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
-                      </div>
-                    </div>
-                    {plannerResult.monthlyGapToSave > 0 ? (
+                    <>
                       <div className="metric-card">
-                        <span className="metric-icon">⚠️</span>
+                        <span className="metric-icon">💰</span>
                         <div>
-                          <small>{copy.monthlyGap}</small>
-                          <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
+                          <small>{copy.nestEgg}</small>
+                          <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
                         </div>
                       </div>
-                    ) : null}
+                      {plannerResult.monthlyGapToSave > 0 ? (
+                        <div className="metric-card">
+                          <span className="metric-icon">⚠️</span>
+                          <div>
+                            <small>{copy.monthlyGap}</small>
+                            <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
                   )}
                 </div>
                 <div className="projection-footer">
