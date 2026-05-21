@@ -277,9 +277,9 @@ function summaryCards(lang: string): SummaryCard[] {
 }
 
 function money(value: number, lang: string) {
-  return new Intl.NumberFormat(false ? "zh-CN" : "en-US", {
+  return new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", {
     style: "currency",
-    currency: false ? "CNY" : "USD",
+    currency: lang === "zh" ? "CNY" : "USD",
     maximumFractionDigits: 0
   }).format(value);
 }
@@ -304,6 +304,7 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
+  const [lang, setLang] = useState<"en" | "zh">("en");
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
@@ -357,8 +358,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"en"`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang]
   );
   const shareText = buildShareText("en", {
     brand: copy.brand,

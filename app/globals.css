@@ -118,6 +118,68 @@ a {
 }
 
 /* Monthly income breakdown panel */
+/* Pension calculator result card (Section 02) */
+.pension-result {
+  border: 0.5px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--paper-2));
+  margin-top: 4px;
+}
+.pension-result-label {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: 6px;
+}
+.pension-result-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.pension-result-amount .hl {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-style: italic;
+}
+.pension-freq {
+  font-size: 13px;
+  color: var(--mute);
+}
+.pension-result-breakdown {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--mute);
+}
+.pension-result-breakdown strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--mute);
+}
+
+/* Story savings badge */
+.story-savings-badge {
+  margin: 10px 0 6px;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mute);
+}
+.story-years {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 400;
+}
+
 .income-breakdown {
   border: 0.5px solid var(--line);
   border-radius: 18px;
@@ -416,6 +478,19 @@ main {
   line-height: 1.8;
 }
 
+.callout-line {
+  line-height: 1.8;
+}
+.callout-line + .callout-line {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 0.5px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.callout-pension {
+  font-size: 12px;
+  color: var(--mute);
+}
+
 .callout-years {
   font-family: var(--serif);
   font-style: italic;
@@ -627,25 +702,31 @@ main {
   position: relative;
 }
 
+/* Connector line */
 .summary-process .summary-card:not(:first-child)::before {
   content: "";
   position: absolute;
-  top: 22px;
-  left: -18px;
-  width: 18px;
-  height: 1px;
-  background: color-mix(in srgb, var(--line) 75%, transparent);
+  top: 24px;
+  left: -20px;
+  width: 20px;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 20%, var(--line)),
+    color-mix(in srgb, var(--accent) 40%, var(--line))
+  );
 }
 
+/* Arrowhead */
 .summary-process .summary-card:not(:first-child)::after {
   content: "";
   position: absolute;
-  top: 18px;
-  left: -6px;
-  width: 8px;
-  height: 8px;
-  border-right: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  top: 19px;
+  left: -7px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-top: 2px solid color-mix(in srgb, var(--accent) 55%, var(--line));
   transform: rotate(45deg);
 }
 
@@ -706,10 +787,12 @@ main {
   color: var(--mute);
 }
 
-.summary-dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
+.summary-icon {
+  font-size: 22px;
+  line-height: 1;
+  /* keep emoji from being clipped */
+  display: inline-flex;
+  align-items: center;
 }
 
 .summary-details {
@@ -1174,19 +1257,54 @@ main {
   gap: 16px;
 }
 
+/* Budget card is now a <div> wrapper — header is the clickable part */
 .budget-card {
   border: 0.5px solid var(--line);
   border-radius: 18px;
   background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+  overflow: hidden;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.budget-card-header {
+  display: block;
+  width: 100%;
   padding: 18px;
   text-align: left;
   color: var(--ink);
   cursor: pointer;
-  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  background: none;
+  border: none;
+  position: relative;
 }
 
-.budget-card:hover {
-  transform: translateY(-1px);
+.budget-card-header:hover {
+  background: color-mix(in srgb, var(--paper-2) 50%, transparent);
+}
+
+.budget-chevron {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 10px;
+  color: var(--mute);
+}
+
+.budget-params {
+  border-top: 0.5px solid var(--line);
+  padding: 18px;
+  display: grid;
+  gap: 18px;
+  animation: fadeSlideIn 180ms ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.budget-card-open {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
 }
 
 .budget-card-active {

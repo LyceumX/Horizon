@@ -83,19 +83,19 @@ export type Copy = {
   pensionIncome: string;
   storiesTitle: string;
   storiesLead: string;
-  stories: { name: string; role: string; text: string; image: string }[];
+  stories: { name: string; role: string; text: string; image: string; yearsSaved: number; plan: string }[];
 };
 
 export const CN_COPY: Copy = {
   brand: "早早退休",
   since: "自2026",
-  nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
+  nav: { summary: "摘要", customize: "养老金计算器", budget: "预算模版", stories: "最佳实践" },
   goal: "退休规划，不再靠表格。",
   slogan: "输入收支，实时看到你的退休日期。每一次调整，都让自由提前一点。",
   interest: "丢掉 Excel，参考最佳实践，锁定 早早退休 节省的年数，与同路人一起加油，早日告别“卷生活”。",
   heroBadge: "先定日期 · 共同规划",
   heroCaption: "更快制定计划，跟随成功路径，加速自由之日。",
-  summaryTitle: "为什么选择 早早退休",
+  summaryTitle: "为什么选择我们",
   summaryLead: "全网扫描政策规则，实时更新算法。提供标准和自定义模版，一键完成退休规划。",
   summaryIntro: "丢掉表格，得到清晰日期、可执行方案和成长社群。",
   customizeTitle: "先自定义基础参数",
@@ -150,8 +150,8 @@ export const CN_COPY: Copy = {
   freeHint: "任何人都可免费使用测算器。",
   signInHint: "仅当你希望跨设备同步和获取个性化跟进时，再注册/登录即可。",
   authMissing: "当前工作区未配置 Clerk，因此登录和账户同步不可用。",
-  budgetTitle: "预算方案",
-  budgetLead: "不同的自由路径适合不同的人生策略。已注册用户可点击应用。",
+  budgetTitle: "预算模版",
+  budgetLead: "选择与你生活策略匹配的路径，展开后可自定义每一项财务参数。",
   budgetLocked: "请先登录后解锁高级预算方案。",
   lowBudgetLabel: "低预算自由",
   lowBudgetCopy: "减少欲望，更快抵达 Day 1。",
@@ -187,31 +187,39 @@ export const CN_COPY: Copy = {
   multiplierLabel: "安全倍数",
   pensionIncome: "社保/公积金预计月收入（可选）",
   storiesTitle: "最佳实践",
-  storiesLead: "借鉴他人的最佳实践，也可以分享自己的心得经验，甚至赚取佣金！（即将上线）",
+  storiesLead: "来自「早早退休」用户的成功案例分享。抄作业时间到！",
   stories: [
     {
       name: "林薇",
       role: "产品负责人 · 上海",
       image: "/assets/Stories_image_1.webp",
       text: "早早退休 把模糊目标变成了日期，再变成了我能坚持的计划。",
+      yearsSaved: 8.3,
+      plan: "平衡方案",
     },
     {
       name: "俊凯",
       role: "工程师 · 深圳",
       image: "/assets/Stories_image_2.jpeg",
       text: "方案让我看到哪里能省下几年，而且不牺牲生活感。",
+      yearsSaved: 11.5,
+      plan: "低预算方案",
     },
     {
       name: "马娅",
       role: "设计师 · 杭州",
       image: "/assets/Stories_image_3.jpg",
       text: "路线不同，但自由日期一样清晰。持续跟踪让我稳住节奏。",
+      yearsSaved: 6.8,
+      plan: "平衡方案",
     },
     {
       name: "阿伦",
       role: "创业者 · 新加坡",
       image: "/assets/Stories_image_4.jpg",
       text: "我从本地开始，后来把方法分享给更多人，一起优化。",
+      yearsSaved: 14.2,
+      plan: "全预算方案",
     }
   ]
 };

@@ -13,6 +13,7 @@ type EmploymentType = "private" | "government_civilian" | "government_discipline
 
 type SummaryCard = {
   key: string;
+  icon: string;
   title: string;
   value: string;
   details: string[];
@@ -142,6 +143,62 @@ import { BUDGETS } from "@/lib/data/budgets";
 
 const COMING_SOON_COUNTRIES = new Set(["us", "uk"]);
 
+// Approximate 2024 province-level average monthly pension (CNY) — used for hero comparison line.
+// Source: provincial human resources bureaus & public statistical reports. Values are estimates.
+const PROVINCE_AVG_PENSION: Record<string, number> = {
+  beijing:       4600,
+  shanghai:      5100,
+  tianjin:       3300,
+  chongqing:     2900,
+  guangdong:     3800,
+  zhejiang:      3700,
+  jiangsu:       3400,
+  shandong:      2900,
+  fujian:        3200,
+  liaoning:      3200,
+  sichuan:       2700,
+  hubei:         2700,
+  heilongjiang:  2700,
+  jilin:         2700,
+  hainan:        2700,
+  xinjiang:      2800,
+  innermongolia: 2900,
+  hebei:         2600,
+  qinghai:       2600,
+  tibet:         2600,
+  ningxia:       2600,
+  hunan:         2500,
+  anhui:         2500,
+  shanxi:        2500,
+  shaanxi:       2500,
+  yunnan:        2500,
+  henan:         2400,
+  jiangxi:       2400,
+  guizhou:       2300,
+  gansu:         2300,
+  guangxi:       2500,
+};
+
+// 2024 provincial monthly average wage (计发基数) — used for pension base calculation.
+const PROVINCE_PENSION_BASE: Record<string, number> = {
+  beijing: 12200, shanghai: 13500, tianjin: 7800,  chongqing: 7200,
+  guangdong: 9800, zhejiang: 9500,  jiangsu: 8700,  shandong: 6800,
+  fujian: 7800,  liaoning: 7200,  sichuan: 6500,  hubei: 6700,
+  hunan: 6300,  henan: 6200,  hebei: 6100,  anhui: 6400,
+  jiangxi: 6100,  heilongjiang: 6500,  jilin: 6400,  shanxi: 6300,
+  shaanxi: 6500,  yunnan: 6200,  guizhou: 5800,  gansu: 5700,
+  hainan: 6500,  qinghai: 6000,  guangxi: 6000,  innermongolia: 6800,
+  tibet: 7000,  ningxia: 6200,  xinjiang: 6500,
+};
+
+// Retirement age by gender/category → official 计发月数 (monthly disbursement divisor)
+const GENDER_RETIRE_AGE: Record<string, number> = {
+  male: 60, female_pro: 55, female_worker: 50, special_male: 55, special_female: 45,
+};
+const DISBURSEMENT_MONTHS: Record<number, number> = {
+  45: 216, 50: 195, 55: 170, 60: 139, 65: 101,
+};
+
 const copy = CN_COPY;
 const REGIONS: CountryOption[] = CN_REGIONS;
 
@@ -263,16 +320,16 @@ function socialChannels(lang: string) {
 function summaryCards(lang: string): SummaryCard[] {
   return true
     ? [
-        { key: "policy",    title: "政策同步", value: "按地区规则，实时同步退休政策",     details: ["覆盖内地、港澳台及海外主要地区。", "政策更新自动反映到你的规划。"],           accent: "#c97a3a" },
-        { key: "templates", title: "丰富模版", value: "标准和自定义模版，极简完成规划",   details: ["内置多条退休路径模版供选择。", "完全可定制，适配你的具体情况。"],             accent: "#4b6f5a" },
-        { key: "finance",   title: "金融计划", value: "专业理财建议，AI 大数据分析",     details: ["AI 算法分析最优储蓄与投资策略。", "每月生成可执行的财务行动清单。"],           accent: "#2f4a6b" },
-        { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"],                       accent: "#8b5cf6" }
+        { key: "policy",    icon: "🗺️", title: "政策同步", value: "扫描地区规则，锁定你的法定基准",   details: ["覆盖内地、港澳台及海外主要地区。", "政策更新自动反映到你的规划。"],     accent: "#c97a3a" },
+        { key: "templates", icon: "⚡", title: "丰富模版", value: "一键套用模版，即刻生成退休路线",   details: ["内置多条退休路径模版供选择。", "完全可定制，适配你的具体情况。"],       accent: "#4b6f5a" },
+        { key: "finance",   icon: "📊", title: "金融计划", value: "AI 分析，输出可执行的财务行动",   details: ["AI 算法分析最优储蓄与投资策略。", "每月生成可执行的财务行动清单。"],   accent: "#2f4a6b" },
+        { key: "community", icon: "🤝", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"],               accent: "#8b5cf6" }
       ]
     : [
-        { key: "simplify", title: "Simplified Plan", value: "Complex math reduced to a few inputs", details: ["We compress dense rules into a clean workflow.", "Real-time updates keep it current."], accent: "#c97a3a" },
-        { key: "local", title: "Regional Rules", value: "Built for your retirement policy", details: ["Mainland rules are embedded.", "HK/MO/TW/SG covered, more coming."], accent: "#4b6f5a" },
-        { key: "save", title: "Years Saved", value: "See years saved with Horizon", details: ["Compare default retirement vs your plan.", "Every adjustment updates the savings."], accent: "#2f4a6b" },
-        { key: "community", title: "Best Practices", value: "Learn, share, earn (coming soon)", details: ["Follow playbooks from people like you.", "Share your plan and improve together."], accent: "#8b5cf6" }
+        { key: "simplify",  icon: "🗺️", title: "Simplified Plan",  value: "Complex math reduced to a few inputs",   details: ["We compress dense rules into a clean workflow.", "Real-time updates keep it current."],                accent: "#c97a3a" },
+        { key: "local",     icon: "⚡", title: "Regional Rules",   value: "Built for your retirement policy",        details: ["Mainland rules are embedded.", "HK/MO/TW/SG covered, more coming."],                        accent: "#4b6f5a" },
+        { key: "save",      icon: "📊", title: "Years Saved",      value: "See years saved with Horizon",            details: ["Compare default retirement vs your plan.", "Every adjustment updates the savings."],          accent: "#2f4a6b" },
+        { key: "community", icon: "🤝", title: "Best Practices",   value: "Learn, share, earn (coming soon)",        details: ["Follow playbooks from people like you.", "Share your plan and improve together."],            accent: "#8b5cf6" }
       ];
 }
 
@@ -304,9 +361,25 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
+  // Pension calculator inputs
+  const [contributionYears, setContributionYears] = useState(25);
+  const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
+  const [personalAccountBalance, setPersonalAccountBalance] = useState(80000);
+  // Budget template expansion
+  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>("balanced");
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
+  // Pension calculator — must be before plannerResult
+  const pensionCalcEarly = useMemo(() => {
+    const retireAge = GENDER_RETIRE_AGE[gender] ?? 60;
+    const months = DISBURSEMENT_MONTHS[retireAge] ?? 139;
+    const index = contributionTier === "60" ? 0.6 : contributionTier === "300" ? 3.0 : 1.0;
+    const base = PROVINCE_PENSION_BASE[province] ?? 6000;
+    const basic = base * (1 + index) / 2 * contributionYears * 0.01;
+    const personal = personalAccountBalance / months;
+    return { total: Math.round(basic + personal), basic: Math.round(basic), personal: Math.round(personal), retireAge, months };
+  }, [gender, contributionYears, contributionTier, personalAccountBalance, province]);
   const plannerResult = useMemo(() => calculateHorizonDay1({
     age,
     city,
@@ -318,8 +391,8 @@ export default function HomePage() {
     annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
     annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
     multiplier: SCENARIO_PRESETS[scenario].multiplier,
-    pensionIncome: pensionIncome > 0 ? pensionIncome : undefined,
-  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionIncome]);
+    pensionIncome: pensionCalcEarly.total > 0 ? pensionCalcEarly.total : undefined,
+  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionCalcEarly.total]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
     () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
@@ -349,16 +422,22 @@ export default function HomePage() {
     const saved = defaultRetireAge - (age + plannerResult.yearsToGoal);
     return Math.max(0, Number(saved.toFixed(1)));
   }, [defaultRetireAge, age, plannerResult.yearsToGoal]);
+  const pensionCalc = pensionCalcEarly; // alias for use in JSX
+
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
+  const avgPensionForProvince = PROVINCE_AVG_PENSION[province] ?? 2500;
+  const pensionPct = pensionCalc.total > 0
+    ? Math.round((pensionCalc.total - avgPensionForProvince) / avgPensionForProvince * 100)
+    : null;
   const cards = useMemo(() => summaryCards("zh"), ["zh"]);
   const tier = getTier(plannerResult.yearsToGoal);
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"zh"`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${contributionYears}|${contributionTier}|${personalAccountBalance}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, contributionYears, contributionTier, personalAccountBalance]
   );
   const shareText = buildShareText("zh", {
     brand: copy.brand,
@@ -471,6 +550,7 @@ export default function HomePage() {
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
     const preset = BUDGETS[mode];
+    setCurrentSavings(preset.currentSavings);
     setMonthlyIncome(preset.monthlyIncome);
     setMonthlyExpenses(preset.monthlyExpenses);
     setSpend(preset.spend);
@@ -546,7 +626,14 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
-                {copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> 岁 · <span className="hl">{defaultRetireYear}</span>，早早退休 用户平均节省 <span className="hl callout-years">5.7 年</span>
+                <div className="callout-line">
+                  {copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> 岁 · <span className="hl">{defaultRetireYear}</span>，早早退休 用户平均节省 <span className="hl callout-years">5.7 年</span>
+                </div>
+                {pensionCalc.total > 0 && pensionPct !== null && (
+                  <div className="callout-line callout-pension">
+                    届时您将领取每月 <span className="hl">¥{pensionCalc.total.toLocaleString("zh-CN")}</span> 养老金，{pensionPct >= 0 ? "高于" : "低于"}当地均值（¥{avgPensionForProvince.toLocaleString("zh-CN")}）<span className="hl">{Math.abs(pensionPct)}%</span>
+                  </div>
+                )}
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
@@ -588,7 +675,7 @@ export default function HomePage() {
                 >
                   <div className="summary-card-top">
                     <span className="summary-index">0{index + 1}</span>
-                    <span className="summary-dot" style={{ background: card.accent }} />
+                    <span className="summary-icon" aria-hidden="true">{card.icon}</span>
                   </div>
                   <h3>{card.title}</h3>
                   <p className="summary-figure">{card.value}</p>
@@ -678,48 +765,48 @@ export default function HomePage() {
                 ) : null}
               </div>
 
+              {/* ── Pension calculator fields ── */}
               <div className="field">
-                <div className="lbl"><span>{copy.scenarioLabel}</span></div>
-                <div className="scenario-toggle">
-                  {(["base", "optimistic", "stress"] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
-                      onClick={() => setScenario(key)}
-                    >
-                      {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
-                    </button>
-                  ))}
+                <div className="lbl">
+                  <span>累计缴费年限</span>
+                  <span className="val">{contributionYears} 年</span>
                 </div>
+                <input type="range" min={1} max={40} step={0.5} value={contributionYears} onChange={(e) => setContributionYears(Number(e.target.value))} />
               </div>
 
-              <div className="field">
-                <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, "zh")}</span></div>
-                <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, "zh")}</span></div>
-                <input type="range" min={3000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, "zh")}</span></div>
-                <input type="range" min={1000} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
-              </div>
+              <label className="field">
+                <div className="lbl">
+                  <span>缴费档次</span>
+                  <span className="val">{{ "60": "60%（基本档）", "100": "100%（标准档）", "300": "300%（高档）" }[contributionTier]}</span>
+                </div>
+                <select value={contributionTier} onChange={(e) => setContributionTier(e.target.value as "60" | "100" | "300")}>
+                  <option value="60">60%（基本档·低收入）</option>
+                  <option value="100">100%（标准档·平均工资）</option>
+                  <option value="300">300%（高档·高收入）</option>
+                </select>
+              </label>
 
               <div className="field">
                 <div className="lbl">
-                  <span>{copy.pensionIncome}</span>
-                  <span className="val">{pensionIncome > 0 ? money(pensionIncome, "zh") : "¥0"}</span>
+                  <span>个人账户累计余额</span>
+                  <span className="val">{money(personalAccountBalance, "zh")}</span>
                 </div>
-                <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
+                <input type="range" min={0} max={600000} step={5000} value={personalAccountBalance} onChange={(e) => setPersonalAccountBalance(Number(e.target.value))} />
+                <small className="field-hint">可在社保APP或对账单查询</small>
               </div>
 
-              <div className="field">
-                <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, "zh")}</span></div>
-                <input type="range" min={800} max={6000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
+              {/* ── Calculated pension result ── */}
+              <div className="pension-result">
+                <div className="pension-result-label">预计每月养老金</div>
+                <div className="pension-result-amount">
+                  <span className="hl">{money(pensionCalc.total, "zh")}</span>
+                  <span className="pension-freq">/月</span>
+                </div>
+                <div className="pension-result-breakdown">
+                  <span>基础养老金 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
+                  <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
+                  <span>计发月数 <strong>{pensionCalc.months} 月</strong></span>
+                </div>
               </div>
 
               <div className="save-row">
@@ -864,12 +951,12 @@ export default function HomePage() {
                 <div className="k">退休后月收入来源</div>
                 <div className="breakdown-row">
                   <span>投资组合提现</span>
-                  <strong>{money(Math.max(0, spend - pensionIncome), "zh")}<span className="breakdown-freq">/月</span></strong>
+                  <strong>{money(Math.max(0, spend - pensionCalc.total), "zh")}<span className="breakdown-freq">/月</span></strong>
                 </div>
-                {pensionIncome > 0 ? (
+                {pensionCalc.total > 0 ? (
                   <div className="breakdown-row">
                     <span>养老金 / 社保</span>
-                    <strong>{money(pensionIncome, "zh")}<span className="breakdown-freq">/月</span></strong>
+                    <strong>{money(pensionCalc.total, "zh")}<span className="breakdown-freq">/月</span></strong>
                   </div>
                 ) : null}
                 <div className="breakdown-row breakdown-total">
@@ -911,75 +998,69 @@ export default function HomePage() {
             <div className="desc">{copy.budgetLead}</div>
           </div>
 
-          {hasClerk ? (
-            <>
-              <SignedIn>
-                <div className="budget-grid">
-                  {(
-                    [
-                      { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                      { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                      { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                    ] as const
-                  ).map((plan) => {
-                    const active = budgetMode === plan.key;
-                    return (
-                      <button
-                        key={plan.key}
-                        type="button"
-                        className={`budget-card ${active ? "budget-card-active" : ""}`}
-                        onClick={() => applyBudgetMode(plan.key)}
-                      >
-                        <div className="budget-pill">{copy.selectedPlan}</div>
-                        <h3>{plan.label}</h3>
-                        <p>{plan.text}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mode-copy">{budgetMode === "low" ? copy.lowBudgetCopy : budgetMode === "balanced" ? copy.balancedBudgetCopy : copy.fullBudgetCopy}</p>
-              </SignedIn>
-              <SignedOut>
-                <p className="mode-copy auth-warning">{copy.budgetLocked}</p>
-                <div className="budget-grid">
-                  {(
-                    [
-                      { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                      { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                      { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                    ] as const
-                  ).map((plan) => (
-                    <SignInButton key={plan.key} mode="modal">
-                      <button type="button" className="budget-card budget-card-locked" aria-disabled="true">
-                        <div className="budget-pill">{copy.selectedPlan}</div>
-                        <h3>{plan.label}</h3>
-                        <p>{plan.text}</p>
-                      </button>
-                    </SignInButton>
-                  ))}
-                </div>
-              </SignedOut>
-            </>
-          ) : (
-            <>
-              <p className="mode-copy auth-warning">{copy.authMissing}</p>
-              <div className="budget-grid">
-                {(
-                  [
-                    { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                    { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                    { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                  ] as const
-                ).map((plan) => (
-                  <div key={plan.key} className="budget-card budget-card-disabled" aria-disabled="true">
-                    <div className="budget-pill">{copy.selectedPlan}</div>
+          <div className="budget-grid">
+            {(
+              [
+                { key: "low",      label: copy.lowBudgetLabel,      text: copy.lowBudgetCopy      },
+                { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
+                { key: "full",     label: copy.fullBudgetLabel,     text: copy.fullBudgetCopy     }
+              ] as const
+            ).map((plan) => {
+              const active = budgetMode === plan.key;
+              const open = expandedBudget === plan.key;
+              return (
+                <div key={plan.key} className={`budget-card ${active ? "budget-card-active" : ""} ${open ? "budget-card-open" : ""}`}>
+                  <button
+                    type="button"
+                    className="budget-card-header"
+                    onClick={() => {
+                      applyBudgetMode(plan.key);
+                      setExpandedBudget(open ? null : plan.key);
+                    }}
+                    aria-expanded={open}
+                  >
+                    {active && <div className="budget-pill">{copy.selectedPlan}</div>}
                     <h3>{plan.label}</h3>
                     <p>{plan.text}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+                    <span className="budget-chevron" aria-hidden="true">{open ? "▲" : "▼"}</span>
+                  </button>
+
+                  {open && (
+                    <div className="budget-params">
+                      <div className="field">
+                        <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, "zh")}</span></div>
+                        <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, "zh")}</span></div>
+                        <input type="range" min={2000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, "zh")}</span></div>
+                        <input type="range" min={800} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, "zh")}</span></div>
+                        <input type="range" min={800} max={8000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.scenarioLabel}</span></div>
+                        <div className="scenario-toggle">
+                          {(["base", "optimistic", "stress"] as const).map((key) => (
+                            <button key={key} type="button"
+                              className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
+                              onClick={() => setScenario(key)}>
+                              {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         <section className="calc" id="stories">
@@ -995,6 +1076,9 @@ export default function HomePage() {
               <article key={story.name} className="story-card">
                 <div className="story-media">
                   <Image src={story.image} alt={story.name} fill className="story-image" />
+                </div>
+                <div className="story-savings-badge">
+                  节省 <span className="hl story-years">{story.yearsSaved} 年</span>，基于「{story.plan}」
                 </div>
                 <p className="story-quote">&ldquo;{story.text}&rdquo;</p>
                 <p className="story-name">{story.name}</p>
