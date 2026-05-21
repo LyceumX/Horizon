@@ -898,6 +898,24 @@ export default function HomePage() {
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
               </div>
 
+              <div className="income-breakdown">
+                <div className="k">Monthly income at retirement</div>
+                <div className="breakdown-row">
+                  <span>Portfolio withdrawal</span>
+                  <strong>{money(Math.max(0, spend - pensionIncome), "en")}<span className="breakdown-freq">/mo</span></strong>
+                </div>
+                {pensionIncome > 0 ? (
+                  <div className="breakdown-row">
+                    <span>Gov pension / CPP</span>
+                    <strong>{money(pensionIncome, "en")}<span className="breakdown-freq">/mo</span></strong>
+                  </div>
+                ) : null}
+                <div className="breakdown-row breakdown-total">
+                  <span>Total</span>
+                  <strong>{money(spend, "en")}<span className="breakdown-freq">/mo</span></strong>
+                </div>
+              </div>
+
               <details className="assumptions-fold">
                 <summary>
                   <span className="fold-label">{copy.assumptionsTitle}</span>

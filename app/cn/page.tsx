@@ -547,7 +547,7 @@ export default function HomePage() {
               <div className="hero-callout" aria-live="polite">
                 <div>
                   <span className="k">{copy.defaultRetireLabel}</span>
-                  <strong>{copy.defaultRetireValue}: {defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"} {true ? "岁" : "yrs"} · {defaultRetireYear}</strong>
+                  <strong><span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {true ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span></strong>
                 </div>
                 <div>
                   <span className="k">{copy.yearsSavedLabel}</span>
@@ -626,36 +626,7 @@ export default function HomePage() {
                   <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                 </label>
 
-                <label className="field">
-                  <div className="lbl"><span>{copy.country}</span><span className="val">{true ? currentCountry.label.zh : currentCountry.label.en}</span></div>
-                  <select
-                    value={country}
-                    onChange={(e) => {
-                      const nextCountry = e.target.value;
-                      if (COMING_SOON_COUNTRIES.has(nextCountry)) {
-                        return;
-                      }
-                      const nextCountryRecord = getCountry(nextCountry);
-                      const nextProvince = nextCountryRecord.provinces[0];
-                      const nextCity = nextProvince.cities[0];
-                      setCountry(nextCountry);
-                      setProvince(nextProvince.value);
-                      setCity(nextCity.value);
-                    }}
-                  >
-                    {REGIONS.map((item) => (
-                      <option key={item.value} value={item.value} disabled={COMING_SOON_COUNTRIES.has(item.value)}>
-                        {true ? item.label.zh : item.label.en}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                {COMING_SOON_COUNTRIES.has(country) ? (
-                  <p className="mode-copy">{true ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</p>
-                ) : null}
-
-                {country === "cn" || country === "sg" || country === "us" ? (
+                {true ? (
                   <>
                     <label className="field">
                       <div className="lbl"><span>{copy.province}</span><span className="val">{true ? currentProvince.label.zh : currentProvince.label.en}</span></div>
@@ -896,6 +867,24 @@ export default function HomePage() {
                   ))}
                 </div>
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
+              </div>
+
+              <div className="income-breakdown">
+                <div className="k">退休后月收入来源</div>
+                <div className="breakdown-row">
+                  <span>投资组合提现</span>
+                  <strong>{money(Math.max(0, spend - pensionIncome), "zh")}<span className="breakdown-freq">/月</span></strong>
+                </div>
+                {pensionIncome > 0 ? (
+                  <div className="breakdown-row">
+                    <span>养老金 / 社保</span>
+                    <strong>{money(pensionIncome, "zh")}<span className="breakdown-freq">/月</span></strong>
+                  </div>
+                ) : null}
+                <div className="breakdown-row breakdown-total">
+                  <span>合计</span>
+                  <strong>{money(spend, "zh")}<span className="breakdown-freq">/月</span></strong>
+                </div>
               </div>
 
               <details className="assumptions-fold">

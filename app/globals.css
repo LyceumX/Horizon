@@ -111,6 +111,59 @@ a {
   color: var(--mute);
 }
 
+/* Accent highlight for key numbers */
+.hl {
+  color: var(--accent);
+  font-style: normal;
+}
+
+/* Monthly income breakdown panel */
+.income-breakdown {
+  border: 0.5px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.breakdown-row span {
+  font: 400 12px var(--sans);
+  color: var(--mute);
+}
+
+.breakdown-row strong {
+  font: 600 15px var(--sans);
+  color: var(--ink);
+}
+
+.breakdown-total {
+  border-top: 0.5px solid var(--line);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.breakdown-total strong {
+  color: var(--accent);
+  font-size: 17px;
+}
+
+.breakdown-freq {
+  font: 400 10px var(--mono);
+  color: var(--mute);
+  margin-left: 3px;
+  letter-spacing: 0.08em;
+}
+
 /* CJK brand name — suppress Latin italic/thin defaults, use heavier weight */
 .brand-zh,
 .hero h1.brand-zh {

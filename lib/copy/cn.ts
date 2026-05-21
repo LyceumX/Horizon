@@ -96,7 +96,7 @@ export const CN_COPY: Copy = {
   heroBadge: "先定日期 · 共同规划",
   heroCaption: "更快制定计划，跟随成功路径，加速自由之日。",
   summaryTitle: "为什么选择 早早退休",
-  summaryLead: "把复杂计算变简单，把规则本地化，与同路人一起迭代。",
+  summaryLead: "全网扫描政策规则，实时更新算法。提供标准和自定义模版，一键完成退休规划。",
   summaryIntro: "丢掉表格，得到清晰日期、可执行方案和成长社群。",
   customizeTitle: "先自定义基础参数",
   customizeDesc: "无需注册，先免费体验，并可保存到本地浏览器。",

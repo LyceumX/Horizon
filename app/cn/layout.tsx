@@ -10,8 +10,8 @@ const notoSansSc = Noto_Sans_SC({ subsets: ["latin"], weight: ["300","400","500"
 const notoSerifSc = Noto_Serif_SC({ subsets: ["latin"], weight: ["300","400","500","700","900"], variable: "--font-noto-serif-sc" });
 
 export const metadata: Metadata = {
-  title: "Horizon — 锁定你的自由之日",
-  description: "把复杂的退休规则变成极简方案",
+  title: "早早退休 — 你的退休规划 AI 助手",
+  description: "输入收支，实时看到你的退休日期。",
 };
 
 export default function CNLayout({ children }: { children: React.ReactNode }) {
