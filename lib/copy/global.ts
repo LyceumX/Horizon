@@ -87,7 +87,7 @@ export type Copy = {
 };
 
 export const GLOBAL_COPY: Copy = {
-  brand: "Meet Your Freedom Date.",
+  brand: "Horizon",
   since: "Since 2026",
   nav: { summary: "Summary", customize: "Retirement Planner", budget: "Budget Templates", stories: "Best Practices" },
   goal: "Retire with clarity, not spreadsheets.",

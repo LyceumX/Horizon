@@ -379,7 +379,7 @@ export default function HomePage() {
                 <span className="lang-sep" aria-hidden="true">|</span>
                 <button type="button" className={`lang-opt${lang === "zh" ? " lang-active" : ""}`} onClick={() => setLang("zh")}>中文</button>
               </span>
-              <a className="lang-switch site-switch" href="https://cn.horizone.cc.cd">China →</a>
+              <a className="icon-btn" href="https://cn.horizone.cc.cd" title="China site" aria-label="Switch to China site">C</a>
             </div>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
