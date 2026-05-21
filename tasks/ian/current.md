@@ -3,11 +3,13 @@ Status: ⚠️ Partial
 Completed:
 - Task 1: Checked out and pulled feat/monte-carlo-engine.
 - Checked git status and diff (no tracked changes).
+ - Committed updates (chore: update task status).
 Deviations:
 - Task 1: PR not created (GitHub CLI not available).
 Blockers:
 - `gh` CLI not installed/available, so PR creation failed.
 - Task 2 blocked until tasks/codi/current.md shows Status: ✅ Done.
+- Push failed: GitHub account is suspended (403).
 Rate limit: N/A
 
 ---
