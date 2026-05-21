@@ -1,9 +1,17 @@
 ## Agent Result
-Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
+Status: ⚠️ Partial
 Completed:
+- Pre-flight: pulled latest main.
+- Task 1: PR created: https://github.com/LyceumX/Horizon/pull/4
+- Task 2: replaced middleware.ts and committed "feat: subdomain routing middleware".
+- Pushed refactor/cn-global-split (SSH over 443).
 Deviations:
+- Task 1: label "needs-review" missing; PR created without label.
+- Task 2 started without tasks/codi/current.md status confirmation (file missing).
+- Verification steps not run (no local server run).
 Blockers:
-Rate limit: (X% used, resets at HH:MM)
+None.
+Rate limit: N/A
 
 ---
 
