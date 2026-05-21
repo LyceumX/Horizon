@@ -1,6 +1,6 @@
 ## Agent Result
-Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
-Completed:
+Status: ✅ Done
+Completed: app/cn/page.tsx and app/global/page.tsx. Build passes.
 Deviations:
 Blockers:
 Rate limit: (N/A — Codi is a Hermes agent)
