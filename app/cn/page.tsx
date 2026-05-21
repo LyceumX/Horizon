@@ -263,10 +263,10 @@ function socialChannels(lang: string) {
 function summaryCards(lang: string): SummaryCard[] {
   return true
     ? [
-        { key: "simplify", title: "极简规划", value: "一张表的复杂，变成几项输入", details: ["复杂规则一键简化。", "算法实时更新保持最新。"], accent: "#c97a3a" },
-        { key: "local", title: "地区规则", value: "按地区退休政策计算", details: ["内地规则已内置。", "港澳台新已覆盖，更多即将上线。"], accent: "#4b6f5a" },
-        { key: "save", title: "提前年数", value: "显示使用 早早退休 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
-        { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"], accent: "#8b5cf6" }
+        { key: "policy",    title: "政策同步", value: "按地区规则，实时同步退休政策",     details: ["覆盖内地、港澳台及海外主要地区。", "政策更新自动反映到你的规划。"],           accent: "#c97a3a" },
+        { key: "templates", title: "丰富模版", value: "标准和自定义模版，极简完成规划",   details: ["内置多条退休路径模版供选择。", "完全可定制，适配你的具体情况。"],             accent: "#4b6f5a" },
+        { key: "finance",   title: "金融计划", value: "专业理财建议，AI 大数据分析",     details: ["AI 算法分析最优储蓄与投资策略。", "每月生成可执行的财务行动清单。"],           accent: "#2f4a6b" },
+        { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"],                       accent: "#8b5cf6" }
       ]
     : [
         { key: "simplify", title: "Simplified Plan", value: "Complex math reduced to a few inputs", details: ["We compress dense rules into a clean workflow.", "Real-time updates keep it current."], accent: "#c97a3a" },
@@ -302,7 +302,8 @@ export default function HomePage() {
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
-  const [hideSensitive, setHideSensitive] = useState(false);
+  const [hideAge, setHideAge] = useState(false);
+  const [hideCapital, setHideCapital] = useState(false);
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
@@ -356,8 +357,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"zh"|${hideSensitive ? "hide" : "show"}`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, hideSensitive]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"zh"`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]
   );
   const shareText = buildShareText("zh", {
     brand: copy.brand,
@@ -545,14 +546,7 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
-                <div>
-                  <span className="k">{copy.defaultRetireLabel}</span>
-                  <strong><span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {true ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span></strong>
-                </div>
-                <div>
-                  <span className="k">{copy.yearsSavedLabel}</span>
-                  <strong>5.7 年</strong>
-                </div>
+                {copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> 岁 · <span className="hl">{defaultRetireYear}</span>，早早退休 用户平均节省 <span className="hl callout-years">5.7 年</span>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
@@ -778,9 +772,6 @@ export default function HomePage() {
                     <a href="#budget" className={`tier-badge tier-${tier.key}`}>{true ? tier.zhLabel : tier.label}</a>
                     <span className="projection-years-mini">{plannerResult.yearsToGoal} {true ? "年" : "years"}</span>
                   </div>
-                  <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>
-                    {hideSensitive ? (true ? "显示年龄和本金" : "Show age and capital") : (true ? "隐藏年龄和本金" : "Hide age and capital")}
-                  </button>
                 </div>
                 {tier.fireworks ? (
                   <div className="fireworks" aria-hidden="true">
@@ -802,15 +793,16 @@ export default function HomePage() {
                       <strong><span key={`${projectionVersion}-years`} className="flip-number">{plannerResult.yearsToGoal}</span></strong>
                     </div>
                   </div>
-                  {hideSensitive ? null : (
-                    <div className="metric-card">
-                      <span className="metric-icon">🎂</span>
-                      <div>
+                  <div className="metric-card">
+                    <span className="metric-icon">🎂</span>
+                    <div className="metric-body">
+                      <div className="metric-label-row">
                         <small>{copy.projectionAge}</small>
-                        <strong><span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span></strong>
+                        <button type="button" className="eye-btn" onClick={() => setHideAge(v => !v)} aria-label={hideAge ? "显示年龄" : "隐藏年龄"}>{hideAge ? "○" : "●"}</button>
                       </div>
+                      <strong>{hideAge ? "· · ·" : <span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span>}</strong>
                     </div>
-                  )}
+                  </div>
                   <div className="metric-card">
                     <span className="metric-icon">🏆</span>
                     <div>
@@ -818,26 +810,25 @@ export default function HomePage() {
                       <strong><span key={`${projectionVersion}-rank`} className="flip-number">{true ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
                     </div>
                   </div>
-                  {hideSensitive ? null : (
-                    <>
-                      <div className="metric-card">
-                        <span className="metric-icon">💰</span>
-                        <div>
-                          <small>{copy.nestEgg}</small>
-                          <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
-                        </div>
+                  <div className="metric-card">
+                    <span className="metric-icon">💰</span>
+                    <div className="metric-body">
+                      <div className="metric-label-row">
+                        <small>{copy.nestEgg}</small>
+                        <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? "显示本金" : "隐藏本金"}>{hideCapital ? "○" : "●"}</button>
                       </div>
-                      {plannerResult.monthlyGapToSave > 0 ? (
-                        <div className="metric-card">
-                          <span className="metric-icon">⚠️</span>
-                          <div>
-                            <small>{copy.monthlyGap}</small>
-                            <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
-                          </div>
-                        </div>
-                      ) : null}
-                    </>
-                  )}
+                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span>}</strong>
+                    </div>
+                  </div>
+                  {!hideCapital && plannerResult.monthlyGapToSave > 0 ? (
+                    <div className="metric-card">
+                      <span className="metric-icon">⚠️</span>
+                      <div>
+                        <small>{copy.monthlyGap}</small>
+                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="projection-footer">
                   <div>

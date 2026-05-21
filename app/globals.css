@@ -407,22 +407,52 @@ main {
 
 .hero-callout {
   margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  padding: 14px 16px;
+  padding: 14px 18px;
   border-radius: 16px;
   border: 0.5px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 70%, transparent);
+  font: 400 13px var(--sans);
+  color: var(--mute);
+  line-height: 1.8;
 }
 
-.hero-callout .k {
-  display: block;
-  font: 500 10px var(--mono);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.callout-years {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+/* Per-card eye toggle */
+.metric-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.eye-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 2px 5px;
+  cursor: pointer;
+  font-size: 12px;
   color: var(--mute);
-  margin-bottom: 6px;
+  border-radius: 6px;
+  transition: color 140ms ease, background 140ms ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.eye-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .hero-callout strong {
@@ -472,6 +502,14 @@ main {
   background: var(--btn-ghost-bg);
   color: var(--btn-ghost-text);
   border-color: var(--btn-ghost-border);
+}
+
+.btn.ghost:hover:not(:disabled),
+.btn.ghost:focus-visible:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 50%, var(--accent));
+  box-shadow: 0 6px 16px rgba(36, 30, 20, 0.08);
 }
 
 .btn.locked {
@@ -760,13 +798,13 @@ main {
 .calc-grid {
   display: grid;
   grid-template-columns: 0.56fr 0.44fr;
-  gap: 42px;
+  gap: 56px;
 }
 
 .calc-form {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 28px;
 }
 
 .save-row {
@@ -824,7 +862,7 @@ main {
 .share-card {
   border: 0.5px solid var(--line);
   border-radius: 18px;
-  padding: 24px;
+  padding: 28px;
   background: var(--paper-2);
 }
 

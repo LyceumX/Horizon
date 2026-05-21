@@ -302,7 +302,8 @@ export default function HomePage() {
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
-  const [hideSensitive, setHideSensitive] = useState(false);
+  const [hideAge, setHideAge] = useState(false);
+  const [hideCapital, setHideCapital] = useState(false);
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
@@ -356,8 +357,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"en"|${hideSensitive ? "hide" : "show"}`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, hideSensitive]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"en"`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]
   );
   const shareText = buildShareText("en", {
     brand: copy.brand,
@@ -807,9 +808,6 @@ export default function HomePage() {
                     <a href="#budget" className={`tier-badge tier-${tier.key}`}>{false ? tier.zhLabel : tier.label}</a>
                     <span className="projection-years-mini">{plannerResult.yearsToGoal} {false ? "年" : "years"}</span>
                   </div>
-                  <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>
-                    {hideSensitive ? (false ? "显示年龄和本金" : "Show age and capital") : (false ? "隐藏年龄和本金" : "Hide age and capital")}
-                  </button>
                 </div>
                 {tier.fireworks ? (
                   <div className="fireworks" aria-hidden="true">
@@ -831,15 +829,16 @@ export default function HomePage() {
                       <strong><span key={`${projectionVersion}-years`} className="flip-number">{plannerResult.yearsToGoal}</span></strong>
                     </div>
                   </div>
-                  {hideSensitive ? null : (
-                    <div className="metric-card">
-                      <span className="metric-icon">🎂</span>
-                      <div>
+                  <div className="metric-card">
+                    <span className="metric-icon">🎂</span>
+                    <div className="metric-body">
+                      <div className="metric-label-row">
                         <small>{copy.projectionAge}</small>
-                        <strong><span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span></strong>
+                        <button type="button" className="eye-btn" onClick={() => setHideAge(v => !v)} aria-label={hideAge ? "Show age" : "Hide age"}>{hideAge ? "○" : "●"}</button>
                       </div>
+                      <strong>{hideAge ? "· · ·" : <span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span>}</strong>
                     </div>
-                  )}
+                  </div>
                   <div className="metric-card">
                     <span className="metric-icon">🏆</span>
                     <div>
@@ -847,26 +846,25 @@ export default function HomePage() {
                       <strong><span key={`${projectionVersion}-rank`} className="flip-number">{false ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
                     </div>
                   </div>
-                  {hideSensitive ? null : (
-                    <>
-                      <div className="metric-card">
-                        <span className="metric-icon">💰</span>
-                        <div>
-                          <small>{copy.nestEgg}</small>
-                          <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "en")}</span></strong>
-                        </div>
+                  <div className="metric-card">
+                    <span className="metric-icon">💰</span>
+                    <div className="metric-body">
+                      <div className="metric-label-row">
+                        <small>{copy.nestEgg}</small>
+                        <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? "Show capital" : "Hide capital"}>{hideCapital ? "○" : "●"}</button>
                       </div>
-                      {plannerResult.monthlyGapToSave > 0 ? (
-                        <div className="metric-card">
-                          <span className="metric-icon">⚠️</span>
-                          <div>
-                            <small>{copy.monthlyGap}</small>
-                            <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "en")}</span></strong>
-                          </div>
-                        </div>
-                      ) : null}
-                    </>
-                  )}
+                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "en")}</span>}</strong>
+                    </div>
+                  </div>
+                  {!hideCapital && plannerResult.monthlyGapToSave > 0 ? (
+                    <div className="metric-card">
+                      <span className="metric-icon">⚠️</span>
+                      <div>
+                        <small>{copy.monthlyGap}</small>
+                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "en")}</span></strong>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="projection-footer">
                   <div>

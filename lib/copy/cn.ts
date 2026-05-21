@@ -92,7 +92,7 @@ export const CN_COPY: Copy = {
   nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
   goal: "退休规划，不再靠表格。",
   slogan: "输入收支，实时看到你的退休日期。每一次调整，都让自由提前一点。",
-  interest: "丢掉 Excel，参考最佳实践，看到使用 早早退休 节省的年数，与同路人一起坚持。",
+  interest: "丢掉 Excel，参考最佳实践，锁定 早早退休 节省的年数，与同路人一起加油，早日告别“卷生活”。",
   heroBadge: "先定日期 · 共同规划",
   heroCaption: "更快制定计划，跟随成功路径，加速自由之日。",
   summaryTitle: "为什么选择 早早退休",
@@ -118,7 +118,7 @@ export const CN_COPY: Copy = {
     specialMale: "特殊工种（男）",
     specialFemale: "特殊工种（女）",
   },
-  defaultRetireLabel: "法定退休基准",
+  defaultRetireLabel: "本地法定退休基准",
   defaultRetireValue: "默认退休年龄",
   yearsSavedLabel: "用户平均节省",
   retirementDisclaimer: "仅供参考，具体政策以当地规定为准。",
@@ -187,7 +187,7 @@ export const CN_COPY: Copy = {
   multiplierLabel: "安全倍数",
   pensionIncome: "社保/公积金预计月收入（可选）",
   storiesTitle: "最佳实践",
-  storiesLead: "跟随那些节省多年的人，分享你的方法并一起成长（即将上线）。",
+  storiesLead: "借鉴他人的最佳实践，也可以分享自己的心得经验，甚至赚取佣金！（即将上线）",
   stories: [
     {
       name: "林薇",
