@@ -87,15 +87,15 @@ export type Copy = {
 };
 
 export const CN_COPY: Copy = {
-  brand: "锁定你的自由之日。",
+  brand: "早早退休",
   since: "自2026",
   nav: { summary: "摘要", customize: "参数", budget: "预算方案", stories: "真实故事" },
   goal: "退休规划，不再靠表格。",
-  slogan: "Horizon 把复杂的地区规则变成极简方案，并实时更新。先看自由日期，再用每月选择把它提前。",
-  interest: "丢掉 Excel，参考最佳实践，看到使用 Horizon 节省的年数，与同路人一起坚持。",
+  slogan: "早早退休 把复杂的地区规则变成极简方案，并实时更新。先看自由日期，再用每月选择把它提前。",
+  interest: "丢掉 Excel，参考最佳实践，看到使用 早早退休 节省的年数，与同路人一起坚持。",
   heroBadge: "先定日期 · 共同规划",
   heroCaption: "更快制定计划，跟随成功路径，加速自由之日。",
-  summaryTitle: "为什么选择 Horizon Day 1",
+  summaryTitle: "为什么选择 早早退休",
   summaryLead: "把复杂计算变简单，把规则本地化，与同路人一起迭代。",
   summaryIntro: "丢掉表格，得到清晰日期、可执行方案和成长社群。",
   customizeTitle: "先自定义基础参数",
@@ -120,7 +120,7 @@ export const CN_COPY: Copy = {
   },
   defaultRetireLabel: "法定退休基准",
   defaultRetireValue: "默认退休年龄",
-  yearsSavedLabel: "使用 Horizon 节省年数",
+  yearsSavedLabel: "使用 早早退休 节省年数",
   retirementDisclaimer: "仅供参考，具体政策以当地规定为准。",
   save: "每月可储蓄",
   spend: "你认为“足够”的月花费",
@@ -193,7 +193,7 @@ export const CN_COPY: Copy = {
       name: "林薇",
       role: "产品负责人 · 上海",
       image: "/assets/Stories_image_1.webp",
-      text: "Horizon 把模糊目标变成了日期，再变成了我能坚持的计划。",
+      text: "早早退休 把模糊目标变成了日期，再变成了我能坚持的计划。",
     },
     {
       name: "俊凯",

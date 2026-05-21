@@ -171,12 +171,11 @@ Expected: build succeeds with no new errors.
 
 ---
 
-## Step 4 — Commit and push
+## Step 4 — Commit (do not push — planner handles pushes)
 
 ```bash
 git add app/globals.css
 git commit -m "feat: add CSS for scenario toggle and assumptions panel"
-git push origin feat/phase2-planner-core
 ```
 
 ---

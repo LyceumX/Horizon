@@ -265,7 +265,7 @@ function summaryCards(lang: string): SummaryCard[] {
     ? [
         { key: "simplify", title: "极简规划", value: "一张表的复杂，变成几项输入", details: ["复杂规则一键简化。", "算法实时更新保持最新。"], accent: "#c97a3a" },
         { key: "local", title: "地区规则", value: "按地区退休政策计算", details: ["内地规则已内置。", "港澳台新已覆盖，更多即将上线。"], accent: "#4b6f5a" },
-        { key: "save", title: "提前年数", value: "显示使用 Horizon 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
+        { key: "save", title: "提前年数", value: "显示使用 早早退休 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
         { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"], accent: "#8b5cf6" }
       ]
     : [

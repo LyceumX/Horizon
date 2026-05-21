@@ -12,7 +12,7 @@ Rate limit: (N/A — Codi is a Hermes agent)
 **Branch:** `feat/phase2-planner-core`
 **Repo:** `/Users/ianxie/GitHub/Horizon`
 
-Three tasks. Run them in order. Run `npm run build` after each. Do not commit if build fails.
+Three tasks. Run them in order. Run `npm run build` after each. Do not commit if build fails. Do not push — the planner handles all pushes.
 
 ---
 
@@ -87,7 +87,6 @@ Expected: build succeeds.
 ```bash
 git add app/cn/page.tsx
 git commit -m "fix: wrap CN page capital+gap cards in fragment inside hideSensitive conditional"
-git push origin feat/phase2-planner-core
 ```
 
 ---
@@ -174,7 +173,6 @@ Expected: build succeeds.
 ```bash
 git add lib/copy/cn.ts app/cn/page.tsx
 git commit -m "feat: rename CN brand to 早早退休 across all user-facing copy"
-git push origin feat/phase2-planner-core
 ```
 
 ---
@@ -517,7 +515,6 @@ Fix any TypeScript errors. Then:
 ```bash
 git add app/global/page.tsx
 git commit -m "feat: wire Global page to calculateHorizonDay1, add inputs for income/expenses/savings/pension/scenario"
-git push origin feat/phase2-planner-core
 ```
 
 ---
