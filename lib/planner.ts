@@ -9,6 +9,7 @@ export type PlannerInput = {
   annualReturnRate: number;
   annualInflationRate: number;
   multiplier: number;
+  pensionIncome?: number;
 };
 
 export type PlannerResult = {
@@ -24,13 +25,46 @@ export type PlannerResult = {
   };
 };
 
+export type ScenarioPreset = {
+  label: string;
+  labelZh: string;
+  annualReturnRate: number;
+  annualInflationRate: number;
+  multiplier: number;
+};
+
+export const SCENARIO_PRESETS: Record<"base" | "optimistic" | "stress", ScenarioPreset> = {
+  base: {
+    label: "Base",
+    labelZh: "基准",
+    annualReturnRate: 0.06,
+    annualInflationRate: 0.02,
+    multiplier: 25
+  },
+  optimistic: {
+    label: "Optimistic",
+    labelZh: "乐观",
+    annualReturnRate: 0.08,
+    annualInflationRate: 0.015,
+    multiplier: 25
+  },
+  stress: {
+    label: "Stress",
+    labelZh: "压力",
+    annualReturnRate: 0.04,
+    annualInflationRate: 0.03,
+    multiplier: 30
+  }
+};
+
 export function calculateHorizonDay1(input: PlannerInput): PlannerResult {
   const now = new Date();
   const monthlySurplus = input.monthlyIncome - input.monthlyExpenses;
   const annualTargetSpend = input.monthlyTargetSpendAtRetirement * 12;
+  const annualPensionIncome = (input.pensionIncome ?? 0) * 12;
+  const netAnnualTargetSpend = Math.max(0, annualTargetSpend - annualPensionIncome);
 
-  // Inflate retirement target in projection loop to keep a conservative real-value target.
-  let target = annualTargetSpend * input.multiplier;
+  let target = netAnnualTargetSpend * input.multiplier;
   let portfolio = input.currentSavings;
 
   const monthlyReturn = Math.pow(1 + input.annualReturnRate, 1 / 12) - 1;
@@ -52,9 +86,10 @@ export function calculateHorizonDay1(input: PlannerInput): PlannerResult {
   const horizonDate = new Date(now);
   horizonDate.setMonth(horizonDate.getMonth() + months);
 
-  const requiredContribution = target > portfolio && months >= maxMonths
-    ? Math.max(0, (target - portfolio) / maxMonths)
-    : 0;
+  const requiredContribution =
+    target > portfolio && months >= maxMonths
+      ? Math.max(0, (target - portfolio) / maxMonths)
+      : 0;
 
   return {
     horizonDay1: horizonDate.toISOString().slice(0, 10),
