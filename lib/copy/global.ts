@@ -91,8 +91,7 @@ export const GLOBAL_COPY: Copy = {
   since: "Since 2026",
   nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
   goal: "Retire with clarity, not spreadsheets.",
-  slogan:
-    "Horizon turns complex regional rules into a simple plan, updated in real time. See your freedom date, then shorten it with intentional monthly choices.",
+  slogan: "Enter your income and goals — see your retirement date instantly. Every adjustment brings freedom one step closer.",
   interest:
     "Discard Excel. Follow proven playbooks, compare years saved with Horizon, and stay accountable with people on the same timeline.",
   heroBadge: "Date-first planning · community-driven",
@@ -122,7 +121,7 @@ export const GLOBAL_COPY: Copy = {
   },
   defaultRetireLabel: "Local statutory retirement",
   defaultRetireValue: "Default retirement age",
-  yearsSavedLabel: "Years saved with Horizon",
+  yearsSavedLabel: "Average users save",
   retirementDisclaimer: "Informational estimates only. Policies vary by region.",
   save: "Monthly savings",
   spend: "Monthly cost of enough",

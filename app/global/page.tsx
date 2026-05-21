@@ -527,6 +527,7 @@ export default function HomePage() {
           </div>
 
           <div className="nav-cta">
+            <a className="lang-switch" href="https://cn.horizone.cc.cd">中文</a>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
             </button>
@@ -550,7 +551,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <span className="k">{copy.yearsSavedLabel}</span>
-                  <strong>{yearsSaved.toFixed(1)} {false ? "年" : "yrs"}</strong>
+                  <strong>5.7 yrs</strong>
                 </div>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
@@ -803,7 +804,7 @@ export default function HomePage() {
                 <div className="k">{copy.projectionTitle}</div>
                 <div className="projection-topline">
                   <div className="projection-title-stack">
-                    <span className={`tier-badge tier-${tier.key}`}>{false ? tier.zhLabel : tier.label}</span>
+                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{false ? tier.zhLabel : tier.label}</a>
                     <span className="projection-years-mini">{plannerResult.yearsToGoal} {false ? "年" : "years"}</span>
                   </div>
                   <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>

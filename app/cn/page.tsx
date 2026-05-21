@@ -513,7 +513,7 @@ export default function HomePage() {
     <>
       <nav className="nav">
         <div className="nav-inner">
-          <a className="brand" href="#">
+          <a className="brand brand-zh" href="#">
             <span className="dot"></span>
             {copy.brand}
             <small>{copy.since}</small>
@@ -527,6 +527,7 @@ export default function HomePage() {
           </div>
 
           <div className="nav-cta">
+            <a className="lang-switch" href="https://horizone.cc.cd">EN</a>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
             </button>
@@ -540,7 +541,7 @@ export default function HomePage() {
           <div className="hero-layout">
             <div className="hero-copy">
               <span className="eyebrow"><span className="ln"></span>{copy.goal}</span>
-              <h1>{copy.brand}</h1>
+              <h1 className="brand-zh">{copy.brand}</h1>
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
@@ -550,7 +551,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <span className="k">{copy.yearsSavedLabel}</span>
-                  <strong>{yearsSaved.toFixed(1)} {true ? "年" : "yrs"}</strong>
+                  <strong>5.7 年</strong>
                 </div>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
@@ -803,7 +804,7 @@ export default function HomePage() {
                 <div className="k">{copy.projectionTitle}</div>
                 <div className="projection-topline">
                   <div className="projection-title-stack">
-                    <span className={`tier-badge tier-${tier.key}`}>{true ? tier.zhLabel : tier.label}</span>
+                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{true ? tier.zhLabel : tier.label}</a>
                     <span className="projection-years-mini">{plannerResult.yearsToGoal} {true ? "年" : "years"}</span>
                   </div>
                   <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>
