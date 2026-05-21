@@ -1,0 +1,21 @@
+<page>
+  <view class="container">
+    <!-- 主 WebView 区域 -->
+    <web-view
+      wx:if="{{webUrl}}"
+      src="{{webUrl}}"
+      bindload="onWebViewLoad"
+      binderror="onWebViewError"
+      bindmessage="onWebViewMessage"
+    ></web-view>
+
+    <!-- URL 未配置时的提示 -->
+    <view wx:else class="placeholder">
+      <view class="placeholder-icon">HZ</view>
+      <view class="placeholder-title">Horizon Zero</view>
+      <view class="placeholder-desc">
+        请在 app.js 中将 webUrl 替换为你的 Vercel 部署域名
+      </view>
+    </view>
+  </view>
+</page>
