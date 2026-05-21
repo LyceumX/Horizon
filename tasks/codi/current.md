@@ -1,9 +1,9 @@
 ## Agent Result
-Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
-Completed:
-Deviations:
-Blockers:
-Rate limit: (N/A — Codi is a Hermes agent)
+Status: ✅ Done
+Completed: All three tasks executed — (A) fixed JSX syntax error wrapping capital+gap cards in fragment inside hideSensitive conditional in CN page, (B) renamed CN brand from "Horizon" to "早早退休" across all CN-facing copy (6 strings in cn.ts + 1 in page.tsx), (C) wired Global page to calculateHorizonDay1 with 14 sub-steps: import, Copy type extension, state variable replacement, calcProjection deletion, useMemo replacement, all projection→plannerResult reference swaps, applyBudgetMode/saveLocal/localStorage/saveCloud updates, scenario toggle + new input sliders, assumptions panel, and metric card updates. Build passes, all committed locally.
+Deviations: None — all changes followed spec exactly.
+Blockers: Git push still fails (HTTPS token and SSH both timeout with exit 128). Planner (Claude Code) handles all pushes per project convention.
+Rate limit: N/A — Codi is a Hermes agent
 
 ---
 
