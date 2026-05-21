@@ -1,20 +1,21 @@
 ## Agent Result
-Status: ⚠️ Partial
+Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
 Completed:
-- Task 1: Checked out and pulled feat/monte-carlo-engine.
-- Checked git status and diff (no tracked changes).
-- Committed updates (chore: update task status).
 Deviations:
-- Task 1: PR not created (GitHub CLI not available).
 Blockers:
-- `gh` CLI not installed/available, so PR creation failed.
-- Task 2 blocked: tasks/codi/current.md is missing, so status cannot be verified.
-- Push failed: GitHub account is suspended (403).
-Rate limit: N/A
+Rate limit: (X% used, resets at HH:MM)
 
 ---
 
 # Ian's Tasks (run in order)
+
+---
+
+## Pre-flight: pull latest
+
+```bash
+git pull origin main
+```
 
 ---
 
@@ -28,11 +29,13 @@ git checkout feat/monte-carlo-engine
 git pull origin feat/monte-carlo-engine
 ```
 
-`lib/monte-carlo.ts` and `tests/monte-carlo.test.ts` are already committed. Open the PR:
+`lib/monte-carlo.ts` and `tests/monte-carlo.test.ts` are already committed. Open the PR on GitHub:
 
-```bash
-gh pr create --title "feat: Monte Carlo simulation engine" --body "Adds Monte Carlo simulation engine with Box-Muller transform for retirement date uncertainty modelling. Spec: C:\Users\ianxi\Obsidian\Lyceum\5_Horizon\Specs\2026-05-20-monte-carlo-engine.md" --label "needs-review" --base main
-```
+1. Go to https://github.com/LyceumX/Horizon
+2. Click "Compare & pull request" for `feat/monte-carlo-engine`
+3. Title: `feat: Monte Carlo simulation engine`
+4. Body: `Adds Monte Carlo simulation engine with Box-Muller transform for retirement date uncertainty modelling.`
+5. Base: `main` → Submit
 
 ---
 
