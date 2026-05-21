@@ -132,18 +132,24 @@ export function getDefaultRetireDate(region: Region, dob: string, category: Main
     return null;
   }
 
-  // Statutory retirement ages by region (standard / general category)
-  const RETIRE_AGE: Partial<Record<Region, number>> = {
-    // Asia-Pacific
+  // Statutory retirement ages by region.
+  // Some countries have gender-differentiated ages; female_pro / female_worker = female.
+  const isFemale = category === "female_pro" || category === "female_worker" || category === "special_female";
+
+  const RETIRE_AGE_MALE: Partial<Record<Region, number>> = {
     au: 67, jp: 65, kr: 63, ca: 65, nz: 65, my: 60,
-    // EMEA Europe
     de: 67, fr: 64, nl: 67, ch: 65, se: 65, no: 67,
     dk: 67, es: 65, it: 67, pl: 65, tr: 60, il: 67,
-    // EMEA Middle East & Africa
-    ae: 60, sa: 60, za: 60,
+    ae: 60, sa: 60, za: 65,
+  };
+  const RETIRE_AGE_FEMALE: Partial<Record<Region, number>> = {
+    // Countries with lower female retirement ages
+    pl: 60, tr: 58, sa: 55, za: 60,
+    kr: 63, my: 60,
   };
 
-  const age = RETIRE_AGE[region] ?? 65;
+  const ageMap = isFemale ? { ...RETIRE_AGE_MALE, ...RETIRE_AGE_FEMALE } : RETIRE_AGE_MALE;
+  const age = ageMap[region] ?? 65;
   return addMonths(birthDate, age * 12);
 }
 

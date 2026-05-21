@@ -503,8 +503,8 @@ export default function HomePage() {
                   <label className="field">
                     <div className="lbl"><span>{copy.gender}</span></div>
                     <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                      <option value="male">{copy.genderOptions.male}</option>
-                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                      <option value="male">{copy.genderSimple.male}</option>
+                      <option value="female_pro">{copy.genderSimple.female}</option>
                     </select>
                   </label>
                 )}
