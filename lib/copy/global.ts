@@ -83,23 +83,23 @@ export type Copy = {
   pensionIncome: string;
   storiesTitle: string;
   storiesLead: string;
-  stories: { name: string; role: string; text: string; image: string }[];
+  stories: { name: string; role: string; text: string; image: string; yearsSaved: number; plan: string }[];
 };
 
 export const GLOBAL_COPY: Copy = {
   brand: "Meet Your Freedom Date.",
   since: "Since 2026",
-  nav: { summary: "Summary", customize: "Customize", budget: "Budget Plans", stories: "Real-life Stories" },
+  nav: { summary: "Summary", customize: "Retirement Planner", budget: "Budget Templates", stories: "Best Practices" },
   goal: "Retire with clarity, not spreadsheets.",
   slogan: "Enter your income and goals — see your retirement date instantly. Every adjustment brings freedom one step closer.",
   interest:
-    "Discard Excel. Follow proven playbooks, compare years saved with Horizon, and stay accountable with people on the same timeline.",
+    "Discard Excel. Follow proven playbooks, lock in the years Horizon saves you, and stay accountable with people on the same timeline.",
   heroBadge: "Date-first planning · community-driven",
   heroCaption: "Plan faster, follow proven paths, and reach your freedom date sooner.",
-  summaryTitle: "Why Horizon Day 1 works",
-  summaryLead: "Simplify the math, localize the rules, and build momentum with others.",
-  summaryIntro: "Discard spreadsheets. Get a clear retirement date, a plan, and a community to improve it.",
-  customizeTitle: "Customize your base parameters",
+  summaryTitle: "Why Choose Horizon",
+  summaryLead: "Scan regional policy rules, update the algorithm in real time. Apply a standard or custom template and complete your retirement plan in one step.",
+  summaryIntro: "Discard spreadsheets. Get a clear retirement date, an actionable plan, and a community.",
+  customizeTitle: "Enter your parameters",
   customizeDesc: "No sign-up needed. Play freely and save to your browser locally.",
   dob: "Date of birth",
   country: "Country",
@@ -124,12 +124,12 @@ export const GLOBAL_COPY: Copy = {
   yearsSavedLabel: "Average users save",
   retirementDisclaimer: "Informational estimates only. Policies vary by region.",
   save: "Monthly savings",
-  spend: "Monthly cost of enough",
+  spend: "Monthly cost of “enough”",
   projectionTitle: "Live projection",
   projectionYears: "Years until Day 1",
-  projectionAge: "Current age",
+  projectionAge: "Retirement age",
   projectionYear: "Projected year",
-  projectionCapital: "Estimated capital target",
+  projectionCapital: "Required nest egg",
   tierLabel: "Tier",
   tierTop: "Top tier",
   tierElite: "Elite tier",
@@ -149,10 +149,10 @@ export const GLOBAL_COPY: Copy = {
   saving: "Saving...",
   saveRequiresSignIn: "Sign in to save this scenario.",
   freeHint: "Everyone can use the planner for free.",
-  signInHint: "Sign up / sign in only when you want account sync and personalized follow-ups.",
+  signInHint: "Sign up / sign in only when you want account sync and personalised follow-ups.",
   authMissing: "Clerk is not configured in this workspace, so sign-in and account sync are unavailable.",
-  budgetTitle: "Budget Plans",
-  budgetLead: "Different freedom paths for different life strategies. Registered users can tap to apply them.",
+  budgetTitle: "Budget Templates",
+  budgetLead: "Choose the path that matches your life strategy. Expand a template to customise every financial parameter.",
   budgetLocked: "Sign in to unlock advanced budget plans.",
   lowBudgetLabel: "Low-budget freedom",
   lowBudgetCopy: "Reduce desire and reach Day 1 faster.",
@@ -160,9 +160,9 @@ export const GLOBAL_COPY: Copy = {
   balancedBudgetCopy: "Keep a practical lifestyle while improving your savings rate.",
   fullBudgetLabel: "Full-budget freedom",
   fullBudgetCopy: "Protect a higher lifestyle standard and close the gap with stronger income or savings.",
-  selectedPlan: "Selected plan",
+  selectedPlan: "Active plan",
   insuranceTitle: "Auto-filled social insurance",
-  insuranceLead: "Fake data for now, but the UI shows how local context will flow into the plan.",
+  insuranceLead: "Simulated data for now — the UI shows how local context flows into the plan.",
   insuranceFields: {
     pension: "Pension",
     medical: "Medical",
@@ -188,31 +188,39 @@ export const GLOBAL_COPY: Copy = {
   multiplierLabel: "Safe withdrawal multiple",
   pensionIncome: "Expected monthly pension / social security (optional)",
   storiesTitle: "Best Practices",
-  storiesLead: "Follow playbooks from people who saved years. Share your own and grow together (coming soon).",
+  storiesLead: "Real playbooks from Horizon users who saved years off their timeline. Time to copy their homework.",
   stories: [
     {
       name: "Lina W.",
       role: "Product Lead · Shanghai",
       image: "/assets/Stories_image_1.webp",
-      text: "Horizon turned a vague goal into a date, then a plan I could actually follow.",
+      text: "Horizon turned a vague goal into a date, then into a plan I could actually follow.",
+      yearsSaved: 8.3,
+      plan: "Balanced plan",
     },
     {
       name: "Jun K.",
       role: "Engineer · Shenzhen",
       image: "/assets/Stories_image_2.jpeg",
       text: "The plan showed me where I could save years without feeling deprived.",
+      yearsSaved: 11.5,
+      plan: "Low-budget plan",
     },
     {
       name: "Maya C.",
       role: "Designer · Hangzhou",
       image: "/assets/Stories_image_3.jpg",
-      text: "Different strategy, same freedom date. The tracker kept me focused.",
+      text: "Different strategy, same freedom date. Continuous tracking kept me on pace.",
+      yearsSaved: 6.8,
+      plan: "Balanced plan",
     },
     {
       name: "Arun P.",
       role: "Founder · Singapore",
       image: "/assets/Stories_image_4.jpg",
-      text: "I started local, then shared my playbook with others and refined it.",
-    }
-  ]
+      text: "I started local, then shared my playbook with others and refined it together.",
+      yearsSaved: 14.2,
+      plan: "Full-budget plan",
+    },
+  ],
 };

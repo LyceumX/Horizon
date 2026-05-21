@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
 import { getDefaultRetireDate } from "@/lib/retirement";
 import { calculateHorizonDay1, SCENARIO_PRESETS } from "@/lib/planner";
@@ -14,6 +14,7 @@ type EmploymentType = "private" | "government_civilian" | "government_discipline
 
 type SummaryCard = {
   key: string;
+  icon: string;
   title: string;
   value: string;
   details: string[];
@@ -47,96 +48,7 @@ type CountryOption = {
   provinces: ProvinceOption[];
 };
 
-type Copy = {
-  brand: string;
-  since: string;
-  nav: { summary: string; customize: string; budget: string; stories: string };
-  goal: string;
-  slogan: string;
-  interest: string;
-  heroBadge: string;
-  heroCaption: string;
-  summaryTitle: string;
-  summaryLead: string;
-  summaryIntro: string;
-  customizeTitle: string;
-  customizeDesc: string;
-  dob: string;
-  country: string;
-  province: string;
-  city: string;
-  gender: string;
-  employmentType: string;
-  employmentOptions: { private: string; governmentCivilian: string; governmentDisciplined: string };
-  genderOptions: { male: string; femalePro: string; femaleWorker: string; specialMale: string; specialFemale: string };
-  defaultRetireLabel: string;
-  defaultRetireValue: string;
-  yearsSavedLabel: string;
-  retirementDisclaimer: string;
-  save: string;
-  spend: string;
-  projectionTitle: string;
-  projectionYears: string;
-  projectionAge: string;
-  projectionYear: string;
-  projectionCapital: string;
-  tierLabel: string;
-  tierTop: string;
-  tierElite: string;
-  tierStrong: string;
-  tierSteady: string;
-  rankLabel: string;
-  rankAmong: string;
-  shareTitle: string;
-  shareLead: string;
-  sharePost: string;
-  shareCopy: string;
-  shareLink: string;
-  shareChannels: string[];
-  localSave: string;
-  localSaved: string;
-  cloudSave: string;
-  saving: string;
-  saveRequiresSignIn: string;
-  freeHint: string;
-  signInHint: string;
-  authMissing: string;
-  budgetTitle: string;
-  budgetLead: string;
-  budgetLocked: string;
-  lowBudgetLabel: string;
-  lowBudgetCopy: string;
-  balancedBudgetLabel: string;
-  balancedBudgetCopy: string;
-  fullBudgetLabel: string;
-  fullBudgetCopy: string;
-  selectedPlan: string;
-  insuranceTitle: string;
-  insuranceLead: string;
-  insuranceFields: { pension: string; medical: string; housing: string; unemployment: string; workplace: string; note: string };
-  storiesTitle: string;
-  storiesLead: string;
-  stories: { name: string; role: string; text: string; image: string }[];
-  currentSavings: string;
-  monthlyIncome: string;
-  monthlyExpenses: string;
-  nestEgg: string;
-  monthlySurplus: string;
-  monthlyGap: string;
-  horizonDate: string;
-  scenarioLabel: string;
-  scenarioBase: string;
-  scenarioOptimistic: string;
-  scenarioStress: string;
-  assumptionsTitle: string;
-  returnRateLabel: string;
-  inflationRateLabel: string;
-  multiplierLabel: string;
-  pensionIncome: string;
-};
-
 import { GLOBAL_REGIONS } from "@/lib/data/regions-global";
-
 import { GLOBAL_COPY } from "@/lib/copy/global";
 import { BUDGETS } from "@/lib/data/budgets";
 
@@ -147,18 +59,12 @@ const REGIONS: CountryOption[] = GLOBAL_REGIONS;
 
 function calcAgeFromDob(dob: string) {
   if (!dob) return 32;
-
   const birthDate = new Date(dob);
   if (Number.isNaN(birthDate.getTime())) return 32;
-
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age -= 1;
-  }
-
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age -= 1;
   return Math.max(18, age);
 }
 
@@ -188,45 +94,11 @@ function addMonths(date: Date, months: number) {
   return next;
 }
 
-function getCnRetireDate(dob: string, gender: GenderCategory) {
-  const birthDate = new Date(dob);
-  if (Number.isNaN(birthDate.getTime())) {
-    return null;
-  }
-
-  const baseAge = gender === "female_worker" ? 50 : gender === "female_pro" ? 55 : gender === "special_female" ? 45 : gender === "special_male" ? 55 : 60;
-  const capAge = gender === "female_worker" ? 55 : gender === "female_pro" ? 58 : gender === "special_female" ? 50 : gender === "special_male" ? 58 : 63;
-  const paceMonths = gender === "female_worker" || gender === "special_female" ? 2 : 4;
-
-  const baseRetireDate = addMonths(birthDate, baseAge * 12);
-  const reformStart = new Date(2025, 0, 1);
-
-  if (toMonthIndex(baseRetireDate) < toMonthIndex(reformStart)) {
-    return baseRetireDate;
-  }
-
-  const diffMonths = toMonthIndex(baseRetireDate) - toMonthIndex(reformStart);
-  const delayMonths = Math.floor(diffMonths / paceMonths);
-  const delayedDate = addMonths(baseRetireDate, delayMonths);
-  const capDate = addMonths(birthDate, capAge * 12);
-
-  return toMonthIndex(delayedDate) > toMonthIndex(capDate) ? capDate : delayedDate;
-}
-
 function getTier(years: number) {
-  if (years <= 6) {
-    return { key: "top", label: "Top", zhLabel: "顶层", percentile: 95, fireworks: true };
-  }
-
-  if (years <= 10) {
-    return { key: "elite", label: "Elite", zhLabel: "精英", percentile: 85, fireworks: false };
-  }
-
-  if (years <= 15) {
-    return { key: "strong", label: "Strong", zhLabel: "稳健", percentile: 65, fireworks: false };
-  }
-
-  return { key: "steady", label: "Steady", zhLabel: "稳步", percentile: 40, fireworks: false };
+  if (years <= 6)  return { key: "top",    label: "Top",    zhLabel: "顶层", percentile: 95, fireworks: true  };
+  if (years <= 10) return { key: "elite",  label: "Elite",  zhLabel: "精英", percentile: 85, fireworks: false };
+  if (years <= 15) return { key: "strong", label: "Strong", zhLabel: "稳健", percentile: 65, fireworks: false };
+  return             { key: "steady", label: "Steady", zhLabel: "稳步", percentile: 40, fireworks: false };
 }
 
 function getRank(percentile: number) {
@@ -239,40 +111,39 @@ function yearOnly(date: Date) {
 }
 
 function buildShareText(lang: string, input: { brand: string; date: string; countyLine: string }) {
-  if (false) {
+  if (lang === "zh") {
     return `我将在 ${input.date} 年退休。${input.brand} ${input.countyLine}`;
   }
-
-  return `I'm going to retire in the year of ${input.date}. ${input.brand} ${input.countyLine}`;
+  return `I'm going to retire in the year ${input.date}. ${input.brand} ${input.countyLine}`;
 }
 
 function socialChannels(lang: string) {
-  return false
+  return lang === "zh"
     ? [
-        { key: "wechat", label: "微信", icon: "W" },
-        { key: "weibo", label: "微博", icon: "WB" },
-        { key: "rednote", label: "小红书", icon: "RD" }
+        { key: "wechat",   label: "微信",   icon: "W"  },
+        { key: "weibo",    label: "微博",   icon: "WB" },
+        { key: "rednote",  label: "小红书", icon: "RD" },
       ]
     : [
-        { key: "x", label: "X", icon: "X" },
-        { key: "linkedin", label: "LinkedIn", icon: "in" },
-        { key: "whatsapp", label: "WhatsApp", icon: "WA" }
+        { key: "x",        label: "X",         icon: "X"  },
+        { key: "linkedin", label: "LinkedIn",   icon: "in" },
+        { key: "whatsapp", label: "WhatsApp",   icon: "WA" },
       ];
 }
 
 function summaryCards(lang: string): SummaryCard[] {
-  return false
+  return lang === "zh"
     ? [
-        { key: "simplify", title: "极简规划", value: "一张表的复杂，变成几项输入", details: ["复杂规则一键简化。", "算法实时更新保持最新。"], accent: "#c97a3a" },
-        { key: "local", title: "地区规则", value: "按地区退休政策计算", details: ["内地规则已内置。", "港澳台新已覆盖，更多即将上线。"], accent: "#4b6f5a" },
-        { key: "save", title: "提前年数", value: "显示使用 Horizon 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
-        { key: "community", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"], accent: "#8b5cf6" }
+        { key: "policy",    icon: "🗺️", title: "政策同步", value: "扫描地区规则，锁定你的法定基准",   details: ["覆盖主要地区，政策更新自动反映到你的规划。", "算法实时更新保持最新。"],       accent: "#c97a3a" },
+        { key: "templates", icon: "⚡", title: "丰富模版", value: "一键套用模版，即刻生成退休路线",   details: ["内置多条退休路径模版供选择。", "完全可定制，适配你的具体情况。"],             accent: "#4b6f5a" },
+        { key: "finance",   icon: "📊", title: "金融计划", value: "AI 分析，输出可执行的财务行动",   details: ["AI 算法分析最优储蓄与投资策略。", "每月生成可执行的财务行动清单。"],         accent: "#2f4a6b" },
+        { key: "community", icon: "🤝", title: "最佳实践", value: "互相学习、分享、变现（即将上线）", details: ["跟随同类人群的成功路径。", "分享你的方案，一起提升。"],                     accent: "#8b5cf6" },
       ]
     : [
-        { key: "simplify", title: "Simplified Plan", value: "Complex math reduced to a few inputs", details: ["We compress dense rules into a clean workflow.", "Real-time updates keep it current."], accent: "#c97a3a" },
-        { key: "local", title: "Regional Rules", value: "Built for your retirement policy", details: ["Mainland rules are embedded.", "HK/MO/TW/SG covered, more coming."], accent: "#4b6f5a" },
-        { key: "save", title: "Years Saved", value: "See years saved with Horizon", details: ["Compare default retirement vs your plan.", "Every adjustment updates the savings."], accent: "#2f4a6b" },
-        { key: "community", title: "Best Practices", value: "Learn, share, earn (coming soon)", details: ["Follow playbooks from people like you.", "Share your plan and improve together."], accent: "#8b5cf6" }
+        { key: "policy",    icon: "🗺️", title: "Policy Sync",      value: "Regional rules scanned and locked to your baseline",    details: ["Major regions covered, policy updates flow into your plan automatically.", "Algorithm refreshes in real time."],  accent: "#c97a3a" },
+        { key: "templates", icon: "⚡", title: "Rich Templates",    value: "Apply a template and get your plan instantly",           details: ["Multiple retirement-path templates built in.", "Fully customisable to your situation."],                       accent: "#4b6f5a" },
+        { key: "finance",   icon: "📊", title: "Financial Plan",    value: "AI analysis delivers an actionable roadmap",             details: ["AI algorithm finds optimal savings and investment strategies.", "Monthly actionable financial task list."],      accent: "#2f4a6b" },
+        { key: "community", icon: "🤝", title: "Best Practices",    value: "Learn, share, and earn (coming soon)",                   details: ["Follow playbooks from people like you.", "Share your plan and improve together."],                            accent: "#8b5cf6" },
       ];
 }
 
@@ -280,12 +151,12 @@ function money(value: number, lang: string) {
   return new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", {
     style: "currency",
     currency: lang === "zh" ? "CNY" : "USD",
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(value);
 }
 
 export default function HomePage() {
-    const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("light");
   const [dob, setDob] = useState("1990-01-01");
   const [country, setCountry] = useState("cn");
   const [province, setProvince] = useState("zhejiang");
@@ -299,15 +170,17 @@ export default function HomePage() {
   const [scenario, setScenario] = useState<"base" | "optimistic" | "stress">("base");
   const [pensionIncome, setPensionIncome] = useState(0);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
+  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>("balanced");
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
-  const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
   const [lang, setLang] = useState<"en" | "zh">("en");
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
+
+  // Planner uses pure portfolio math — pension income is informational only
   const plannerResult = useMemo(() => calculateHorizonDay1({
     age,
     city,
@@ -319,41 +192,34 @@ export default function HomePage() {
     annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
     annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
     multiplier: SCENARIO_PRESETS[scenario].multiplier,
-    pensionIncome: pensionIncome > 0 ? pensionIncome : undefined,
-  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionIncome]);
+  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]);
+
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
     () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
     [country, dob, gender, employmentType]
   );
   const defaultRetireAge = useMemo(() => {
-    if (!defaultRetireDate) {
-      return null;
-    }
+    if (!defaultRetireDate) return null;
     const birthDate = new Date(dob);
-    if (Number.isNaN(birthDate.getTime())) {
-      return null;
-    }
+    if (Number.isNaN(birthDate.getTime())) return null;
     const months = toMonthIndex(defaultRetireDate) - toMonthIndex(birthDate);
     return months / 12;
   }, [dob, defaultRetireDate]);
   const defaultRetireYear = useMemo(() => {
-    if (!defaultRetireDate) {
-      return "--";
-    }
+    if (!defaultRetireDate) return "--";
     return yearOnly(defaultRetireDate);
   }, [defaultRetireDate]);
   const yearsSaved = useMemo(() => {
-    if (defaultRetireAge === null) {
-      return 0;
-    }
+    if (defaultRetireAge === null) return 0;
     const saved = defaultRetireAge - (age + plannerResult.yearsToGoal);
     return Math.max(0, Number(saved.toFixed(1)));
   }, [defaultRetireAge, age, plannerResult.yearsToGoal]);
+
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
-  const cards = useMemo(() => summaryCards("en"), ["en"]);
+  const cards = useMemo(() => summaryCards(lang), [lang]);
   const tier = getTier(plannerResult.yearsToGoal);
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
@@ -366,32 +232,21 @@ export default function HomePage() {
     date: yearOnly(new Date(plannerResult.horizonDay1)),
     countyLine: country === "cn"
       ? (lang === "zh" ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
-      : (lang === "zh" ? currentCountry.label.zh : currentCountry.label.en)
+      : (lang === "zh" ? currentCountry.label.zh : currentCountry.label.en),
   });
 
   useEffect(() => {
-
     const storedTheme = window.localStorage.getItem("horizon-theme");
-    if (storedTheme === "light" || storedTheme === "dark") {
-      setTheme(storedTheme);
-    }
+    if (storedTheme === "light" || storedTheme === "dark") setTheme(storedTheme);
 
     const savedProfile = window.localStorage.getItem("horizon-local-profile");
     if (savedProfile) {
       try {
         const parsed = JSON.parse(savedProfile) as {
-          dob: string;
-          country: string;
-          province: string;
-          city: string;
-          gender?: GenderCategory;
-          employmentType?: EmploymentType;
-          currentSavings?: number;
-          monthlyIncome?: number;
-          monthlyExpenses?: number;
-          spend: number;
-          pensionIncome?: number;
-          budgetMode: BudgetMode;
+          dob: string; country: string; province: string; city: string;
+          gender?: GenderCategory; employmentType?: EmploymentType;
+          currentSavings?: number; monthlyIncome?: number; monthlyExpenses?: number;
+          spend: number; pensionIncome?: number; budgetMode: BudgetMode;
         };
         setDob(parsed.dob);
         if (COMING_SOON_COUNTRIES.has(parsed.country)) {
@@ -404,12 +259,8 @@ export default function HomePage() {
           setProvince(parsed.province);
           setCity(parsed.city);
         }
-        if (parsed.gender) {
-          setGender(parsed.gender);
-        }
-        if (parsed.employmentType) {
-          setEmploymentType(parsed.employmentType);
-        }
+        if (parsed.gender) setGender(parsed.gender);
+        if (parsed.employmentType) setEmploymentType(parsed.employmentType);
         if (parsed.currentSavings !== undefined) setCurrentSavings(parsed.currentSavings);
         if (parsed.monthlyIncome !== undefined) setMonthlyIncome(parsed.monthlyIncome);
         if (parsed.monthlyExpenses !== undefined) setMonthlyExpenses(parsed.monthlyExpenses);
@@ -432,7 +283,10 @@ export default function HomePage() {
   }, []);
 
   function saveLocal() {
-    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode }));
+    window.localStorage.setItem("horizon-local-profile", JSON.stringify({
+      dob, country, province, city, gender, employmentType,
+      currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode,
+    }));
     setSaveState(copy.localSaved);
   }
 
@@ -445,7 +299,7 @@ export default function HomePage() {
         profile: {
           dob, age, country, province, city, gender, employmentType,
           currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome,
-          budgetMode, language: "en", theme, insurance
+          budgetMode, language: lang, theme, insurance,
         },
         projection: {
           horizonDay1: plannerResult.horizonDay1,
@@ -456,22 +310,19 @@ export default function HomePage() {
           monthlyGapToSave: plannerResult.monthlyGapToSave,
           rank: rank.rank,
           percentile: tier.percentile,
-          retirementAge: Number((age + plannerResult.yearsToGoal).toFixed(1))
-        }
-      })
+          retirementAge: Number((age + plannerResult.yearsToGoal).toFixed(1)),
+        },
+      }),
     });
-
     const payload = (await response.json()) as { message: string };
-    if (response.status === 401) {
-      setSaveState(copy.saveRequiresSignIn);
-      return;
-    }
+    if (response.status === 401) { setSaveState(copy.saveRequiresSignIn); return; }
     setSaveState(payload.message);
   }
 
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
     const preset = BUDGETS[mode];
+    setCurrentSavings(preset.currentSavings);
     setMonthlyIncome(preset.monthlyIncome);
     setMonthlyExpenses(preset.monthlyExpenses);
     setSpend(preset.spend);
@@ -484,30 +335,23 @@ export default function HomePage() {
 
   async function shareNative() {
     if (navigator.share) {
-      await navigator.share({
-        title: copy.brand,
-        text: shareText,
-        url: shareUrl
-      });
+      await navigator.share({ title: copy.brand, text: shareText, url: shareUrl });
       setShareState(lang === "zh" ? "已打开系统分享。" : "Native share opened.");
       return;
     }
-
     await copyShareText();
   }
 
   function socialShareLink(channel: string) {
     const encodedText = encodeURIComponent(shareText);
     const encodedUrl = encodeURIComponent(shareUrl);
-
-    if (false) {
-      if (channel === "Weibo") return `https://service.weibo.com/share/share.php?title=${encodedText}&url=${encodedUrl}`;
-      if (channel === "Xiaohongshu") return `https://www.xiaohongshu.com/`;
+    if (lang === "zh") {
+      if (channel === "weibo")   return `https://service.weibo.com/share/share.php?title=${encodedText}&url=${encodedUrl}`;
+      if (channel === "rednote") return `https://www.xiaohongshu.com/`;
       return `https://www.wechat.com/`;
     }
-
-    if (channel === "X") return `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-    if (channel === "LinkedIn") return `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+    if (channel === "x")        return `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+    if (channel === "linkedin") return `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
     return `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
   }
 
@@ -554,19 +398,15 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
-                <div>
-                  <span className="k">{copy.defaultRetireLabel}</span>
-                  <strong>{copy.defaultRetireValue}: {defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"} {lang === "zh" ? "岁" : "yrs"} · {defaultRetireYear}</strong>
-                </div>
-                <div>
-                  <span className="k">{copy.yearsSavedLabel}</span>
-                  <strong>5.7 yrs</strong>
+                <div className="callout-line">
+                  {lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span>
                 </div>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
-                <a className="btn" href="#customize">{lang === "zh" ? "开始规划" : "Start planning"}</a>
-                <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
+                <a className="btn" href="#customize">
+                  {lang === "zh" ? "退休规划器" : "Retirement Planner"}
+                </a>
               </div>
             </div>
 
@@ -581,11 +421,12 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* ── 01 Summary ── */}
         <section className="calc" id="summary">
           <div className="calc-head">
             <div>
               <div className="sect-label"><span className="num">01</span> — {copy.nav.summary}</div>
-              <h2>{copy.summaryTitle}</h2>
+              <h2>{lang === "zh" ? "为什么选择 Horizon" : copy.summaryTitle}</h2>
             </div>
             <div className="desc">{copy.summaryLead}</div>
           </div>
@@ -603,7 +444,7 @@ export default function HomePage() {
                 >
                   <div className="summary-card-top">
                     <span className="summary-index">0{index + 1}</span>
-                    <span className="summary-dot" style={{ background: card.accent }} />
+                    <span className="summary-icon" aria-hidden="true">{card.icon}</span>
                   </div>
                   <h3>{card.title}</h3>
                   <p className="summary-figure">{card.value}</p>
@@ -618,56 +459,92 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── 02 Retirement Planner ── */}
         <section className="calc" id="customize">
           <div className="calc-head">
             <div>
               <div className="sect-label"><span className="num">02</span> — {copy.nav.customize}</div>
-              <h2>{copy.customizeTitle}</h2>
+              <h2>{lang === "zh" ? "输入基础参数" : copy.customizeTitle}</h2>
             </div>
             <div className="desc">{copy.customizeDesc}</div>
           </div>
 
           <div className="calc-grid">
             <div className="calc-form">
-              <div className="profile-grid">
+
+              {/* ── Row 1: DOB + Retirement category ── */}
+              <div className="form-row-2col">
                 <label className="field">
-                  <div className="lbl"><span>{copy.dob}</span><span className="val">{age}</span></div>
+                  <div className="lbl"><span>{copy.dob}</span></div>
                   <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                 </label>
 
-                <label className="field">
-                  <div className="lbl"><span>{copy.country}</span><span className="val">{lang === "zh" ? currentCountry.label.zh : currentCountry.label.en}</span></div>
-                  <select
-                    value={country}
-                    onChange={(e) => {
-                      const nextCountry = e.target.value;
-                      if (COMING_SOON_COUNTRIES.has(nextCountry)) {
-                        return;
-                      }
-                      const nextCountryRecord = getCountry(nextCountry);
-                      const nextProvince = nextCountryRecord.provinces[0];
-                      const nextCity = nextProvince.cities[0];
-                      setCountry(nextCountry);
-                      setProvince(nextProvince.value);
-                      setCity(nextCity.value);
-                    }}
-                  >
-                    {REGIONS.map((item) => (
-                      <option key={item.value} value={item.value} disabled={COMING_SOON_COUNTRIES.has(item.value)}>
-                        {lang === "zh" ? item.label.zh : item.label.en}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {country === "cn" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.gender}</span></div>
+                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                      <option value="male">{copy.genderOptions.male}</option>
+                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
+                      <option value="special_male">{copy.genderOptions.specialMale}</option>
+                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
+                    </select>
+                  </label>
+                ) : country === "hk" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.employmentType}</span></div>
+                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
+                      <option value="private">{copy.employmentOptions.private}</option>
+                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
+                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
+                    </select>
+                  </label>
+                ) : (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.gender}</span></div>
+                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                      <option value="male">{copy.genderOptions.male}</option>
+                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                    </select>
+                  </label>
+                )}
+              </div>
 
-                {COMING_SOON_COUNTRIES.has(country) ? (
-                  <p className="mode-copy">{lang === "zh" ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</p>
-                ) : null}
+              <div className="form-divider" />
 
-                {country === "cn" || country === "sg" || country === "us" ? (
-                  <>
+              {/* ── Row 2: Country ── */}
+              <label className="field">
+                <div className="lbl"><span>{copy.country}</span></div>
+                <select
+                  value={country}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (COMING_SOON_COUNTRIES.has(next)) return;
+                    const nextCountry = getCountry(next);
+                    const nextProvince = nextCountry.provinces[0];
+                    setCountry(next);
+                    setProvince(nextProvince.value);
+                    setCity(nextProvince.cities[0].value);
+                  }}
+                >
+                  {REGIONS.map((item) => (
+                    <option key={item.value} value={item.value} disabled={COMING_SOON_COUNTRIES.has(item.value)}>
+                      {lang === "zh" ? item.label.zh : item.label.en}
+                    </option>
+                  ))}
+                </select>
+                {COMING_SOON_COUNTRIES.has(country) && (
+                  <small className="field-hint">{lang === "zh" ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</small>
+                )}
+              </label>
+
+              {/* ── Row 3: Province + City (where applicable) ── */}
+              {(country === "cn" || country === "sg" || country === "us") && (
+                <>
+                  <div className="form-divider" />
+                  <div className="form-row-2col">
                     <label className="field">
-                      <div className="lbl"><span>{copy.province}</span><span className="val">{lang === "zh" ? currentProvince.label.zh : currentProvince.label.en}</span></div>
+                      <div className="lbl"><span>{copy.province}</span></div>
                       <select
                         value={province}
                         onChange={(e) => {
@@ -683,9 +560,8 @@ export default function HomePage() {
                         ))}
                       </select>
                     </label>
-
                     <label className="field">
-                      <div className="lbl"><span>{copy.city}</span><span className="val">{lang === "zh" ? currentCity.label.zh : currentCity.label.en}</span></div>
+                      <div className="lbl"><span>{copy.city}</span></div>
                       <select value={city} onChange={(e) => setCity(e.target.value)}>
                         {currentProvince.cities.map((item) => (
                           <option key={item.value} value={item.value}>
@@ -694,76 +570,22 @@ export default function HomePage() {
                         ))}
                       </select>
                     </label>
-                  </>
-                ) : null}
+                  </div>
+                </>
+              )}
 
-                {country === "hk" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.employmentType}</span><span className="val">{employmentType === "government_disciplined" ? copy.employmentOptions.governmentDisciplined : employmentType === "government_civilian" ? copy.employmentOptions.governmentCivilian : copy.employmentOptions.private}</span></div>
-                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
-                      <option value="private">{copy.employmentOptions.private}</option>
-                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
-                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
-                    </select>
-                  </label>
-                ) : null}
+              <div className="form-divider" />
 
-                {country === "cn" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.gender}</span><span className="val">{gender === "female_pro" ? copy.genderOptions.femalePro : gender === "female_worker" ? copy.genderOptions.femaleWorker : gender === "special_male" ? copy.genderOptions.specialMale : gender === "special_female" ? copy.genderOptions.specialFemale : copy.genderOptions.male}</span></div>
-                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                      <option value="male">{copy.genderOptions.male}</option>
-                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
-                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
-                      <option value="special_male">{copy.genderOptions.specialMale}</option>
-                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
-                    </select>
-                  </label>
-                ) : null}
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.scenarioLabel}</span></div>
-                <div className="scenario-toggle">
-                  {(["base", "optimistic", "stress"] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
-                      onClick={() => setScenario(key)}
-                    >
-                      {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, lang)}</span></div>
-                <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, lang)}</span></div>
-                <input type="range" min={3000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, lang)}</span></div>
-                <input type="range" min={1000} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
-              </div>
-
+              {/* ── Pension income ── */}
               <div className="field">
                 <div className="lbl">
-                  <span>{copy.pensionIncome}</span>
+                  <span>{lang === "zh" ? "预计每月养老金/社保（可选）" : copy.pensionIncome}</span>
                   <span className="val">{pensionIncome > 0 ? money(pensionIncome, lang) : (lang === "zh" ? "¥0" : "$0")}</span>
                 </div>
                 <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
-              </div>
-
-              <div className="field">
-                <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, lang)}</span></div>
-                <input type="range" min={800} max={6000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
+                <small className="field-hint">
+                  {lang === "zh" ? "退休后预计领取的政府养老金或社保金额（不影响储蓄测算）" : "Expected government pension / social security at retirement (informational only — does not affect the portfolio calculation)"}
+                </small>
               </div>
 
               <div className="save-row">
@@ -808,80 +630,41 @@ export default function HomePage() {
               </details>
             </div>
 
+            {/* ── Right panel ── */}
             <div className="calc-out">
-              <div className="projection-card" key={projectionVersion}>
-                <div className="k">{copy.projectionTitle}</div>
-                <div className="projection-topline">
-                  <div className="projection-title-stack">
-                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{lang === "zh" ? tier.zhLabel : tier.label}</a>
-                    <span className="projection-years-mini">{plannerResult.yearsToGoal} {lang === "zh" ? "年" : "years"}</span>
+              <div className="pension-summary-card" key={projectionVersion}>
+                {/* Row 1: retirement year */}
+                <div className="psc-row">
+                  <span className="psc-label">{lang === "zh" ? "预计退休年份" : "Projected Day 1 year"}</span>
+                  <div className="psc-value">
+                    <span className="hl"><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></span>
+                    <span className="psc-sub">
+                      {lang === "zh" ? "还有" : ""} <strong>{plannerResult.yearsToGoal}</strong> {lang === "zh" ? "年" : "yrs away"}
+                    </span>
                   </div>
                 </div>
-                {tier.fireworks ? (
-                  <div className="fireworks" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <div className="psc-divider" />
+                {/* Row 2: required nest egg */}
+                <div className="psc-row">
+                  <span className="psc-label">{lang === "zh" ? copy.nestEgg : copy.nestEgg}</span>
+                  <div className="psc-value">
+                    {hideCapital
+                      ? <span className="hl psc-hidden">· · ·</span>
+                      : <span className="hl"><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, lang)}</span></span>}
+                    <span className="psc-sub">
+                      {lang === "zh" ? `基于 ${SCENARIO_PRESETS[scenario].multiplier}× 安全倍数` : `${SCENARIO_PRESETS[scenario].multiplier}× safe withdrawal`}
+                      <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? (lang === "zh" ? "显示本金" : "Show nest egg") : (lang === "zh" ? "隐藏本金" : "Hide nest egg")}>{hideCapital ? "○" : "●"}</button>
+                    </span>
                   </div>
-                ) : null}
-                <div className="projection-year">
-                  <span className="projection-year-label">{copy.projectionYear}</span>
-                  <strong><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></strong>
                 </div>
-                <div className="projection-grid">
-                  <div className="metric-card">
-                    <span className="metric-icon">⏳</span>
-                    <div>
-                      <small>{copy.projectionYears}</small>
-                      <strong><span key={`${projectionVersion}-years`} className="flip-number">{plannerResult.yearsToGoal}</span></strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">🎂</span>
-                    <div className="metric-body">
-                      <div className="metric-label-row">
-                        <small>{copy.projectionAge}</small>
-                        <button type="button" className="eye-btn" onClick={() => setHideAge(v => !v)} aria-label={hideAge ? "Show age" : "Hide age"}>{hideAge ? "○" : "●"}</button>
-                      </div>
-                      <strong>{hideAge ? "· · ·" : <span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span>}</strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">🏆</span>
-                    <div>
-                      <small>{copy.rankLabel}</small>
-                      <strong><span key={`${projectionVersion}-rank`} className="flip-number">{lang === "zh" ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">💰</span>
-                    <div className="metric-body">
-                      <div className="metric-label-row">
-                        <small>{copy.nestEgg}</small>
-                        <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? "Show capital" : "Hide capital"}>{hideCapital ? "○" : "●"}</button>
-                      </div>
-                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, lang)}</span>}</strong>
-                    </div>
-                  </div>
-                  {!hideCapital && plannerResult.monthlyGapToSave > 0 ? (
-                    <div className="metric-card">
-                      <span className="metric-icon">⚠️</span>
-                      <div>
-                        <small>{copy.monthlyGap}</small>
-                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, lang)}</span></strong>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="projection-footer">
-                  <div>
-                    <span className="footer-label">{copy.tierLabel}</span>
-                    <strong>{lang === "zh" ? tier.zhLabel : tier.label}</strong>
-                  </div>
-                  <div>
-                    <span className="footer-label">{copy.rankAmong}</span>
-                    <strong>{lang === "zh" ? `前 ${tier.percentile}%` : `Top ${tier.percentile}%`}</strong>
+                <div className="psc-divider" />
+                {/* Row 3: years saved */}
+                <div className="psc-row">
+                  <span className="psc-label">{lang === "zh" ? "使用 Horizon 规划" : "With Horizon planning"}</span>
+                  <div className="psc-value">
+                    {lang === "zh"
+                      ? <>有望早 <span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休</>
+                      : <><span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} yrs</span> earlier</>}
                   </div>
                 </div>
               </div>
@@ -895,7 +678,7 @@ export default function HomePage() {
                   <button type="button" className="btn" onClick={shareNative}>{lang === "zh" ? "系统分享" : "Native share"}</button>
                 </div>
                 <div className="share-links">
-                  {socialChannels("en").map((channel) => (
+                  {socialChannels(lang).map((channel) => (
                     <a key={channel.key} className="share-link icon-only" href={socialShareLink(channel.key)} target="_blank" rel="noreferrer" aria-label={channel.label} title={channel.label}>
                       <span aria-hidden="true">{channel.icon}</span>
                     </a>
@@ -903,129 +686,127 @@ export default function HomePage() {
                 </div>
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
               </div>
-
-              <div className="income-breakdown">
-                <div className="k">Monthly income at retirement</div>
-                <div className="breakdown-row">
-                  <span>Portfolio withdrawal</span>
-                  <strong>{money(Math.max(0, spend - pensionIncome), lang)}<span className="breakdown-freq">/mo</span></strong>
-                </div>
-                {pensionIncome > 0 ? (
-                  <div className="breakdown-row">
-                    <span>Gov pension / CPP</span>
-                    <strong>{money(pensionIncome, lang)}<span className="breakdown-freq">/mo</span></strong>
-                  </div>
-                ) : null}
-                <div className="breakdown-row breakdown-total">
-                  <span>Total</span>
-                  <strong>{money(spend, lang)}<span className="breakdown-freq">/mo</span></strong>
-                </div>
-              </div>
-
-              <details className="assumptions-fold">
-                <summary>
-                  <span className="fold-label">{copy.assumptionsTitle}</span>
-                  <span className="fold-hint">{"Click to expand"}</span>
-                </summary>
-                <div className="assumptions-grid">
-                  <div className="assumption-item">
-                    <span>{copy.returnRateLabel}</span>
-                    <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
-                  </div>
-                  <div className="assumption-item">
-                    <span>{copy.inflationRateLabel}</span>
-                    <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
-                  </div>
-                  <div className="assumption-item">
-                    <span>{copy.multiplierLabel}</span>
-                    <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
-                  </div>
-                </div>
-              </details>
             </div>
           </div>
         </section>
 
+        {/* ── 03 Budget Templates ── */}
         <section className="calc" id="budget">
           <div className="calc-head">
             <div>
               <div className="sect-label"><span className="num">03</span> — {copy.nav.budget}</div>
-              <h2>{copy.budgetTitle}</h2>
+              <h2>{lang === "zh" ? "预算模版" : copy.budgetTitle}</h2>
             </div>
             <div className="desc">{copy.budgetLead}</div>
           </div>
 
-          {hasClerk ? (
-            <>
-              <SignedIn>
-                <div className="budget-grid">
-                  {(
-                    [
-                      { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                      { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                      { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                    ] as const
-                  ).map((plan) => {
-                    const active = budgetMode === plan.key;
-                    return (
-                      <button
-                        key={plan.key}
-                        type="button"
-                        className={`budget-card ${active ? "budget-card-active" : ""}`}
-                        onClick={() => applyBudgetMode(plan.key)}
-                      >
-                        <div className="budget-pill">{copy.selectedPlan}</div>
-                        <h3>{plan.label}</h3>
-                        <p>{plan.text}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mode-copy">{budgetMode === "low" ? copy.lowBudgetCopy : budgetMode === "balanced" ? copy.balancedBudgetCopy : copy.fullBudgetCopy}</p>
-              </SignedIn>
-              <SignedOut>
-                <p className="mode-copy auth-warning">{copy.budgetLocked}</p>
-                <div className="budget-grid">
-                  {(
-                    [
-                      { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                      { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                      { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                    ] as const
-                  ).map((plan) => (
-                    <SignInButton key={plan.key} mode="modal">
-                      <button type="button" className="budget-card budget-card-locked" aria-disabled="true">
-                        <div className="budget-pill">{copy.selectedPlan}</div>
-                        <h3>{plan.label}</h3>
-                        <p>{plan.text}</p>
-                      </button>
-                    </SignInButton>
-                  ))}
-                </div>
-              </SignedOut>
-            </>
-          ) : (
-            <>
-              <p className="mode-copy auth-warning">{copy.authMissing}</p>
-              <div className="budget-grid">
-                {(
-                  [
-                    { key: "low", label: copy.lowBudgetLabel, text: copy.lowBudgetCopy },
-                    { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
-                    { key: "full", label: copy.fullBudgetLabel, text: copy.fullBudgetCopy }
-                  ] as const
-                ).map((plan) => (
-                  <div key={plan.key} className="budget-card budget-card-disabled" aria-disabled="true">
-                    <div className="budget-pill">{copy.selectedPlan}</div>
+          <div className="budget-grid">
+            {(
+              [
+                { key: "low",      label: copy.lowBudgetLabel,      text: copy.lowBudgetCopy      },
+                { key: "balanced", label: copy.balancedBudgetLabel, text: copy.balancedBudgetCopy },
+                { key: "full",     label: copy.fullBudgetLabel,     text: copy.fullBudgetCopy     },
+              ] as const
+            ).map((plan) => {
+              const active = budgetMode === plan.key;
+              const open = expandedBudget === plan.key;
+              return (
+                <div key={plan.key} className={`budget-card ${active ? "budget-card-active" : ""} ${open ? "budget-card-open" : ""}`}>
+                  <button
+                    type="button"
+                    className="budget-card-header"
+                    onClick={() => {
+                      applyBudgetMode(plan.key);
+                      setExpandedBudget(open ? null : plan.key);
+                    }}
+                    aria-expanded={open}
+                  >
+                    {active && <div className="budget-pill">{copy.selectedPlan}</div>}
                     <h3>{plan.label}</h3>
                     <p>{plan.text}</p>
-                  </div>
-                ))}
+                    <span className="budget-chevron" aria-hidden="true">{open ? "▲" : "▼"}</span>
+                  </button>
+
+                  {open && (
+                    <div className="budget-params">
+                      <div className="field">
+                        <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, lang)}</span></div>
+                        <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, lang)}</span></div>
+                        <input type="range" min={2000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, lang)}</span></div>
+                        <input type="range" min={800} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{lang === "zh" ? "你认为「足够」的月花费" : copy.spend}</span><span className="val">{money(spend, lang)}</span></div>
+                        <input type="range" min={800} max={8000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
+                      </div>
+                      <div className="field">
+                        <div className="lbl"><span>{copy.scenarioLabel}</span></div>
+                        <div className="scenario-toggle">
+                          {(["base", "optimistic", "stress"] as const).map((key) => (
+                            <button key={key} type="button"
+                              className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
+                              onClick={() => setScenario(key)}>
+                              {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Income breakdown */}
+          <div className="income-breakdown">
+            <div className="k">{lang === "zh" ? "退休后月收入来源" : "Monthly income at retirement"}</div>
+            <div className="breakdown-row">
+              <span>{lang === "zh" ? "投资组合提现" : "Portfolio withdrawal"}</span>
+              <strong>{money(Math.max(0, spend - pensionIncome), lang)}<span className="breakdown-freq">{lang === "zh" ? "/月" : "/mo"}</span></strong>
+            </div>
+            {pensionIncome > 0 && (
+              <div className="breakdown-row">
+                <span>{lang === "zh" ? "养老金 / 社保" : "Gov pension / social security"}</span>
+                <strong>{money(pensionIncome, lang)}<span className="breakdown-freq">{lang === "zh" ? "/月" : "/mo"}</span></strong>
               </div>
-            </>
-          )}
+            )}
+            <div className="breakdown-row breakdown-total">
+              <span>{lang === "zh" ? "合计" : "Total"}</span>
+              <strong>{money(spend, lang)}<span className="breakdown-freq">{lang === "zh" ? "/月" : "/mo"}</span></strong>
+            </div>
+          </div>
+
+          {/* Assumptions */}
+          <details className="assumptions-fold">
+            <summary>
+              <span className="fold-label">{copy.assumptionsTitle}</span>
+              <span className="fold-hint">{lang === "zh" ? "点击展开" : "Click to expand"}</span>
+            </summary>
+            <div className="assumptions-grid">
+              <div className="assumption-item">
+                <span>{copy.returnRateLabel}</span>
+                <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
+              </div>
+              <div className="assumption-item">
+                <span>{copy.inflationRateLabel}</span>
+                <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
+              </div>
+              <div className="assumption-item">
+                <span>{copy.multiplierLabel}</span>
+                <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
+              </div>
+            </div>
+          </details>
         </section>
 
+        {/* ── 04 Best Practices ── */}
         <section className="calc" id="stories">
           <div className="calc-head">
             <div>
@@ -1039,6 +820,11 @@ export default function HomePage() {
               <article key={story.name} className="story-card">
                 <div className="story-media">
                   <Image src={story.image} alt={story.name} fill className="story-image" />
+                </div>
+                <div className="story-savings-badge">
+                  {lang === "zh"
+                    ? <>节省 <span className="hl story-years">{story.yearsSaved} 年</span>，基于「{story.plan}」</>
+                    : <>Saved <span className="hl story-years">{story.yearsSaved} yrs</span> — <em>{story.plan}</em></>}
                 </div>
                 <p className="story-quote">&ldquo;{story.text}&rdquo;</p>
                 <p className="story-name">{story.name}</p>
