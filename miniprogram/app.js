@@ -5,8 +5,7 @@ App({
   },
 
   globalData: {
-    // 你的 Vercel 部署域名，请替换为实际地址
-    // 示例: "https://horizon-zero.vercel.app"
-    webUrl: "https://YOUR_VERCEL_DOMAIN"
+    // 中文站域名（微信小程序指向 cn 子域）
+    webUrl: "https://cn.horizon.cc.cd"
   }
 });
