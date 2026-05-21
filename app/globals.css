@@ -1271,6 +1271,114 @@ main {
   }
 }
 
+/* ── Scenario toggle ──────────────────────────────────────────── */
+
+.scenario-toggle {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scenario-btn {
+  appearance: none;
+  border: 0.5px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  padding: 9px 16px;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.scenario-btn:hover,
+.scenario-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--btn-ghost-border) 70%, var(--accent));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(36, 30, 20, 0.10);
+}
+
+.scenario-btn-active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  box-shadow: 0 6px 16px rgba(36, 30, 20, 0.18);
+}
+
+.scenario-btn-active:hover,
+.scenario-btn-active:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(36, 30, 20, 0.22);
+}
+
+
+/* ── Assumptions fold ─────────────────────────────────────────── */
+
+.assumptions-fold {
+  border: 0.5px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+  margin-top: 12px;
+}
+
+.assumptions-fold summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.assumptions-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.assumptions-fold .fold-label,
+.assumptions-fold .fold-hint {
+  display: block;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.assumptions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 16px;
+  margin-top: 14px;
+}
+
+.assumption-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.assumption-item span {
+  font: 400 10px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.assumption-item strong {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .assumptions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 680px) {
   .brand small,
   .auth-hint {
