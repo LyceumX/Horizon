@@ -11,6 +11,14 @@ Rate limit: (X% used, resets at HH:MM)
 
 ---
 
+## Pre-flight: pull latest
+
+```bash
+git pull origin main
+```
+
+---
+
 ## Task 1: Open Monte Carlo PR
 
 **Branch:** `feat/monte-carlo-engine`
@@ -21,11 +29,13 @@ git checkout feat/monte-carlo-engine
 git pull origin feat/monte-carlo-engine
 ```
 
-`lib/monte-carlo.ts` and `tests/monte-carlo.test.ts` are already committed. Open the PR:
+`lib/monte-carlo.ts` and `tests/monte-carlo.test.ts` are already committed. Open the PR on GitHub:
 
-```bash
-gh pr create --title "feat: Monte Carlo simulation engine" --body "Adds Monte Carlo simulation engine with Box-Muller transform for retirement date uncertainty modelling. Spec: C:\Users\ianxi\Obsidian\Lyceum\5_Horizon\Specs\2026-05-20-monte-carlo-engine.md" --label "needs-review" --base main
-```
+1. Go to https://github.com/LyceumX/Horizon
+2. Click "Compare & pull request" for `feat/monte-carlo-engine`
+3. Title: `feat: Monte Carlo simulation engine`
+4. Body: `Adds Monte Carlo simulation engine with Box-Muller transform for retirement date uncertainty modelling.`
+5. Base: `main` → Submit
 
 ---
 
