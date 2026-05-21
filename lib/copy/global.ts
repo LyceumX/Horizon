@@ -91,7 +91,7 @@ export const GLOBAL_COPY: Copy = {
   brand: "Horizon",
   since: "Since 2026",
   nav: { summary: "Summary", customize: "Retirement Planner", budget: "Budget Templates", stories: "Best Practices" },
-  goal: "Retire with clarity, not spreadsheets.",
+  goal: "From pension math to your freedom date.",
   slogan: "Calculate your pension in real time. Plan your retirement income and expenses with clarity. Every adjustment brings your freedom date a little closer.",
   interest:
     "Discard Excel. Follow proven playbooks, lock in the years Horizon saves you, and stay accountable with people on the same timeline.",

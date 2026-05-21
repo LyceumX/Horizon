@@ -90,7 +90,7 @@ export const CN_COPY: Copy = {
   brand: "早早退休",
   since: "自2026",
   nav: { summary: "摘要", customize: "养老金计算器", budget: "预算模版", stories: "最佳实践" },
-  goal: "退休规划，不再靠表格。",
+  goal: "从养老金测算，到你的自由日。",
   slogan: "实时计算养老金，合理规划退休收支。每一次调整，都让自由日提前一点到达。",
   interest: "丢掉 Excel，参考最佳实践，锁定 早早退休 节省的年数，与同路人一起加油，早日告别“卷生活”。",
   heroBadge: "先定日期 · 共同规划",
