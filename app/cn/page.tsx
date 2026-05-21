@@ -72,7 +72,6 @@ type Copy = {
   defaultRetireValue: string;
   yearsSavedLabel: string;
   retirementDisclaimer: string;
-  save: string;
   spend: string;
   projectionTitle: string;
   projectionYears: string;
@@ -113,12 +112,30 @@ type Copy = {
   insuranceTitle: string;
   insuranceLead: string;
   insuranceFields: { pension: string; medical: string; housing: string; unemployment: string; workplace: string; note: string };
+  currentSavings: string;
+  monthlyIncome: string;
+  monthlyExpenses: string;
+  nestEgg: string;
+  monthlySurplus: string;
+  monthlyGap: string;
+  horizonDate: string;
+  scenarioLabel: string;
+  scenarioBase: string;
+  scenarioOptimistic: string;
+  scenarioStress: string;
+  assumptionsTitle: string;
+  returnRateLabel: string;
+  inflationRateLabel: string;
+  multiplierLabel: string;
+  pensionIncome: string;
   storiesTitle: string;
   storiesLead: string;
   stories: { name: string; role: string; text: string; image: string }[];
 };
 
 import { CN_REGIONS } from "@/lib/data/regions-cn";
+
+import { calculateHorizonDay1, SCENARIO_PRESETS } from "@/lib/planner";
 
 import { CN_COPY } from "@/lib/copy/cn";
 import { BUDGETS } from "@/lib/data/budgets";
@@ -127,24 +144,6 @@ const COMING_SOON_COUNTRIES = new Set(["us", "uk"]);
 
 const copy = CN_COPY;
 const REGIONS: CountryOption[] = CN_REGIONS;
-
-function calcProjection(input: { age: number; save: number; spend: number }) {
-  const target = input.spend * 12 * 25;
-  const monthlyRate = 0.05 / 12;
-  let balance = 0;
-  let months = 0;
-
-  while (balance < target && months < 12 * 80) {
-    balance = balance * (1 + monthlyRate) + input.save;
-    months += 1;
-  }
-
-  const years = Number((months / 12).toFixed(1));
-  const date = new Date();
-  date.setMonth(date.getMonth() + months);
-
-  return { years, date, target: Math.round(target) };
-}
 
 function calcAgeFromDob(dob: string) {
   if (!dob) return 32;
@@ -293,8 +292,12 @@ export default function HomePage() {
   const [city, setCity] = useState("hangzhou");
   const [gender, setGender] = useState<GenderCategory>("male");
   const [employmentType, setEmploymentType] = useState<EmploymentType>("private");
-  const [save, setSave] = useState(1800);
-  const [spend, setSpend] = useState(2400);
+  const [currentSavings, setCurrentSavings] = useState(150000);
+  const [monthlyIncome, setMonthlyIncome] = useState(12000);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(9600);
+  const [spend, setSpend] = useState(2800);
+  const [scenario, setScenario] = useState<"base" | "optimistic" | "stress">("base");
+  const [pensionIncome, setPensionIncome] = useState(0);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
@@ -303,7 +306,19 @@ export default function HomePage() {
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
-  const projection = useMemo(() => calcProjection({ age, save, spend }), [age, save, spend]);
+  const plannerResult = useMemo(() => calculateHorizonDay1({
+    age,
+    city,
+    maritalStatus: "single",
+    currentSavings,
+    monthlyIncome,
+    monthlyExpenses,
+    monthlyTargetSpendAtRetirement: spend,
+    annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
+    annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
+    multiplier: SCENARIO_PRESETS[scenario].multiplier,
+    pensionIncome: pensionIncome > 0 ? pensionIncome : undefined,
+  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionIncome]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
     () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
@@ -330,23 +345,23 @@ export default function HomePage() {
     if (defaultRetireAge === null) {
       return 0;
     }
-    const saved = defaultRetireAge - (age + projection.years);
+    const saved = defaultRetireAge - (age + plannerResult.yearsToGoal);
     return Math.max(0, Number(saved.toFixed(1)));
-  }, [defaultRetireAge, age, projection.years]);
+  }, [defaultRetireAge, age, plannerResult.yearsToGoal]);
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
   const cards = useMemo(() => summaryCards("zh"), ["zh"]);
-  const tier = getTier(projection.years);
+  const tier = getTier(plannerResult.yearsToGoal);
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${save}|${spend}|$"zh"|${hideSensitive ? "hide" : "show"}`,
-    [dob, country, province, city, save, spend, hideSensitive]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"zh"|${hideSensitive ? "hide" : "show"}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, hideSensitive]
   );
   const shareText = buildShareText("zh", {
     brand: copy.brand,
-    date: yearOnly(projection.date),
+    date: yearOnly(new Date(plannerResult.horizonDay1)),
     countyLine: country === "cn"
       ? (true ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
       : (true ? currentCountry.label.zh : currentCountry.label.en)
@@ -369,8 +384,11 @@ export default function HomePage() {
           city: string;
           gender?: GenderCategory;
           employmentType?: EmploymentType;
-          save: number;
+          currentSavings?: number;
+          monthlyIncome?: number;
+          monthlyExpenses?: number;
           spend: number;
+          pensionIncome?: number;
           budgetMode: BudgetMode;
         };
         setDob(parsed.dob);
@@ -390,7 +408,10 @@ export default function HomePage() {
         if (parsed.employmentType) {
           setEmploymentType(parsed.employmentType);
         }
-        setSave(parsed.save);
+        if (parsed.currentSavings !== undefined) setCurrentSavings(parsed.currentSavings);
+        if (parsed.monthlyIncome !== undefined) setMonthlyIncome(parsed.monthlyIncome);
+        if (parsed.monthlyExpenses !== undefined) setMonthlyExpenses(parsed.monthlyExpenses);
+        if (parsed.pensionIncome !== undefined) setPensionIncome(parsed.pensionIncome);
         setSpend(parsed.spend);
         setBudgetMode(parsed.budgetMode);
       } catch {
@@ -409,7 +430,7 @@ export default function HomePage() {
   }, []);
 
   function saveLocal() {
-    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, save, spend, budgetMode }));
+    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode }));
     setSaveState(copy.localSaved);
   }
 
@@ -419,14 +440,21 @@ export default function HomePage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        profile: { dob, age, country, province, city, gender, employmentType, save, spend, budgetMode, language: "zh", theme, insurance },
+        profile: {
+          dob, age, country, province, city, gender, employmentType,
+          currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome,
+          budgetMode, language: "zh", theme, insurance
+        },
         projection: {
-          years: projection.years,
-          year: projection.date.getFullYear(),
-          target: projection.target,
+          horizonDay1: plannerResult.horizonDay1,
+          years: plannerResult.yearsToGoal,
+          year: new Date(plannerResult.horizonDay1).getFullYear(),
+          requiredNestEgg: plannerResult.requiredNestEgg,
+          monthlySurplus: plannerResult.monthlySurplus,
+          monthlyGapToSave: plannerResult.monthlyGapToSave,
           rank: rank.rank,
           percentile: tier.percentile,
-          retirementAge: Number((age + projection.years).toFixed(1))
+          retirementAge: Number((age + plannerResult.yearsToGoal).toFixed(1))
         }
       })
     });
@@ -442,7 +470,8 @@ export default function HomePage() {
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
     const preset = BUDGETS[mode];
-    setSave(preset.save);
+    setMonthlyIncome(preset.monthlyIncome);
+    setMonthlyExpenses(preset.monthlyExpenses);
     setSpend(preset.spend);
   }
 
@@ -684,8 +713,42 @@ export default function HomePage() {
               </div>
 
               <div className="field">
-                <div className="lbl"><span>{copy.save}</span><span className="val">{money(save, "zh")}</span></div>
-                <input type="range" min={200} max={8000} step={100} value={save} onChange={(e) => setSave(Number(e.target.value))} />
+                <div className="lbl"><span>{copy.scenarioLabel}</span></div>
+                <div className="scenario-toggle">
+                  {(["base", "optimistic", "stress"] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
+                      onClick={() => setScenario(key)}
+                    >
+                      {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="field">
+                <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, "zh")}</span></div>
+                <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
+              </div>
+
+              <div className="field">
+                <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, "zh")}</span></div>
+                <input type="range" min={3000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
+              </div>
+
+              <div className="field">
+                <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, "zh")}</span></div>
+                <input type="range" min={1000} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
+              </div>
+
+              <div className="field">
+                <div className="lbl">
+                  <span>{copy.pensionIncome}</span>
+                  <span className="val">{pensionIncome > 0 ? money(pensionIncome, "zh") : "¥0"}</span>
+                </div>
+                <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
               </div>
 
               <div className="field">
@@ -741,7 +804,7 @@ export default function HomePage() {
                 <div className="projection-topline">
                   <div className="projection-title-stack">
                     <span className={`tier-badge tier-${tier.key}`}>{true ? tier.zhLabel : tier.label}</span>
-                    <span className="projection-years-mini">{projection.years} {true ? "年" : "years"}</span>
+                    <span className="projection-years-mini">{plannerResult.yearsToGoal} {true ? "年" : "years"}</span>
                   </div>
                   <button type="button" className="ghost-toggle" onClick={() => setHideSensitive((value) => !value)}>
                     {hideSensitive ? (true ? "显示年龄和本金" : "Show age and capital") : (true ? "隐藏年龄和本金" : "Hide age and capital")}
@@ -757,14 +820,14 @@ export default function HomePage() {
                 ) : null}
                 <div className="projection-year">
                   <span className="projection-year-label">{copy.projectionYear}</span>
-                  <strong><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(projection.date)}</span></strong>
+                  <strong><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></strong>
                 </div>
                 <div className="projection-grid">
                   <div className="metric-card">
                     <span className="metric-icon">⏳</span>
                     <div>
                       <small>{copy.projectionYears}</small>
-                      <strong><span key={`${projectionVersion}-years`} className="flip-number">{projection.years}</span></strong>
+                      <strong><span key={`${projectionVersion}-years`} className="flip-number">{plannerResult.yearsToGoal}</span></strong>
                     </div>
                   </div>
                   {hideSensitive ? null : (
@@ -772,7 +835,7 @@ export default function HomePage() {
                       <span className="metric-icon">🎂</span>
                       <div>
                         <small>{copy.projectionAge}</small>
-                        <strong><span key={`${projectionVersion}-age`} className="flip-number">{(age + projection.years).toFixed(1)}</span></strong>
+                        <strong><span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span></strong>
                       </div>
                     </div>
                   )}
@@ -787,10 +850,19 @@ export default function HomePage() {
                     <div className="metric-card">
                       <span className="metric-icon">💰</span>
                       <div>
-                        <small>{copy.projectionCapital}</small>
-                        <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(projection.target, "zh")}</span></strong>
+                        <small>{copy.nestEgg}</small>
+                        <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
                       </div>
                     </div>
+                    {plannerResult.monthlyGapToSave > 0 ? (
+                      <div className="metric-card">
+                        <span className="metric-icon">⚠️</span>
+                        <div>
+                          <small>{copy.monthlyGap}</small>
+                          <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
+                        </div>
+                      </div>
+                    ) : null}
                   )}
                 </div>
                 <div className="projection-footer">
@@ -822,6 +894,27 @@ export default function HomePage() {
                 </div>
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
               </div>
+
+              <details className="assumptions-fold">
+                <summary>
+                  <span className="fold-label">{copy.assumptionsTitle}</span>
+                  <span className="fold-hint">{"点击展开"}</span>
+                </summary>
+                <div className="assumptions-grid">
+                  <div className="assumption-item">
+                    <span>{copy.returnRateLabel}</span>
+                    <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
+                  </div>
+                  <div className="assumption-item">
+                    <span>{copy.inflationRateLabel}</span>
+                    <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
+                  </div>
+                  <div className="assumption-item">
+                    <span>{copy.multiplierLabel}</span>
+                    <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
         </section>
