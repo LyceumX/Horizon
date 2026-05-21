@@ -65,6 +65,22 @@ export type Copy = {
   insuranceTitle: string;
   insuranceLead: string;
   insuranceFields: { pension: string; medical: string; housing: string; unemployment: string; workplace: string; note: string };
+  currentSavings: string;
+  monthlyIncome: string;
+  monthlyExpenses: string;
+  nestEgg: string;
+  monthlySurplus: string;
+  monthlyGap: string;
+  horizonDate: string;
+  scenarioLabel: string;
+  scenarioBase: string;
+  scenarioOptimistic: string;
+  scenarioStress: string;
+  assumptionsTitle: string;
+  returnRateLabel: string;
+  inflationRateLabel: string;
+  multiplierLabel: string;
+  pensionIncome: string;
   storiesTitle: string;
   storiesLead: string;
   stories: { name: string; role: string; text: string; image: string }[];
@@ -154,6 +170,22 @@ export const CN_COPY: Copy = {
     workplace: "职业养老金",
     note: "备注",
   },
+  currentSavings: "当前储蓄",
+  monthlyIncome: "月税后收入",
+  monthlyExpenses: "月支出",
+  nestEgg: "目标本金",
+  monthlySurplus: "月结余",
+  monthlyGap: "每月差额",
+  horizonDate: "自由日期",
+  scenarioLabel: "情景",
+  scenarioBase: "基准",
+  scenarioOptimistic: "乐观",
+  scenarioStress: "压力",
+  assumptionsTitle: "计算假设",
+  returnRateLabel: "年化收益率",
+  inflationRateLabel: "年通胀率",
+  multiplierLabel: "安全倍数",
+  pensionIncome: "社保/公积金预计月收入（可选）",
   storiesTitle: "最佳实践",
   storiesLead: "跟随那些节省多年的人，分享你的方法并一起成长（即将上线）。",
   stories: [

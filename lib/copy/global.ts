@@ -65,6 +65,22 @@ export type Copy = {
   insuranceTitle: string;
   insuranceLead: string;
   insuranceFields: { pension: string; medical: string; housing: string; unemployment: string; workplace: string; note: string };
+  currentSavings: string;
+  monthlyIncome: string;
+  monthlyExpenses: string;
+  nestEgg: string;
+  monthlySurplus: string;
+  monthlyGap: string;
+  horizonDate: string;
+  scenarioLabel: string;
+  scenarioBase: string;
+  scenarioOptimistic: string;
+  scenarioStress: string;
+  assumptionsTitle: string;
+  returnRateLabel: string;
+  inflationRateLabel: string;
+  multiplierLabel: string;
+  pensionIncome: string;
   storiesTitle: string;
   storiesLead: string;
   stories: { name: string; role: string; text: string; image: string }[];
@@ -156,6 +172,22 @@ export const GLOBAL_COPY: Copy = {
     workplace: "Workplace pension",
     note: "Note",
   },
+  currentSavings: "Current savings",
+  monthlyIncome: "Monthly after-tax income",
+  monthlyExpenses: "Monthly expenses",
+  nestEgg: "Required nest egg",
+  monthlySurplus: "Monthly surplus",
+  monthlyGap: "Monthly savings gap",
+  horizonDate: "Day 1 date",
+  scenarioLabel: "Scenario",
+  scenarioBase: "Base",
+  scenarioOptimistic: "Optimistic",
+  scenarioStress: "Stress",
+  assumptionsTitle: "Assumptions",
+  returnRateLabel: "Annual return rate",
+  inflationRateLabel: "Annual inflation rate",
+  multiplierLabel: "Safe withdrawal multiple",
+  pensionIncome: "Expected monthly pension / social security (optional)",
   storiesTitle: "Best Practices",
   storiesLead: "Follow playbooks from people who saved years. Share your own and grow together (coming soon).",
   stories: [
