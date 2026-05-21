@@ -608,7 +608,7 @@ export default function HomePage() {
           </div>
 
           <div className="nav-cta">
-            <a className="lang-switch" href="https://horizone.cc.cd">EN</a>
+            <a className="lang-switch site-switch" href="https://horizone.cc.cd">International →</a>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
             </button>

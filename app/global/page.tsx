@@ -361,12 +361,12 @@ export default function HomePage() {
     () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}`,
     [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang]
   );
-  const shareText = buildShareText("en", {
+  const shareText = buildShareText(lang, {
     brand: copy.brand,
     date: yearOnly(new Date(plannerResult.horizonDay1)),
     countyLine: country === "cn"
-      ? (false ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
-      : (false ? currentCountry.label.zh : currentCountry.label.en)
+      ? (lang === "zh" ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
+      : (lang === "zh" ? currentCountry.label.zh : currentCountry.label.en)
   });
 
   useEffect(() => {
@@ -479,7 +479,7 @@ export default function HomePage() {
 
   async function copyShareText() {
     await navigator.clipboard.writeText(`${shareText} ${shareUrl}`.trim());
-    setShareState(false ? "已复制分享文案。" : "Share text copied.");
+    setShareState(lang === "zh" ? "已复制分享文案。" : "Share text copied.");
   }
 
   async function shareNative() {
@@ -489,7 +489,7 @@ export default function HomePage() {
         text: shareText,
         url: shareUrl
       });
-      setShareState(false ? "已打开系统分享。" : "Native share opened.");
+      setShareState(lang === "zh" ? "已打开系统分享。" : "Native share opened.");
       return;
     }
 
@@ -529,11 +529,18 @@ export default function HomePage() {
           </div>
 
           <div className="nav-cta">
-            <a className="lang-switch" href="https://cn.horizone.cc.cd">中文</a>
+            <div className="lang-region">
+              <span className="lang-toggle">
+                <button type="button" className={`lang-opt${lang === "en" ? " lang-active" : ""}`} onClick={() => setLang("en")}>EN</button>
+                <span className="lang-sep" aria-hidden="true">|</span>
+                <button type="button" className={`lang-opt${lang === "zh" ? " lang-active" : ""}`} onClick={() => setLang("zh")}>中文</button>
+              </span>
+              <a className="lang-switch site-switch" href="https://cn.horizone.cc.cd">China →</a>
+            </div>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
             </button>
-            {hasClerk ? <AuthControls language="en" /> : null}
+            {hasClerk ? <AuthControls language={lang === "zh" ? "zh" : "en"} /> : null}
           </div>
         </div>
       </nav>
@@ -549,7 +556,7 @@ export default function HomePage() {
               <div className="hero-callout" aria-live="polite">
                 <div>
                   <span className="k">{copy.defaultRetireLabel}</span>
-                  <strong>{copy.defaultRetireValue}: {defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"} {false ? "岁" : "yrs"} · {defaultRetireYear}</strong>
+                  <strong>{copy.defaultRetireValue}: {defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"} {lang === "zh" ? "岁" : "yrs"} · {defaultRetireYear}</strong>
                 </div>
                 <div>
                   <span className="k">{copy.yearsSavedLabel}</span>
@@ -558,7 +565,7 @@ export default function HomePage() {
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
-                <a className="btn" href="#customize">{false ? "开始规划" : "Start planning"}</a>
+                <a className="btn" href="#customize">{lang === "zh" ? "开始规划" : "Start planning"}</a>
                 <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
               </div>
             </div>
@@ -629,7 +636,7 @@ export default function HomePage() {
                 </label>
 
                 <label className="field">
-                  <div className="lbl"><span>{copy.country}</span><span className="val">{false ? currentCountry.label.zh : currentCountry.label.en}</span></div>
+                  <div className="lbl"><span>{copy.country}</span><span className="val">{lang === "zh" ? currentCountry.label.zh : currentCountry.label.en}</span></div>
                   <select
                     value={country}
                     onChange={(e) => {
@@ -647,20 +654,20 @@ export default function HomePage() {
                   >
                     {REGIONS.map((item) => (
                       <option key={item.value} value={item.value} disabled={COMING_SOON_COUNTRIES.has(item.value)}>
-                        {false ? item.label.zh : item.label.en}
+                        {lang === "zh" ? item.label.zh : item.label.en}
                       </option>
                     ))}
                   </select>
                 </label>
 
                 {COMING_SOON_COUNTRIES.has(country) ? (
-                  <p className="mode-copy">{false ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</p>
+                  <p className="mode-copy">{lang === "zh" ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</p>
                 ) : null}
 
                 {country === "cn" || country === "sg" || country === "us" ? (
                   <>
                     <label className="field">
-                      <div className="lbl"><span>{copy.province}</span><span className="val">{false ? currentProvince.label.zh : currentProvince.label.en}</span></div>
+                      <div className="lbl"><span>{copy.province}</span><span className="val">{lang === "zh" ? currentProvince.label.zh : currentProvince.label.en}</span></div>
                       <select
                         value={province}
                         onChange={(e) => {
@@ -671,18 +678,18 @@ export default function HomePage() {
                       >
                         {currentCountry.provinces.map((item) => (
                           <option key={item.value} value={item.value}>
-                            {false ? item.label.zh : item.label.en}
+                            {lang === "zh" ? item.label.zh : item.label.en}
                           </option>
                         ))}
                       </select>
                     </label>
 
                     <label className="field">
-                      <div className="lbl"><span>{copy.city}</span><span className="val">{false ? currentCity.label.zh : currentCity.label.en}</span></div>
+                      <div className="lbl"><span>{copy.city}</span><span className="val">{lang === "zh" ? currentCity.label.zh : currentCity.label.en}</span></div>
                       <select value={city} onChange={(e) => setCity(e.target.value)}>
                         {currentProvince.cities.map((item) => (
                           <option key={item.value} value={item.value}>
-                            {false ? item.label.zh : item.label.en}
+                            {lang === "zh" ? item.label.zh : item.label.en}
                           </option>
                         ))}
                       </select>
@@ -732,30 +739,30 @@ export default function HomePage() {
               </div>
 
               <div className="field">
-                <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, "en")}</span></div>
+                <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, lang)}</span></div>
                 <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
               </div>
 
               <div className="field">
-                <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, "en")}</span></div>
+                <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, lang)}</span></div>
                 <input type="range" min={3000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
               </div>
 
               <div className="field">
-                <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, "en")}</span></div>
+                <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, lang)}</span></div>
                 <input type="range" min={1000} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
               </div>
 
               <div className="field">
                 <div className="lbl">
                   <span>{copy.pensionIncome}</span>
-                  <span className="val">{pensionIncome > 0 ? money(pensionIncome, "en") : "$0"}</span>
+                  <span className="val">{pensionIncome > 0 ? money(pensionIncome, lang) : (lang === "zh" ? "¥0" : "$0")}</span>
                 </div>
                 <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
               </div>
 
               <div className="field">
-                <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, "en")}</span></div>
+                <div className="lbl"><span>{copy.spend}</span><span className="val">{money(spend, lang)}</span></div>
                 <input type="range" min={800} max={6000} step={100} value={spend} onChange={(e) => setSpend(Number(e.target.value))} />
               </div>
 
@@ -785,9 +792,9 @@ export default function HomePage() {
                 <summary>
                   <div>
                     <span className="fold-label">{copy.insuranceTitle}</span>
-                    <strong>{false ? currentCity.label.zh : currentCity.label.en}</strong>
+                    <strong>{lang === "zh" ? currentCity.label.zh : currentCity.label.en}</strong>
                   </div>
-                  <span className="fold-hint">{false ? "点击展开" : "Click to expand"}</span>
+                  <span className="fold-hint">{lang === "zh" ? "点击展开" : "Click to expand"}</span>
                 </summary>
                 <p>{copy.insuranceLead}</p>
                 <div className="insurance-grid">
@@ -806,8 +813,8 @@ export default function HomePage() {
                 <div className="k">{copy.projectionTitle}</div>
                 <div className="projection-topline">
                   <div className="projection-title-stack">
-                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{false ? tier.zhLabel : tier.label}</a>
-                    <span className="projection-years-mini">{plannerResult.yearsToGoal} {false ? "年" : "years"}</span>
+                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{lang === "zh" ? tier.zhLabel : tier.label}</a>
+                    <span className="projection-years-mini">{plannerResult.yearsToGoal} {lang === "zh" ? "年" : "years"}</span>
                   </div>
                 </div>
                 {tier.fireworks ? (
@@ -844,7 +851,7 @@ export default function HomePage() {
                     <span className="metric-icon">🏆</span>
                     <div>
                       <small>{copy.rankLabel}</small>
-                      <strong><span key={`${projectionVersion}-rank`} className="flip-number">{false ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
+                      <strong><span key={`${projectionVersion}-rank`} className="flip-number">{lang === "zh" ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
                     </div>
                   </div>
                   <div className="metric-card">
@@ -854,7 +861,7 @@ export default function HomePage() {
                         <small>{copy.nestEgg}</small>
                         <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? "Show capital" : "Hide capital"}>{hideCapital ? "○" : "●"}</button>
                       </div>
-                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "en")}</span>}</strong>
+                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, lang)}</span>}</strong>
                     </div>
                   </div>
                   {!hideCapital && plannerResult.monthlyGapToSave > 0 ? (
@@ -862,7 +869,7 @@ export default function HomePage() {
                       <span className="metric-icon">⚠️</span>
                       <div>
                         <small>{copy.monthlyGap}</small>
-                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "en")}</span></strong>
+                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, lang)}</span></strong>
                       </div>
                     </div>
                   ) : null}
@@ -870,11 +877,11 @@ export default function HomePage() {
                 <div className="projection-footer">
                   <div>
                     <span className="footer-label">{copy.tierLabel}</span>
-                    <strong>{false ? tier.zhLabel : tier.label}</strong>
+                    <strong>{lang === "zh" ? tier.zhLabel : tier.label}</strong>
                   </div>
                   <div>
                     <span className="footer-label">{copy.rankAmong}</span>
-                    <strong>{false ? `前 ${tier.percentile}%` : `Top ${tier.percentile}%`}</strong>
+                    <strong>{lang === "zh" ? `前 ${tier.percentile}%` : `Top ${tier.percentile}%`}</strong>
                   </div>
                 </div>
               </div>
@@ -885,7 +892,7 @@ export default function HomePage() {
                 <div className="share-preview">{shareText} {shareUrl}</div>
                 <div className="save-row">
                   <button type="button" className="btn ghost" onClick={copyShareText}>{copy.shareCopy}</button>
-                  <button type="button" className="btn" onClick={shareNative}>{false ? "系统分享" : "Native share"}</button>
+                  <button type="button" className="btn" onClick={shareNative}>{lang === "zh" ? "系统分享" : "Native share"}</button>
                 </div>
                 <div className="share-links">
                   {socialChannels("en").map((channel) => (
@@ -901,17 +908,17 @@ export default function HomePage() {
                 <div className="k">Monthly income at retirement</div>
                 <div className="breakdown-row">
                   <span>Portfolio withdrawal</span>
-                  <strong>{money(Math.max(0, spend - pensionIncome), "en")}<span className="breakdown-freq">/mo</span></strong>
+                  <strong>{money(Math.max(0, spend - pensionIncome), lang)}<span className="breakdown-freq">/mo</span></strong>
                 </div>
                 {pensionIncome > 0 ? (
                   <div className="breakdown-row">
                     <span>Gov pension / CPP</span>
-                    <strong>{money(pensionIncome, "en")}<span className="breakdown-freq">/mo</span></strong>
+                    <strong>{money(pensionIncome, lang)}<span className="breakdown-freq">/mo</span></strong>
                   </div>
                 ) : null}
                 <div className="breakdown-row breakdown-total">
                   <span>Total</span>
-                  <strong>{money(spend, "en")}<span className="breakdown-freq">/mo</span></strong>
+                  <strong>{money(spend, lang)}<span className="breakdown-freq">/mo</span></strong>
                 </div>
               </div>
 

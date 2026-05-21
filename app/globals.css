@@ -234,14 +234,64 @@ a {
   letter-spacing: 0.05em;
 }
 
+/* ── Language / region nav ── */
+
+/* Groups the [EN|中文] toggle + [China →] pill together */
+.lang-region {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The [EN | 中文] toggle strip */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0.5px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.08em;
+}
+
+.lang-sep {
+  color: var(--line);
+  font-size: 10px;
+  user-select: none;
+}
+
+/* Individual language buttons inside the toggle */
+.lang-opt {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 999px;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--mute);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.lang-opt:hover {
+  color: var(--ink);
+}
+
+.lang-opt.lang-active {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper-2));
+}
+
+/* The site-switch pill (International → / China →) */
 .lang-switch {
   font: 500 11px var(--mono);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   color: var(--mute);
   border: 0.5px solid var(--line);
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   transition: color 140ms ease, border-color 140ms ease;
   white-space: nowrap;
 }
