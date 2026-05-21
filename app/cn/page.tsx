@@ -392,8 +392,10 @@ export default function HomePage() {
     annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
     annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
     multiplier: SCENARIO_PRESETS[scenario].multiplier,
-    pensionIncome: pensionCalcEarly.total > 0 ? pensionCalcEarly.total : undefined,
-  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionCalcEarly.total]);
+    // Pension income is NOT fed into the planner — it only starts at legal retirement age,
+    // not today. The planner calculates pure portfolio FIRE date; pension is shown
+    // separately in the income breakdown as a supplement at retirement.
+  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]);
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
     () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
