@@ -98,7 +98,7 @@ export const CN_COPY: Copy = {
   summaryTitle: "为什么选择我们",
   summaryLead: "全网扫描政策规则，实时更新算法。提供标准和自定义模版，一键完成退休规划。",
   summaryIntro: "丢掉表格，得到清晰日期、可执行方案和成长社群。",
-  customizeTitle: "先自定义基础参数",
+  customizeTitle: "输入基础参数",
   customizeDesc: "无需注册，先免费体验，并可保存到本地浏览器。",
   dob: "出生日期",
   country: "国家",

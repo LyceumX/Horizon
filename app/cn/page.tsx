@@ -361,6 +361,7 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
+  const [hideCityAvg, setHideCityAvg] = useState(true);
   // Pension calculator inputs
   const [contributionYears, setContributionYears] = useState(25);
   const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
@@ -423,11 +424,15 @@ export default function HomePage() {
     return Math.max(0, Number(saved.toFixed(1)));
   }, [defaultRetireAge, age, plannerResult.yearsToGoal]);
   const pensionCalc = pensionCalcEarly; // alias for use in JSX
-
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
   const avgPensionForProvince = PROVINCE_AVG_PENSION[province] ?? 2500;
+  const pensionPercentile = useMemo(() => {
+    if (pensionCalc.total <= 0) return 50;
+    const ratio = pensionCalc.total / (avgPensionForProvince || 2500);
+    return Math.min(98, Math.max(2, Math.round(50 + 40 * Math.tanh((ratio - 1) * 1.5))));
+  }, [pensionCalc.total, avgPensionForProvince]);
   const pensionPct = pensionCalc.total > 0
     ? Math.round((pensionCalc.total - avgPensionForProvince) / avgPensionForProvince * 100)
     : null;
@@ -608,7 +613,7 @@ export default function HomePage() {
           </div>
 
           <div className="nav-cta">
-            <a className="lang-switch site-switch" href="https://horizone.cc.cd">International →</a>
+            <a className="icon-btn" href="https://horizone.cc.cd" title="International site" aria-label="Switch to international site">I</a>
             <button type="button" className="icon-btn" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}>
               {theme === "light" ? "◐" : "◑"}
             </button>
@@ -637,8 +642,7 @@ export default function HomePage() {
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
-                <a className="btn" href="#customize">{true ? "开始规划" : "Start planning"}</a>
-                <a className="btn ghost" href="#summary">{copy.nav.summary}</a>
+                <a className="btn" href="#customize">养老金计算器</a>
               </div>
             </div>
 
@@ -701,101 +705,80 @@ export default function HomePage() {
 
           <div className="calc-grid">
             <div className="calc-form">
-              <div className="profile-grid">
+
+              {/* ── Row 1: DOB + 退休类别 ── */}
+              <div className="form-row-2col">
                 <label className="field">
-                  <div className="lbl"><span>{copy.dob}</span><span className="val">{age}</span></div>
+                  <div className="lbl"><span>{copy.dob}</span></div>
                   <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                 </label>
-
-                {true ? (
-                  <>
-                    <label className="field">
-                      <div className="lbl"><span>{copy.province}</span><span className="val">{true ? currentProvince.label.zh : currentProvince.label.en}</span></div>
-                      <select
-                        value={province}
-                        onChange={(e) => {
-                          const nextProvince = getCountry(country).provinces.find((item) => item.value === e.target.value) ?? getCountry(country).provinces[0];
-                          setProvince(nextProvince.value);
-                          setCity(nextProvince.cities[0].value);
-                        }}
-                      >
-                        {currentCountry.provinces.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {true ? item.label.zh : item.label.en}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="field">
-                      <div className="lbl"><span>{copy.city}</span><span className="val">{true ? currentCity.label.zh : currentCity.label.en}</span></div>
-                      <select value={city} onChange={(e) => setCity(e.target.value)}>
-                        {currentProvince.cities.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {true ? item.label.zh : item.label.en}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </>
-                ) : null}
-
-                {country === "hk" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.employmentType}</span><span className="val">{employmentType === "government_disciplined" ? copy.employmentOptions.governmentDisciplined : employmentType === "government_civilian" ? copy.employmentOptions.governmentCivilian : copy.employmentOptions.private}</span></div>
-                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
-                      <option value="private">{copy.employmentOptions.private}</option>
-                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
-                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
-                    </select>
-                  </label>
-                ) : null}
-
-                {country === "cn" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.gender}</span><span className="val">{gender === "female_pro" ? copy.genderOptions.femalePro : gender === "female_worker" ? copy.genderOptions.femaleWorker : gender === "special_male" ? copy.genderOptions.specialMale : gender === "special_female" ? copy.genderOptions.specialFemale : copy.genderOptions.male}</span></div>
-                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                      <option value="male">{copy.genderOptions.male}</option>
-                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
-                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
-                      <option value="special_male">{copy.genderOptions.specialMale}</option>
-                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
-                    </select>
-                  </label>
-                ) : null}
+                <label className="field">
+                  <div className="lbl"><span>{copy.gender}</span></div>
+                  <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                    <option value="male">{copy.genderOptions.male}</option>
+                    <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                    <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
+                    <option value="special_male">{copy.genderOptions.specialMale}</option>
+                    <option value="special_female">{copy.genderOptions.specialFemale}</option>
+                  </select>
+                </label>
               </div>
 
-              {/* ── Pension calculator fields ── */}
-              <div className="field">
-                <div className="lbl">
-                  <span>累计缴费年限</span>
-                  <span className="val">{contributionYears} 年</span>
-                </div>
-                <input type="range" min={1} max={40} step={0.5} value={contributionYears} onChange={(e) => setContributionYears(Number(e.target.value))} />
+              <div className="form-divider" />
+
+              {/* ── Row 2: 省/直辖市 + 城市 ── */}
+              <div className="form-row-2col">
+                <label className="field">
+                  <div className="lbl"><span>{copy.province}</span></div>
+                  <select
+                    value={province}
+                    onChange={(e) => {
+                      const nextProvince = getCountry(country).provinces.find((item) => item.value === e.target.value) ?? getCountry(country).provinces[0];
+                      setProvince(nextProvince.value);
+                      setCity(nextProvince.cities[0].value);
+                    }}
+                  >
+                    {currentCountry.provinces.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label.zh}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <div className="lbl"><span>{copy.city}</span></div>
+                  <select value={city} onChange={(e) => setCity(e.target.value)}>
+                    {currentProvince.cities.map((item) => (
+                      <option key={item.value} value={item.value}>{item.label.zh}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
-              <label className="field">
-                <div className="lbl">
-                  <span>缴费档次</span>
-                  <span className="val">{{ "60": "60%（基本档）", "100": "100%（标准档）", "300": "300%（高档）" }[contributionTier]}</span>
-                </div>
-                <select value={contributionTier} onChange={(e) => setContributionTier(e.target.value as "60" | "100" | "300")}>
-                  <option value="60">60%（基本档·低收入）</option>
-                  <option value="100">100%（标准档·平均工资）</option>
-                  <option value="300">300%（高档·高收入）</option>
-                </select>
-              </label>
+              <div className="form-divider" />
 
-              <div className="field">
-                <div className="lbl">
-                  <span>个人账户累计余额</span>
-                  <span className="val">{money(personalAccountBalance, "zh")}</span>
+              {/* ── Row 3: 缴费年限 + 缴费档次 ── */}
+              <div className="form-row-2col">
+                <div className="field">
+                  <div className="lbl"><span>缴费年限</span><span className="val">{contributionYears} 年</span></div>
+                  <input type="range" min={1} max={40} step={0.5} value={contributionYears} onChange={(e) => setContributionYears(Number(e.target.value))} />
                 </div>
+                <label className="field">
+                  <div className="lbl"><span>缴费档次</span></div>
+                  <select value={contributionTier} onChange={(e) => setContributionTier(e.target.value as "60" | "100" | "300")}>
+                    <option value="60">60%（基本档）</option>
+                    <option value="100">100%（标准档）</option>
+                    <option value="300">300%（高档）</option>
+                  </select>
+                </label>
+              </div>
+
+              {/* ── Row 4: 个人账户余额 ── */}
+              <div className="field">
+                <div className="lbl"><span>个人社保账户余额</span><span className="val">{money(personalAccountBalance, "zh")}</span></div>
                 <input type="range" min={0} max={600000} step={5000} value={personalAccountBalance} onChange={(e) => setPersonalAccountBalance(Number(e.target.value))} />
-                <small className="field-hint">可在社保APP或对账单查询</small>
+                <small className="field-hint">可在社保 APP 或账单查询</small>
               </div>
 
-              {/* ── Calculated pension result ── */}
+              {/* ── Pension result inline ── */}
               <div className="pension-result">
                 <div className="pension-result-label">预计每月养老金</div>
                 <div className="pension-result-amount">
@@ -803,9 +786,9 @@ export default function HomePage() {
                   <span className="pension-freq">/月</span>
                 </div>
                 <div className="pension-result-breakdown">
-                  <span>基础养老金 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
+                  <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
                   <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
-                  <span>计发月数 <strong>{pensionCalc.months} 月</strong></span>
+                  <span>计发月数 <strong>{pensionCalc.months}</strong></span>
                 </div>
               </div>
 
@@ -852,79 +835,36 @@ export default function HomePage() {
             </div>
 
             <div className="calc-out">
-              <div className="projection-card" key={projectionVersion}>
-                <div className="k">{copy.projectionTitle}</div>
-                <div className="projection-topline">
-                  <div className="projection-title-stack">
-                    <a href="#budget" className={`tier-badge tier-${tier.key}`}>{true ? tier.zhLabel : tier.label}</a>
-                    <span className="projection-years-mini">{plannerResult.yearsToGoal} {true ? "年" : "years"}</span>
+              <div className="pension-summary-card" key={projectionVersion}>
+                {/* Row 1: retirement year */}
+                <div className="psc-row">
+                  <span className="psc-label">预计退休年份</span>
+                  <div className="psc-value">
+                    <span className="hl"><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></span>
+                    <span className="psc-sub">还有 <strong>{plannerResult.yearsToGoal}</strong> 年</span>
                   </div>
                 </div>
-                {tier.fireworks ? (
-                  <div className="fireworks" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <div className="psc-divider" />
+                {/* Row 2: pension vs city average */}
+                <div className="psc-row">
+                  <span className="psc-label">养老金超过本市人口</span>
+                  <div className="psc-value">
+                    <span className="hl">{pensionPercentile}%</span>
+                    <span className="psc-sub">
+                      市平均&nbsp;
+                      {hideCityAvg
+                        ? <span className="psc-hidden">· · ·</span>
+                        : <strong>¥{avgPensionForProvince.toLocaleString("zh-CN")}</strong>}
+                      <button type="button" className="eye-btn" onClick={() => setHideCityAvg(v => !v)} aria-label={hideCityAvg ? "显示市均养老金" : "隐藏市均养老金"}>{hideCityAvg ? "○" : "●"}</button>
+                    </span>
                   </div>
-                ) : null}
-                <div className="projection-year">
-                  <span className="projection-year-label">{copy.projectionYear}</span>
-                  <strong><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></strong>
                 </div>
-                <div className="projection-grid">
-                  <div className="metric-card">
-                    <span className="metric-icon">⏳</span>
-                    <div>
-                      <small>{copy.projectionYears}</small>
-                      <strong><span key={`${projectionVersion}-years`} className="flip-number">{plannerResult.yearsToGoal}</span></strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">🎂</span>
-                    <div className="metric-body">
-                      <div className="metric-label-row">
-                        <small>{copy.projectionAge}</small>
-                        <button type="button" className="eye-btn" onClick={() => setHideAge(v => !v)} aria-label={hideAge ? "显示年龄" : "隐藏年龄"}>{hideAge ? "○" : "●"}</button>
-                      </div>
-                      <strong>{hideAge ? "· · ·" : <span key={`${projectionVersion}-age`} className="flip-number">{(age + plannerResult.yearsToGoal).toFixed(1)}</span>}</strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">🏆</span>
-                    <div>
-                      <small>{copy.rankLabel}</small>
-                      <strong><span key={`${projectionVersion}-rank`} className="flip-number">{true ? `第 ${rank.rank} / ${rank.outOf}` : `#${rank.rank} / ${rank.outOf}`}</span></strong>
-                    </div>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-icon">💰</span>
-                    <div className="metric-body">
-                      <div className="metric-label-row">
-                        <small>{copy.nestEgg}</small>
-                        <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? "显示本金" : "隐藏本金"}>{hideCapital ? "○" : "●"}</button>
-                      </div>
-                      <strong>{hideCapital ? "· · ·" : <span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span>}</strong>
-                    </div>
-                  </div>
-                  {!hideCapital && plannerResult.monthlyGapToSave > 0 ? (
-                    <div className="metric-card">
-                      <span className="metric-icon">⚠️</span>
-                      <div>
-                        <small>{copy.monthlyGap}</small>
-                        <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-                <div className="projection-footer">
-                  <div>
-                    <span className="footer-label">{copy.tierLabel}</span>
-                    <strong>{true ? tier.zhLabel : tier.label}</strong>
-                  </div>
-                  <div>
-                    <span className="footer-label">{copy.rankAmong}</span>
-                    <strong>{true ? `前 ${tier.percentile}%` : `Top ${tier.percentile}%`}</strong>
+                <div className="psc-divider" />
+                {/* Row 3: years saved with Horizon */}
+                <div className="psc-row">
+                  <span className="psc-label">使用「早早退休」规划</span>
+                  <div className="psc-value">
+                    有望早 <span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
                   </div>
                 </div>
               </div>
@@ -946,45 +886,6 @@ export default function HomePage() {
                 </div>
                 {shareState ? <p className="mode-copy">{shareState}</p> : null}
               </div>
-
-              <div className="income-breakdown">
-                <div className="k">退休后月收入来源</div>
-                <div className="breakdown-row">
-                  <span>投资组合提现</span>
-                  <strong>{money(Math.max(0, spend - pensionCalc.total), "zh")}<span className="breakdown-freq">/月</span></strong>
-                </div>
-                {pensionCalc.total > 0 ? (
-                  <div className="breakdown-row">
-                    <span>养老金 / 社保</span>
-                    <strong>{money(pensionCalc.total, "zh")}<span className="breakdown-freq">/月</span></strong>
-                  </div>
-                ) : null}
-                <div className="breakdown-row breakdown-total">
-                  <span>合计</span>
-                  <strong>{money(spend, "zh")}<span className="breakdown-freq">/月</span></strong>
-                </div>
-              </div>
-
-              <details className="assumptions-fold">
-                <summary>
-                  <span className="fold-label">{copy.assumptionsTitle}</span>
-                  <span className="fold-hint">{"点击展开"}</span>
-                </summary>
-                <div className="assumptions-grid">
-                  <div className="assumption-item">
-                    <span>{copy.returnRateLabel}</span>
-                    <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
-                  </div>
-                  <div className="assumption-item">
-                    <span>{copy.inflationRateLabel}</span>
-                    <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
-                  </div>
-                  <div className="assumption-item">
-                    <span>{copy.multiplierLabel}</span>
-                    <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
-                  </div>
-                </div>
-              </details>
             </div>
           </div>
         </section>
@@ -1061,6 +962,45 @@ export default function HomePage() {
               );
             })}
           </div>
+
+          <div className="income-breakdown">
+            <div className="k">退休后月收入来源</div>
+            <div className="breakdown-row">
+              <span>投资组合提现</span>
+              <strong>{money(Math.max(0, spend - pensionCalc.total), "zh")}<span className="breakdown-freq">/月</span></strong>
+            </div>
+            {pensionCalc.total > 0 ? (
+              <div className="breakdown-row">
+                <span>养老金 / 社保</span>
+                <strong>{money(pensionCalc.total, "zh")}<span className="breakdown-freq">/月</span></strong>
+              </div>
+            ) : null}
+            <div className="breakdown-row breakdown-total">
+              <span>合计</span>
+              <strong>{money(spend, "zh")}<span className="breakdown-freq">/月</span></strong>
+            </div>
+          </div>
+
+          <details className="assumptions-fold">
+            <summary>
+              <span className="fold-label">{copy.assumptionsTitle}</span>
+              <span className="fold-hint">{"点击展开"}</span>
+            </summary>
+            <div className="assumptions-grid">
+              <div className="assumption-item">
+                <span>{copy.returnRateLabel}</span>
+                <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
+              </div>
+              <div className="assumption-item">
+                <span>{copy.inflationRateLabel}</span>
+                <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
+              </div>
+              <div className="assumption-item">
+                <span>{copy.multiplierLabel}</span>
+                <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
+              </div>
+            </div>
+          </details>
         </section>
 
         <section className="calc" id="stories">
