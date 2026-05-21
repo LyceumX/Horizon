@@ -1,5 +1,15 @@
 export type MainlandCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female";
-export type Region = "cn" | "hk" | "mo" | "tw" | "sg" | "us" | "uk";
+export type Region =
+  // Greater China & Southeast Asia
+  | "cn" | "hk" | "mo" | "tw" | "sg" | "my"
+  // Asia-Pacific
+  | "au" | "jp" | "kr" | "nz" | "ca"
+  // EMEA — Europe
+  | "de" | "fr" | "nl" | "ch" | "se" | "no" | "dk" | "es" | "it" | "pl" | "tr" | "il"
+  // EMEA — Middle East & Africa
+  | "ae" | "sa" | "za"
+  // Coming soon
+  | "us" | "uk";
 export type EmploymentType = "private" | "government_civilian" | "government_disciplined";
 
 type PolicyConfig = {
@@ -122,7 +132,19 @@ export function getDefaultRetireDate(region: Region, dob: string, category: Main
     return null;
   }
 
-  return addMonths(birthDate, 65 * 12);
+  // Statutory retirement ages by region (standard / general category)
+  const RETIRE_AGE: Partial<Record<Region, number>> = {
+    // Asia-Pacific
+    au: 67, jp: 65, kr: 63, ca: 65, nz: 65, my: 60,
+    // EMEA Europe
+    de: 67, fr: 64, nl: 67, ch: 65, se: 65, no: 67,
+    dk: 67, es: 65, it: 67, pl: 65, tr: 60, il: 67,
+    // EMEA Middle East & Africa
+    ae: 60, sa: 60, za: 60,
+  };
+
+  const age = RETIRE_AGE[region] ?? 65;
+  return addMonths(birthDate, age * 12);
 }
 
 export function calcAgeAtDate(birthDate: Date, targetDate: Date) {

@@ -539,7 +539,7 @@ export default function HomePage() {
               </label>
 
               {/* ── Row 3: Province + City (where applicable) ── */}
-              {(country === "cn" || country === "sg" || country === "us") && (
+              {(currentCountry.provinces.length > 1 || (currentCountry.provinces[0]?.cities.length ?? 0) > 1) && (
                 <>
                   <div className="form-divider" />
                   <div className="form-row-2col">
