@@ -723,16 +723,21 @@ main {
 }
 
 .hero-callout {
-  position: relative;
   margin-top: 18px;
   padding: 14px 18px;
-  padding-right: 56px; /* room for top-right example-tag */
   border-radius: 16px;
   border: 0.5px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 70%, transparent);
   font: 400 13px var(--sans);
   color: var(--mute);
   line-height: 1.8;
+}
+
+/* Header row: holds the Example/示例 tag right-aligned above content lines */
+.callout-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
 }
 
 .callout-line {
@@ -747,12 +752,17 @@ main {
   font-size: 12px;
   color: var(--mute);
 }
+.callout-location {
+  font-size: 11px;
+  color: var(--mute);
+  opacity: 0.75;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
 
-/* "示例 / Example" pill — absolute top-right of .hero-callout */
+/* "示例 / Example" pill */
 .example-tag {
-  position: absolute;
-  top: 12px;
-  right: 14px;
+  display: inline-block;
   font: 500 9px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
