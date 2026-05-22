@@ -56,6 +56,17 @@ import { BUDGETS } from "@/lib/data/budgets";
 
 const COMING_SOON_COUNTRIES = new Set(["uk"]);
 
+// Countries with a statutory government pension formula — auto-estimator being built.
+// Manual slider is hidden for these; the calc defaults pensionIncome to 0 until estimator ships.
+// Countries NOT in this set (ae, sa, tr, za, my) keep the manual slider — expat/variable pension.
+const PENSION_ESTIMATOR_COUNTRIES = new Set([
+  "us",                                              // ✅ SS estimator live
+  "sg", "jp", "au", "kr", "ca", "nz",               // Asia-Pacific mandatory schemes
+  "hk", "tw", "mo",                                  // Greater China region
+  "de", "fr", "nl", "ch", "se", "no", "dk",          // Core Europe
+  "es", "it", "pl", "il", "uk",                      // South/East Europe + UK (coming soon overall)
+]);
+
 const copy = GLOBAL_COPY;
 // Mainland China is served by the dedicated CN site (cn.horizone.cc.cd)
 const REGIONS: CountryOption[] = GLOBAL_REGIONS.filter(r => r.value !== "cn");
@@ -723,6 +734,7 @@ export default function HomePage() {
 
               {/* ── Social Security / Pension income ── */}
               {country === "us" ? (
+                /* US: full SS estimator */
                 <div className="ss-estimator-card">
                   <div className="ss-card-header">
                     <span className="fold-label">
@@ -769,7 +781,18 @@ export default function HomePage() {
                       : `Selected benefit: ${money(ssMonthly, lang)}/mo — this reduces your required nest egg.`}
                   </small>
                 </div>
+              ) : PENSION_ESTIMATOR_COUNTRIES.has(country) ? (
+                /* Statutory pension country — estimator coming, hide manual slider */
+                <div className="pension-coming-card">
+                  <span className="pension-coming-icon">🏛️</span>
+                  <span className="pension-coming-text">
+                    {lang === "zh"
+                      ? `${currentCountry.label.zh}政府养老金估算即将上线。届时将自动计入所需本金。`
+                      : `Government pension estimator for ${currentCountry.label.en} is coming soon — it will automatically reduce your required nest egg.`}
+                  </span>
+                </div>
               ) : (
+                /* Variable / expat-heavy countries — manual slider */
                 <div className="field">
                   <div className="lbl">
                     <span>{lang === "zh" ? "预计每月养老金/社保（可选）" : copy.pensionIncome}</span>

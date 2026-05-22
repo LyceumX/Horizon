@@ -1826,6 +1826,23 @@ main {
 .region-coverage-note strong { color: var(--ink); }
 .region-coverage-note a { color: var(--accent); text-decoration: underline; }
 
+/* ── Pension coming-soon card ── */
+.pension-coming-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 0.5px dashed var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--paper-2) 60%, transparent);
+}
+.pension-coming-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.pension-coming-text {
+  font-size: 0.8rem;
+  color: var(--mute);
+  line-height: 1.5;
+}
+
 /* ── Location auto-fill row ── */
 .location-row {
   display: flex;
