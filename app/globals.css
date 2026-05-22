@@ -137,8 +137,9 @@ a {
 .pension-result-amount {
   display: flex;
   align-items: baseline;
+  justify-content: flex-end;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .pension-result-amount .hl {
   font-family: var(--serif);
@@ -151,10 +152,12 @@ a {
 }
 .pension-result-breakdown {
   display: flex;
+  justify-content: flex-end;
   gap: 16px;
   flex-wrap: wrap;
   font-size: 12px;
   color: var(--mute);
+  text-align: right;
 }
 .pension-result-breakdown strong {
   color: var(--ink);

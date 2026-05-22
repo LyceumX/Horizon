@@ -835,7 +835,7 @@ export default function HomePage() {
                 <div className="psc-row">
                   <span className="psc-label">预计退休年份</span>
                   <div className="psc-value">
-                    <span className="hl"><span key={`${projectionVersion}-year`} className="flip-number">{defaultRetireYear}</span></span>
+                    <span className="hl"><span key={defaultRetireYear} className="flip-number">{defaultRetireYear}</span></span>
                     <span className="psc-sub">还有 <strong>{yearsToStatutory !== null ? yearsToStatutory.toFixed(1) : "--"}</strong> 年</span>
                   </div>
                 </div>
@@ -872,9 +872,8 @@ export default function HomePage() {
                     </>
                   )}
                 </div>
-                <div className="psc-divider" />
 
-                {/* Row 2: pension vs city average */}
+                {/* Row 2: pension vs city average — no divider, same topic as pension above */}
                 <div className="psc-row">
                   <span className="psc-label">养老金超过本市人口</span>
                   <div className="psc-value">
