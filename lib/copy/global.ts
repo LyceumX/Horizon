@@ -20,7 +20,7 @@ export type Copy = {
   employmentType: string;
   employmentOptions: { private: string; governmentCivilian: string; governmentDisciplined: string };
   genderOptions: { male: string; femalePro: string; femaleWorker: string; specialMale: string; specialFemale: string };
-  genderSimple: { male: string; female: string };
+  genderSimple: { male: string; female: string; preferNotToSay: string };
   defaultRetireLabel: string;
   defaultRetireValue: string;
   yearsSavedLabel: string;
@@ -114,7 +114,7 @@ export const GLOBAL_COPY: Copy = {
     governmentCivilian: "Government (civilian)",
     governmentDisciplined: "Government (disciplined)",
   },
-  gender: "Retirement category",
+  gender: "Gender",
   genderOptions: {
     male: "Male (general)",
     femalePro: "Female (cadre / professional)",
@@ -122,7 +122,7 @@ export const GLOBAL_COPY: Copy = {
     specialMale: "Special work (male)",
     specialFemale: "Special work (female)",
   },
-  genderSimple: { male: "Male", female: "Female" },
+  genderSimple: { male: "Male", female: "Female", preferNotToSay: "Prefer not to say" },
   defaultRetireLabel: "Local statutory retirement",
   defaultRetireValue: "Default retirement age",
   yearsSavedLabel: "Average users save",

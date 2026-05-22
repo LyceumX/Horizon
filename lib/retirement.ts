@@ -1,4 +1,4 @@
-export type MainlandCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female";
+export type MainlandCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female" | "prefer_not_to_say";
 export type Region =
   // Greater China & Southeast Asia
   | "cn" | "hk" | "mo" | "tw" | "sg" | "my"
@@ -49,6 +49,9 @@ function getPolicyConfig(group: MainlandCategory): PolicyConfig {
       return { baseAge: 55, stepMonths: 4, capAge: 58 };
     case "special_female":
       return { baseAge: 45, stepMonths: 2, capAge: 50 };
+    case "prefer_not_to_say":
+    default:
+      return { baseAge: 60, stepMonths: 4, capAge: 63 }; // treats as male for CN (conservative)
   }
 }
 

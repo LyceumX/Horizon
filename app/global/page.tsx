@@ -11,7 +11,7 @@ import { projectAccount, calcHealthcareBridge } from "@/lib/retirement-accounts"
 
 type Theme = "light" | "dark";
 type BudgetMode = "low" | "balanced" | "full";
-type GenderCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female";
+type GenderCategory = "male" | "female_pro" | "female_worker" | "special_male" | "special_female" | "prefer_not_to_say";
 type EmploymentType = "private" | "government_civilian" | "government_disciplined";
 
 type SummaryCard = {
@@ -628,6 +628,7 @@ export default function HomePage() {
                     <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
                       <option value="male">{copy.genderSimple.male}</option>
                       <option value="female_pro">{copy.genderSimple.female}</option>
+                      <option value="prefer_not_to_say">{copy.genderSimple.preferNotToSay}</option>
                     </select>
                   </label>
                 )}
@@ -929,6 +930,21 @@ export default function HomePage() {
                     <p>{plan.text}</p>
                     <span className="budget-chevron" aria-hidden="true">{open ? "▲" : "▼"}</span>
                   </button>
+
+                  {!open && (
+                    <div className="budget-preview">
+                      {[
+                        { label: lang === "zh" ? "月收入" : "Income",   value: BUDGETS[plan.key].monthlyIncome },
+                        { label: lang === "zh" ? "月支出" : "Expenses", value: BUDGETS[plan.key].monthlyExpenses },
+                        { label: lang === "zh" ? "月「足够」" : "Enough", value: BUDGETS[plan.key].spend },
+                      ].map((row) => (
+                        <div key={row.label} className="budget-preview-row">
+                          <span className="budget-preview-label">{row.label}</span>
+                          <span className="budget-preview-val">{money(row.value, lang)}<span className="budget-preview-mo">/mo</span></span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {open && (
                     <div className="budget-params">
