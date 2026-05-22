@@ -113,11 +113,21 @@ Open the dev server (`npm run dev`) and run through this checklist on the global
 **Outcome:** Write up any issues found as bullet points below. If all checks pass, note that.
 
 ### QA notes:
-(fill in after running the checklist)
+- SS estimator: changing Years worked slider (20/30) does not update the displayed years label (stays at 10 yrs) or benefit amounts.
+- SS estimator: after setting Years worked to 20, clicking claim-age buttons resets the slider back to 10.
+- 401(k) section: moving Current account balance slider does not update the displayed dollar amount or projection figures.
+- Mobile layout and flip animation were not verified in this automated QA run.
 
 ---
 
 ## Agent Result
-Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
+Status: ✅ Done
 Completed:
+- Task A: expanded US states and cities in lib/data/regions-global.ts.
+- Build check: npm run build (warning only).
+- Task B: ran QA checklist on localhost:3000/global.
+- Commit: data: expand US states and cities (9 states, 16 cities total).
 Issues found:
+- SS estimator Years worked slider does not update label or benefit amounts.
+- SS estimator Years worked resets to 10 after clicking claim-age buttons.
+- 401(k) Current account balance slider does not update displayed value or projection numbers.
