@@ -7,6 +7,7 @@ import { AuthControls } from "@/components/auth-controls";
 import { getDefaultRetireDate } from "@/lib/retirement";
 import { calculateHorizonDay1, SCENARIO_PRESETS } from "@/lib/planner";
 import { estimateSSBenefit } from "@/lib/social-security";
+import { estimateCPFLife, estimateMPF, estimateSuper } from "@/lib/pension-estimators";
 import { projectAccount, calcHealthcareBridge } from "@/lib/retirement-accounts";
 
 type Theme = "light" | "dark";
@@ -169,6 +170,35 @@ function money(value: number, lang: string) {
   }).format(value);
 }
 
+const COUNTRY_CURRENCY: Record<string, { currency: string; locale: string }> = {
+  sg: { currency: "SGD", locale: "en-SG" },
+  hk: { currency: "HKD", locale: "zh-HK" },
+  au: { currency: "AUD", locale: "en-AU" },
+  jp: { currency: "JPY", locale: "ja-JP" },
+  kr: { currency: "KRW", locale: "ko-KR" },
+  ca: { currency: "CAD", locale: "en-CA" },
+  nz: { currency: "NZD", locale: "en-NZ" },
+  gb: { currency: "GBP", locale: "en-GB" },
+  uk: { currency: "GBP", locale: "en-GB" },
+  de: { currency: "EUR", locale: "de-DE" },
+  fr: { currency: "EUR", locale: "fr-FR" },
+  nl: { currency: "EUR", locale: "nl-NL" },
+  ch: { currency: "CHF", locale: "de-CH" },
+  se: { currency: "SEK", locale: "sv-SE" },
+  no: { currency: "NOK", locale: "nb-NO" },
+  dk: { currency: "DKK", locale: "da-DK" },
+  tw: { currency: "TWD", locale: "zh-TW" },
+};
+
+function localMoney(value: number, countryCode: string): string {
+  const cfg = COUNTRY_CURRENCY[countryCode] ?? { currency: "USD", locale: "en-US" };
+  return new Intl.NumberFormat(cfg.locale, {
+    style: "currency",
+    currency: cfg.currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export default function HomePage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [dob, setDob] = useState("1990-01-01");
@@ -209,9 +239,38 @@ export default function HomePage() {
   );
   const ssMonthly = ssClaimAge === 62 ? ssBenefit.at62 : ssClaimAge === 70 ? ssBenefit.at70 : ssBenefit.atFRA;
 
-  // For US users, SS estimate is wired in; for all others, use the manual pensionIncome slider.
-  // calculateHorizonDay1 subtracts pensionIncome from the nest-egg target.
-  const effectivePensionIncome = country === "us" ? ssMonthly : pensionIncome;
+  // Years until statutory pension age (65 for SG / HK / AU).
+  // Computed independently of plannerResult to avoid circular dependency.
+  const yearsToStatutoryPension = useMemo(
+    () => Math.max(0, 65 - age),
+    [age]
+  );
+
+  const sgPension = useMemo(
+    () => estimateCPFLife(monthlyIncome, yearsWorked, yearsToStatutoryPension),
+    [monthlyIncome, yearsWorked, yearsToStatutoryPension]
+  );
+
+  const hkPension = useMemo(
+    () => estimateMPF(monthlyIncome, yearsWorked, yearsToStatutoryPension),
+    [monthlyIncome, yearsWorked, yearsToStatutoryPension]
+  );
+
+  const auPension = useMemo(
+    () => estimateSuper(monthlyIncome * 12, yearsWorked, yearsToStatutoryPension),
+    [monthlyIncome, yearsWorked, yearsToStatutoryPension]
+  );
+
+  // Route to the right pension value per country.
+  // SG / HK / AU: auto-estimated; US: SS estimator; other covered: 0 (estimator pending);
+  // remaining (ae/sa/tr/za/my): manual slider.
+  const effectivePensionIncome =
+    country === "us" ? ssMonthly :
+    country === "sg" ? sgPension :
+    country === "hk" ? hkPension :
+    country === "au" ? auPension :
+    PENSION_ESTIMATOR_COUNTRIES.has(country) ? 0 :
+    pensionIncome;
 
   const plannerResult = useMemo(() => calculateHorizonDay1({
     age,
@@ -279,8 +338,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}|${annualSalary}|${yearsWorked}|${ssClaimAge}`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang, annualSalary, yearsWorked, ssClaimAge]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}|${annualSalary}|${yearsWorked}|${ssClaimAge}|${sgPension}|${hkPension}|${auPension}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang, annualSalary, yearsWorked, ssClaimAge, sgPension, hkPension, auPension]
   );
   const shareText = buildShareText(lang, {
     brand: copy.brand,
@@ -781,6 +840,90 @@ export default function HomePage() {
                       : `Selected benefit: ${money(ssMonthly, lang)}/mo — this reduces your required nest egg.`}
                   </small>
                 </div>
+              ) : country === "sg" ? (
+                /* Singapore: CPF Life */
+                <div className="ss-estimator-card">
+                  <div className="ss-card-header">
+                    <span className="fold-label">{lang === "zh" ? "公积金寿险估算（CPF Life）" : "CPF Life Estimator"}</span>
+                    <span className="ss-badge">SG</span>
+                  </div>
+                  <div className="field">
+                    <div className="lbl">
+                      <span>{lang === "zh" ? "已工作年限" : "Years worked (career to date)"}</span>
+                      <span className="val">{yearsWorked} {lang === "zh" ? "年" : "yrs"}</span>
+                    </div>
+                    <input type="range" min={0} max={40} step={1} value={yearsWorked}
+                      onChange={(e) => setYearsWorked(Number(e.target.value))} />
+                  </div>
+                  <div className="pension-output-row">
+                    <div className="pension-output-card">
+                      <span className="pension-output-label">{lang === "zh" ? "65岁起每月领取" : "Monthly from age 65"}</span>
+                      <span className="pension-output-amt">{localMoney(sgPension, "sg")}<span className="pension-output-mo">/mo</span></span>
+                    </div>
+                  </div>
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? `基于月收入 ${localMoney(monthlyIncome, "sg")} 及 ${yearsWorked} 年贡献，特别账户4%利息，标准计划。此金额已计入所需本金计算。`
+                      : `Based on ${localMoney(monthlyIncome, "sg")}/mo income and ${yearsWorked} yrs worked. Special Account at 4% p.a., Standard Plan. This reduces your required nest egg.`}
+                  </small>
+                </div>
+
+              ) : country === "hk" ? (
+                /* Hong Kong: MPF */
+                <div className="ss-estimator-card">
+                  <div className="ss-card-header">
+                    <span className="fold-label">{lang === "zh" ? "强积金估算（MPF）" : "MPF Estimator"}</span>
+                    <span className="ss-badge">HK</span>
+                  </div>
+                  <div className="field">
+                    <div className="lbl">
+                      <span>{lang === "zh" ? "已工作年限" : "Years worked (career to date)"}</span>
+                      <span className="val">{yearsWorked} {lang === "zh" ? "年" : "yrs"}</span>
+                    </div>
+                    <input type="range" min={0} max={40} step={1} value={yearsWorked}
+                      onChange={(e) => setYearsWorked(Number(e.target.value))} />
+                  </div>
+                  <div className="pension-output-row">
+                    <div className="pension-output-card">
+                      <span className="pension-output-label">{lang === "zh" ? "65岁起每月提取（20年分摊）" : "Monthly drawdown from 65 (20-yr spread)"}</span>
+                      <span className="pension-output-amt">{localMoney(hkPension, "hk")}<span className="pension-output-mo">/mo</span></span>
+                    </div>
+                  </div>
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? `基于月收入 ${localMoney(monthlyIncome, "hk")}，雇主+雇员各5%，5%年回报率。此金额已计入所需本金计算。`
+                      : `Based on ${localMoney(monthlyIncome, "hk")}/mo income. Employer + employee 5% each, 5% annual return. This reduces your required nest egg.`}
+                  </small>
+                </div>
+
+              ) : country === "au" ? (
+                /* Australia: Superannuation */
+                <div className="ss-estimator-card">
+                  <div className="ss-card-header">
+                    <span className="fold-label">{lang === "zh" ? "超级年金估算（Superannuation）" : "Superannuation Estimator"}</span>
+                    <span className="ss-badge">AU</span>
+                  </div>
+                  <div className="field">
+                    <div className="lbl">
+                      <span>{lang === "zh" ? "已工作年限" : "Years worked (career to date)"}</span>
+                      <span className="val">{yearsWorked} {lang === "zh" ? "年" : "yrs"}</span>
+                    </div>
+                    <input type="range" min={0} max={40} step={1} value={yearsWorked}
+                      onChange={(e) => setYearsWorked(Number(e.target.value))} />
+                  </div>
+                  <div className="pension-output-row">
+                    <div className="pension-output-card">
+                      <span className="pension-output-label">{lang === "zh" ? "退休后每月提取（4%提款率）" : "Monthly drawdown at retirement (4% SWR)"}</span>
+                      <span className="pension-output-amt">{localMoney(auPension, "au")}<span className="pension-output-mo">/mo</span></span>
+                    </div>
+                  </div>
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? `基于年收入 ${localMoney(monthlyIncome * 12, "au")}，雇主强积金11.5%，平衡型基金7%年回报率，4%提款率。此金额已计入所需本金计算。`
+                      : `Based on ${localMoney(monthlyIncome * 12, "au")}/yr income. Employer SG 11.5%, balanced fund at 7% p.a., 4% SWR. This reduces your required nest egg.`}
+                  </small>
+                </div>
+
               ) : PENSION_ESTIMATOR_COUNTRIES.has(country) ? (
                 /* Statutory pension country — estimator coming, hide manual slider */
                 <div className="pension-coming-card">
