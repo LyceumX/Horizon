@@ -1,18 +1,9 @@
-## Agent Result
-Status: ✅ Done
-Completed: All three tasks executed — (A) fixed JSX syntax error wrapping capital+gap cards in fragment inside hideSensitive conditional in CN page, (B) renamed CN brand from "Horizon" to "早早退休" across all CN-facing copy (6 strings in cn.ts + 1 in page.tsx), (C) wired Global page to calculateHorizonDay1 with 14 sub-steps: import, Copy type extension, state variable replacement, calcProjection deletion, useMemo replacement, all projection→plannerResult reference swaps, applyBudgetMode/saveLocal/localStorage/saveCloud updates, scenario toggle + new input sliders, assumptions panel, and metric card updates. Build passes, all committed locally.
-Deviations: None — all changes followed spec exactly.
-Blockers: Git push still fails (HTTPS token and SSH both timeout with exit 128). Planner (Claude Code) handles all pushes per project convention.
-Rate limit: N/A — Codi is a Hermes agent
+# US country unlock + SS projection polish
 
----
-
-# Phase 2 follow-up: Bug fix + CN brand rename + Global page
-
-**Branch:** `feat/phase2-planner-core`
+**Branch:** `main` (work directly on main, build must pass before committing)
 **Repo:** `/Users/ianxie/GitHub/Horizon`
 
-Three tasks. Run them in order. Run `npm run build` after each. Do not commit if build fails. Do not push — the planner handles all pushes.
+Two tasks. Run `npm run build` after each. Do not commit if build fails. Do not push — the planner handles all pushes.
 
 ---
 
@@ -20,503 +11,193 @@ Three tasks. Run them in order. Run `npm run build` after each. Do not commit if
 
 ```bash
 cd /Users/ianxie/GitHub/Horizon
-git checkout feat/phase2-planner-core
-git pull origin feat/phase2-planner-core
+git pull origin main
+npm run build   # should be green before you start
 ```
 
 ---
 
-## Task A: Fix JSX syntax error in app/cn/page.tsx
+## Task A: Unlock US country end-to-end
 
-The build is currently broken. In `app/cn/page.tsx` around lines 849–866, the gap metric card was incorrectly nested inside the `hideSensitive` ternary without a fragment wrapper. Replace that block.
+The Social Security estimator (`country === "us"` branch) and 401k/healthcare sections are already coded but unreachable because US is blocked. This task unlocks the full US flow.
 
-Find this exact block:
-
-```tsx
-                  {hideSensitive ? null : (
-                    <div className="metric-card">
-                      <span className="metric-icon">💰</span>
-                      <div>
-                        <small>{copy.nestEgg}</small>
-                        <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
-                      </div>
-                    </div>
-                    {plannerResult.monthlyGapToSave > 0 ? (
-                      <div className="metric-card">
-                        <span className="metric-icon">⚠️</span>
-                        <div>
-                          <small>{copy.monthlyGap}</small>
-                          <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
-                        </div>
-                      </div>
-                    ) : null}
-                  )}
-```
-
-Replace with:
-
-```tsx
-                  {hideSensitive ? null : (
-                    <>
-                      <div className="metric-card">
-                        <span className="metric-icon">💰</span>
-                        <div>
-                          <small>{copy.nestEgg}</small>
-                          <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "zh")}</span></strong>
-                        </div>
-                      </div>
-                      {plannerResult.monthlyGapToSave > 0 ? (
-                        <div className="metric-card">
-                          <span className="metric-icon">⚠️</span>
-                          <div>
-                            <small>{copy.monthlyGap}</small>
-                            <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "zh")}</span></strong>
-                          </div>
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-```
-
-```bash
-npm run build
-```
-
-Expected: build succeeds.
-
-```bash
-git add app/cn/page.tsx
-git commit -m "fix: wrap CN page capital+gap cards in fragment inside hideSensitive conditional"
-```
-
----
-
-## Task B: Rename CN brand to 早早退休
-
-The CN product name changes from "Horizon" to "早早退休". Update all CN-facing strings only. Global site is untouched.
-
-### B1 — lib/copy/cn.ts (6 changes)
-
-**1.** Find:
-```ts
-  brand: "锁定你的自由之日。",
-```
-Replace with:
-```ts
-  brand: "早早退休",
-```
-
-**2.** Find:
-```ts
-  slogan: "Horizon 把复杂的地区规则变成极简方案，并实时更新。先看自由日期，再用每月选择把它提前。",
-```
-Replace with:
-```ts
-  slogan: "早早退休 把复杂的地区规则变成极简方案，并实时更新。先看自由日期，再用每月选择把它提前。",
-```
-
-**3.** Find:
-```ts
-  interest: "丢掉 Excel，参考最佳实践，看到使用 Horizon 节省的年数，与同路人一起坚持。",
-```
-Replace with:
-```ts
-  interest: "丢掉 Excel，参考最佳实践，看到使用 早早退休 节省的年数，与同路人一起坚持。",
-```
-
-**4.** Find:
-```ts
-  summaryTitle: "为什么选择 Horizon Day 1",
-```
-Replace with:
-```ts
-  summaryTitle: "为什么选择 早早退休",
-```
-
-**5.** Find:
-```ts
-  yearsSavedLabel: "使用 Horizon 节省年数",
-```
-Replace with:
-```ts
-  yearsSavedLabel: "使用 早早退休 节省年数",
-```
-
-**6.** Find:
-```ts
-      text: "Horizon 把模糊目标变成了日期，再变成了我能坚持的计划。",
-```
-Replace with:
-```ts
-      text: "早早退休 把模糊目标变成了日期，再变成了我能坚持的计划。",
-```
-
-### B2 — app/cn/page.tsx (1 change)
-
-In the `summaryCards` function around line 268, find:
-```tsx
-        { key: "save", title: "提前年数", value: "显示使用 Horizon 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
-```
-Replace with:
-```tsx
-        { key: "save", title: "提前年数", value: "显示使用 早早退休 可节省多少年", details: ["默认退休日期对比你的计划。", "每次调整都可实时看到变化。"], accent: "#2f4a6b" },
-```
-
-### B3 — Verify and commit
-
-```bash
-npm run build
-```
-
-Expected: build succeeds.
-
-```bash
-git add lib/copy/cn.ts app/cn/page.tsx
-git commit -m "feat: rename CN brand to 早早退休 across all user-facing copy"
-```
-
----
-
-## Task C: Wire Global page to calculateHorizonDay1
-
-This mirrors what was done to `app/cn/page.tsx` in Tasks 3–5 of Phase 2. The logic is identical — only the language direction differs (English strings, `"en"` locale).
-
-### C1 — Add import
-
-At the top of `app/global/page.tsx`, after the existing imports, add:
-
-```tsx
-import { calculateHorizonDay1, SCENARIO_PRESETS } from "@/lib/planner";
-```
-
-### C2 — Add 16 new fields to the inline Copy type
-
-The inline `Copy` type is defined near the top of the file (around lines 49–119). Before its closing `}`, add:
-
-```tsx
-  currentSavings: string;
-  monthlyIncome: string;
-  monthlyExpenses: string;
-  nestEgg: string;
-  monthlySurplus: string;
-  monthlyGap: string;
-  horizonDate: string;
-  scenarioLabel: string;
-  scenarioBase: string;
-  scenarioOptimistic: string;
-  scenarioStress: string;
-  assumptionsTitle: string;
-  returnRateLabel: string;
-  inflationRateLabel: string;
-  multiplierLabel: string;
-  pensionIncome: string;
-```
-
-### C3 — Replace state variables
+### A1 — `lib/data/regions-global.ts`: update US label
 
 Find:
-```tsx
-const [save, setSave] = useState(1800);
-const [spend, setSpend] = useState(2400);
+```ts
+  {
+    value: "us",
+    label: { en: "United States (coming soon)", zh: "美国（即将上线）" },
 ```
 
 Replace with:
-```tsx
-const [currentSavings, setCurrentSavings] = useState(150000);
-const [monthlyIncome, setMonthlyIncome] = useState(12000);
-const [monthlyExpenses, setMonthlyExpenses] = useState(9600);
-const [spend, setSpend] = useState(2800);
-const [scenario, setScenario] = useState<"base" | "optimistic" | "stress">("base");
-const [pensionIncome, setPensionIncome] = useState(0);
+```ts
+  {
+    value: "us",
+    label: { en: "United States", zh: "美国" },
 ```
 
-### C4 — Delete the inline calcProjection function
+Also add three more states to the US entry (currently only California + New York). Find the US provinces array and add after the New York entry:
 
-Delete the entire `calcProjection` function (the one that uses hardcoded 5% return, around lines 131–147).
-
-### C5 — Replace the projection useMemo
-
-Find:
-```tsx
-const projection = useMemo(() => calcProjection({ age, save, spend }), [age, save, spend]);
+```ts
+      { value: "texas", label: { en: "Texas", zh: "德克萨斯" }, cities: [
+        { value: "houston", label: { en: "Houston", zh: "休斯顿" }, insurance: ins.us },
+        { value: "austin",  label: { en: "Austin",  zh: "奥斯汀" }, insurance: ins.us },
+      ]},
+      { value: "illinois", label: { en: "Illinois", zh: "伊利诺伊" }, cities: [
+        { value: "chicago", label: { en: "Chicago", zh: "芝加哥" }, insurance: ins.us },
+      ]},
+      { value: "washington", label: { en: "Washington", zh: "华盛顿州" }, cities: [
+        { value: "seattle",  label: { en: "Seattle",  zh: "西雅图" }, insurance: ins.us },
+        { value: "portland", label: { en: "Portland", zh: "波特兰" }, insurance: ins.us },
+      ]},
 ```
 
-Replace with:
-```tsx
-const plannerResult = useMemo(() => calculateHorizonDay1({
-  age,
-  city,
-  maritalStatus: "single",
-  currentSavings,
-  monthlyIncome,
-  monthlyExpenses,
-  monthlyTargetSpendAtRetirement: spend,
-  annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
-  annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
-  multiplier: SCENARIO_PRESETS[scenario].multiplier,
-  pensionIncome: pensionIncome > 0 ? pensionIncome : undefined,
-}), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, pensionIncome]);
-```
+### A2 — `lib/retirement.ts`: add US retirement age (FRA 67)
 
-### C6 — Replace all projection references
-
-Replace every occurrence of:
-
-| Find | Replace with |
-|---|---|
-| `projection.years` | `plannerResult.yearsToGoal` |
-| `projection.date` | `new Date(plannerResult.horizonDay1)` |
-| `projection.target` | `plannerResult.requiredNestEgg` |
-
-Update `yearsSaved` useMemo:
-
-```tsx
-const yearsSaved = useMemo(() => {
-  if (defaultRetireAge === null) {
-    return 0;
+Find the null-return guard near line 131:
+```typescript
+  if (region === "us" || region === "uk") {
+    return null;
   }
-  const saved = defaultRetireAge - (age + plannerResult.yearsToGoal);
-  return Math.max(0, Number(saved.toFixed(1)));
-}, [defaultRetireAge, age, plannerResult.yearsToGoal]);
 ```
 
-Update `projectionVersion` useMemo:
-
-```tsx
-const projectionVersion = useMemo(
-  () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|"en"|${hideSensitive ? "hide" : "show"}`,
-  [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, hideSensitive]
-);
-```
-
-### C7 — Update applyBudgetMode
-
-Find:
-```tsx
-function applyBudgetMode(mode: BudgetMode) {
-  setBudgetMode(mode);
-  const preset = BUDGETS[mode];
-  setSave(preset.save);
-  setSpend(preset.spend);
-}
-```
-
-Replace with:
-```tsx
-function applyBudgetMode(mode: BudgetMode) {
-  setBudgetMode(mode);
-  const preset = BUDGETS[mode];
-  setMonthlyIncome(preset.monthlyIncome);
-  setMonthlyExpenses(preset.monthlyExpenses);
-  setSpend(preset.spend);
-}
-```
-
-### C8 — Update saveLocal
-
-Find:
-```tsx
-window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, save, spend, budgetMode }));
-```
-
-Replace with:
-```tsx
-window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode }));
-```
-
-### C9 — Update localStorage restore useEffect
-
-Find the parsed type annotation inside the try block:
-```tsx
-const parsed = JSON.parse(savedProfile) as {
-  dob: string;
-  country: string;
-  province: string;
-  city: string;
-  gender?: GenderCategory;
-  employmentType?: EmploymentType;
-  save: number;
-  spend: number;
-  budgetMode: BudgetMode;
-};
-```
-
-Replace with:
-```tsx
-const parsed = JSON.parse(savedProfile) as {
-  dob: string;
-  country: string;
-  province: string;
-  city: string;
-  gender?: GenderCategory;
-  employmentType?: EmploymentType;
-  currentSavings?: number;
-  monthlyIncome?: number;
-  monthlyExpenses?: number;
-  spend: number;
-  pensionIncome?: number;
-  budgetMode: BudgetMode;
-};
-```
-
-Remove `setSave(parsed.save)` and replace with:
-```tsx
-if (parsed.currentSavings !== undefined) setCurrentSavings(parsed.currentSavings);
-if (parsed.monthlyIncome !== undefined) setMonthlyIncome(parsed.monthlyIncome);
-if (parsed.monthlyExpenses !== undefined) setMonthlyExpenses(parsed.monthlyExpenses);
-if (parsed.pensionIncome !== undefined) setPensionIncome(parsed.pensionIncome);
-```
-
-### C10 — Replace save slider; add scenario toggle, new inputs, pension input
-
-Find the save slider in the `calc-form` section:
-```tsx
-<div className="field">
-  <div className="lbl"><span>{copy.save}</span><span className="val">{money(save, "en")}</span></div>
-  <input type="range" min={200} max={8000} step={100} value={save} onChange={(e) => setSave(Number(e.target.value))} />
-</div>
-```
-
-Replace with:
-```tsx
-<div className="field">
-  <div className="lbl"><span>{copy.scenarioLabel}</span></div>
-  <div className="scenario-toggle">
-    {(["base", "optimistic", "stress"] as const).map((key) => (
-      <button
-        key={key}
-        type="button"
-        className={`scenario-btn ${scenario === key ? "scenario-btn-active" : ""}`}
-        onClick={() => setScenario(key)}
-      >
-        {key === "base" ? copy.scenarioBase : key === "optimistic" ? copy.scenarioOptimistic : copy.scenarioStress}
-      </button>
-    ))}
-  </div>
-</div>
-
-<div className="field">
-  <div className="lbl"><span>{copy.currentSavings}</span><span className="val">{money(currentSavings, "en")}</span></div>
-  <input type="range" min={0} max={3000000} step={10000} value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
-</div>
-
-<div className="field">
-  <div className="lbl"><span>{copy.monthlyIncome}</span><span className="val">{money(monthlyIncome, "en")}</span></div>
-  <input type="range" min={3000} max={80000} step={500} value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} />
-</div>
-
-<div className="field">
-  <div className="lbl"><span>{copy.monthlyExpenses}</span><span className="val">{money(monthlyExpenses, "en")}</span></div>
-  <input type="range" min={1000} max={40000} step={500} value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} />
-</div>
-
-<div className="field">
-  <div className="lbl">
-    <span>{copy.pensionIncome}</span>
-    <span className="val">{pensionIncome > 0 ? money(pensionIncome, "en") : "$0"}</span>
-  </div>
-  <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
-</div>
-```
-
-### C11 — Update output card metrics
-
-Find the capital metric card in the `projection-grid`:
-```tsx
-<div className="metric-card">
-  <span className="metric-icon">💰</span>
-  <div>
-    <small>{copy.projectionCapital}</small>
-    <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(projection.target, "en")}</span></strong>
-  </div>
-</div>
-```
-
-Replace with:
-```tsx
-<div className="metric-card">
-  <span className="metric-icon">💰</span>
-  <div>
-    <small>{copy.nestEgg}</small>
-    <strong><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, "en")}</span></strong>
-  </div>
-</div>
-{plannerResult.monthlyGapToSave > 0 ? (
-  <div className="metric-card">
-    <span className="metric-icon">⚠️</span>
-    <div>
-      <small>{copy.monthlyGap}</small>
-      <strong><span key={`${projectionVersion}-gap`} className="flip-number">{money(plannerResult.monthlyGapToSave, "en")}</span></strong>
-    </div>
-  </div>
-) : null}
-```
-
-### C12 — Add assumptions panel
-
-In the `calc-out` section, after the `share-card` closing div, add:
-
-```tsx
-<details className="assumptions-fold">
-  <summary>
-    <span className="fold-label">{copy.assumptionsTitle}</span>
-    <span className="fold-hint">{"Click to expand"}</span>
-  </summary>
-  <div className="assumptions-grid">
-    <div className="assumption-item">
-      <span>{copy.returnRateLabel}</span>
-      <strong>{(SCENARIO_PRESETS[scenario].annualReturnRate * 100).toFixed(1)}%</strong>
-    </div>
-    <div className="assumption-item">
-      <span>{copy.inflationRateLabel}</span>
-      <strong>{(SCENARIO_PRESETS[scenario].annualInflationRate * 100).toFixed(1)}%</strong>
-    </div>
-    <div className="assumption-item">
-      <span>{copy.multiplierLabel}</span>
-      <strong>{SCENARIO_PRESETS[scenario].multiplier}×</strong>
-    </div>
-  </div>
-</details>
-```
-
-### C13 — Update saveCloud payload
-
-Find the `saveCloud` async function. Replace the `body: JSON.stringify(...)` call with:
-
-```tsx
-body: JSON.stringify({
-  profile: {
-    dob, age, country, province, city, gender, employmentType,
-    currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome,
-    budgetMode, language: "en", theme, insurance
-  },
-  projection: {
-    horizonDay1: plannerResult.horizonDay1,
-    years: plannerResult.yearsToGoal,
-    year: new Date(plannerResult.horizonDay1).getFullYear(),
-    requiredNestEgg: plannerResult.requiredNestEgg,
-    monthlySurplus: plannerResult.monthlySurplus,
-    monthlyGapToSave: plannerResult.monthlyGapToSave,
-    rank: rank.rank,
-    percentile: tier.percentile,
-    retirementAge: Number((age + plannerResult.yearsToGoal).toFixed(1))
+Replace with (keep UK coming soon, unlock US):
+```typescript
+  if (region === "uk") {
+    return null;
   }
-})
 ```
 
-### C14 — Build check and commit
+Then add `us: 67` to the `RETIRE_AGE_MALE` map. Find:
+```typescript
+  const RETIRE_AGE_MALE: Partial<Record<Region, number>> = {
+    au: 67, jp: 65, kr: 63, ca: 65, nz: 65, my: 60,
+```
+
+Replace with:
+```typescript
+  const RETIRE_AGE_MALE: Partial<Record<Region, number>> = {
+    us: 67,
+    au: 67, jp: 65, kr: 63, ca: 65, nz: 65, my: 60,
+```
+
+### A3 — `app/global/page.tsx`: three changes
+
+**A3a — Remove US from COMING_SOON_COUNTRIES (line ~57):**
+
+Find:
+```tsx
+const COMING_SOON_COUNTRIES = new Set(["us", "uk"]);
+```
+
+Replace with:
+```tsx
+const COMING_SOON_COUNTRIES = new Set(["uk"]);
+```
+
+**A3b — Update the region-coverage-note text (line ~514).**
+
+Find:
+```tsx
+            <div className="region-coverage-note">
+              <strong>📍 Currently covers:</strong> China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
+              <strong>United States and United Kingdom</strong> — full Social Security &amp; pension integration coming soon.
+            </div>
+```
+
+Replace with:
+```tsx
+            <div className="region-coverage-note">
+              <strong>📍 Currently covers:</strong> United States, China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
+              <strong>United Kingdom</strong> — pension integration coming soon.
+            </div>
+```
+
+**A3c — Gate the 401(k) / IRA section to US only (line ~877).**
+
+Find:
+```tsx
+          {/* ── 401(k) / IRA Projection ── */}
+          <div className="accounts-section">
+```
+
+Replace with:
+```tsx
+          {/* ── 401(k) / IRA Projection (US only) ── */}
+          {country === "us" && <div className="accounts-section">
+```
+
+Then find the closing `</div>` that ends the accounts-section (it's one `</div>` after `{show401k && (...)}`) and change it to:
+```tsx
+          </div>}
+```
+
+The healthcare-bridge block that follows is already conditional on `healthcareBridge.yearsToMedicare > 0` — wrap it additionally:
+
+Find:
+```tsx
+          {healthcareBridge.yearsToMedicare > 0 && (
+```
+
+Replace with:
+```tsx
+          {country === "us" && healthcareBridge.yearsToMedicare > 0 && (
+```
+
+### A4 — Build + commit
 
 ```bash
 npm run build
 ```
 
-Fix any TypeScript errors. Then:
+Expected: zero errors.
+
+```bash
+git add lib/data/regions-global.ts lib/retirement.ts app/global/page.tsx
+git commit -m "feat: unlock US country — FRA 67, SS estimator live, 401k/healthcare gated to US"
+```
+
+---
+
+## Task B: Fix projectionVersion for SS inputs
+
+The flip animation on the projection card uses `projectionVersion` as a React key. It currently doesn't include the SS state variables, so the card won't re-animate when the user changes salary, years worked, or claim age.
+
+### B1 — Update `projectionVersion` useMemo (~line 267)
+
+Find:
+```tsx
+  const projectionVersion = useMemo(
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang]
+  );
+```
+
+Replace with:
+```tsx
+  const projectionVersion = useMemo(
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}|${annualSalary}|${yearsWorked}|${ssClaimAge}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang, annualSalary, yearsWorked, ssClaimAge]
+  );
+```
+
+### B2 — Build + commit
+
+```bash
+npm run build
+```
 
 ```bash
 git add app/global/page.tsx
-git commit -m "feat: wire Global page to calculateHorizonDay1, add inputs for income/expenses/savings/pension/scenario"
+git commit -m "fix: include SS state in projectionVersion so flip animation triggers on SS input changes"
 ```
 
 ---
 
-Write Agent Result when all three tasks are done.
+## Agent Result
+Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
+Completed:
+Deviations:
+Blockers:
+Rate limit: N/A — Codi is a Hermes agent
