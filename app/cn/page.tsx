@@ -295,12 +295,8 @@ function yearOnly(date: Date) {
   return `${date.getFullYear()}`;
 }
 
-function buildShareText(lang: string, input: { brand: string; date: string; countyLine: string }) {
-  if (true) {
-    return `我将在 ${input.date} 年退休。${input.brand} ${input.countyLine}`;
-  }
-
-  return `I'm going to retire in the year of ${input.date}. ${input.brand} ${input.countyLine}`;
+function buildShareText(input: { year: string; pensionPercentile: number; provinceName: string; cityName: string }) {
+  return `我在 ${input.year} 年退休，养老金排名全市${input.pensionPercentile}%。坐标：中国 · ${input.provinceName} · ${input.cityName}。你也来查查看：早早退休 https://cn.horizone.cc.cd/`;
 }
 
 function socialChannels(lang: string) {
@@ -363,6 +359,7 @@ export default function HomePage() {
   const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
   const [hideCityAvg, setHideCityAvg] = useState(true);
+  const [hidePension, setHidePension] = useState(false);
   // Pension calculator inputs
   const [contributionYears, setContributionYears] = useState(25);
   const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
@@ -447,12 +444,11 @@ export default function HomePage() {
     () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${contributionYears}|${contributionTier}|${personalAccountBalance}`,
     [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, contributionYears, contributionTier, personalAccountBalance]
   );
-  const shareText = buildShareText("zh", {
-    brand: copy.brand,
-    date: yearOnly(new Date(plannerResult.horizonDay1)),
-    countyLine: country === "cn"
-      ? (true ? `${currentCountry.label.zh} · ${currentProvince.label.zh} · ${currentCity.label.zh}` : `${currentCountry.label.en} · ${currentProvince.label.en} · ${currentCity.label.en}`)
-      : (true ? currentCountry.label.zh : currentCountry.label.en)
+  const shareText = buildShareText({
+    year: yearOnly(new Date(plannerResult.horizonDay1)),
+    pensionPercentile,
+    provinceName: currentProvince.label.zh,
+    cityName: currentCity.label.zh,
   });
 
   useEffect(() => {
@@ -715,7 +711,13 @@ export default function HomePage() {
               <div className="form-row-2col">
                 <label className="field">
                   <div className="lbl"><span>{copy.dob}</span></div>
-                  <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                  <input
+                    type="date"
+                    value={dob}
+                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 75)).toISOString().split("T")[0]}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split("T")[0]}
+                    onChange={(e) => setDob(e.target.value)}
+                  />
                 </label>
                 <label className="field">
                   <div className="lbl"><span>{copy.gender}</span></div>
@@ -781,20 +783,6 @@ export default function HomePage() {
                 <div className="lbl"><span>个人社保账户余额</span><span className="val">{money(personalAccountBalance, "zh")}</span></div>
                 <input type="range" min={0} max={600000} step={5000} value={personalAccountBalance} onChange={(e) => setPersonalAccountBalance(Number(e.target.value))} />
                 <small className="field-hint">可在社保 APP 或账单查询</small>
-              </div>
-
-              {/* ── Pension result inline ── */}
-              <div className="pension-result">
-                <div className="pension-result-label">预计每月养老金</div>
-                <div className="pension-result-amount">
-                  <span className="hl">{money(pensionCalc.total, "zh")}</span>
-                  <span className="pension-freq">/月</span>
-                </div>
-                <div className="pension-result-breakdown">
-                  <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
-                  <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
-                  <span>计发月数 <strong>{pensionCalc.months}</strong></span>
-                </div>
               </div>
 
               <div className="save-row">
@@ -877,10 +865,42 @@ export default function HomePage() {
               <div className="share-card">
                 <div className="k">{copy.shareTitle}</div>
                 <p>{copy.shareLead}</p>
-                <div className="share-preview">{shareText} {shareUrl}</div>
+
+                {/* ── 预计每月养老金 (moved here, toggleable) ── */}
+                <div className="pension-result">
+                  <div className="pension-result-header">
+                    <div className="pension-result-label">预计每月养老金</div>
+                    <button
+                      type="button"
+                      className="eye-btn"
+                      onClick={() => setHidePension((v) => !v)}
+                      aria-label={hidePension ? "显示养老金" : "隐藏养老金"}
+                    >
+                      {hidePension ? "○" : "●"}
+                    </button>
+                  </div>
+                  {hidePension ? (
+                    <div className="pension-result-amount">
+                      <span className="psc-hidden">· · ·</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="pension-result-amount">
+                        <span className="hl">{money(pensionCalc.total, "zh")}</span>
+                        <span className="pension-freq">/月</span>
+                      </div>
+                      <div className="pension-result-breakdown">
+                        <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
+                        <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
+                        <span>计发月数 <strong>{pensionCalc.months}</strong></span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="share-preview">{shareText}</div>
                 <div className="save-row">
-                  <button type="button" className="btn ghost" onClick={copyShareText}>{copy.shareCopy}</button>
-                  <button type="button" className="btn" onClick={shareNative}>{true ? "系统分享" : "Native share"}</button>
+                  <button type="button" className="btn" onClick={shareNative}>系统分享</button>
                 </div>
                 <div className="share-links">
                   {socialChannels("zh").map((channel) => (

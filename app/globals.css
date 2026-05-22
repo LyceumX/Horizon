@@ -126,12 +126,17 @@ a {
   background: color-mix(in srgb, var(--accent) 5%, var(--paper-2));
   margin-top: 4px;
 }
+.pension-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
 .pension-result-label {
   font: 500 11px var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--mute);
-  margin-bottom: 6px;
 }
 .pension-result-amount {
   display: flex;
