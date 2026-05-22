@@ -57,7 +57,8 @@ import { BUDGETS } from "@/lib/data/budgets";
 const COMING_SOON_COUNTRIES = new Set(["uk"]);
 
 const copy = GLOBAL_COPY;
-const REGIONS: CountryOption[] = GLOBAL_REGIONS;
+// Mainland China is served by the dedicated CN site (cn.horizone.cc.cd)
+const REGIONS: CountryOption[] = GLOBAL_REGIONS.filter(r => r.value !== "cn");
 
 function calcAgeFromDob(dob: string) {
   if (!dob) return 32;
@@ -160,9 +161,9 @@ function money(value: number, lang: string) {
 export default function HomePage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [dob, setDob] = useState("1990-01-01");
-  const [country, setCountry] = useState("cn");
-  const [province, setProvince] = useState("zhejiang");
-  const [city, setCity] = useState("hangzhou");
+  const [country, setCountry] = useState("sg");
+  const [province, setProvince] = useState("sg");
+  const [city, setCity] = useState("singapore");
   const [gender, setGender] = useState<GenderCategory>("male");
   const [employmentType, setEmploymentType] = useState<EmploymentType>("private");
   const [currentSavings, setCurrentSavings] = useState(150000);
@@ -181,6 +182,7 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideCapital, setHideCapital] = useState(false);
   const [lang, setLang] = useState<"en" | "zh">("en");
+  const [locationStatus, setLocationStatus] = useState<"idle" | "detecting" | "done" | "denied">("idle");
   const [accountBalance, setAccountBalance] = useState(50000);
   const [annualContribution401k, setAnnualContribution401k] = useState(6000);
   const [employerMatchRate, setEmployerMatchRate] = useState(0.04);
@@ -290,11 +292,12 @@ export default function HomePage() {
           spend: number; pensionIncome?: number; budgetMode: BudgetMode;
         };
         setDob(parsed.dob);
-        if (COMING_SOON_COUNTRIES.has(parsed.country)) {
-          const fallbackCountry = getCountry("cn");
-          setCountry(fallbackCountry.value);
-          setProvince(fallbackCountry.provinces[0].value);
-          setCity(fallbackCountry.provinces[0].cities[0].value);
+        // "cn" was removed from the global site; "uk" is still coming-soon — both fall back to first available region
+        if (COMING_SOON_COUNTRIES.has(parsed.country) || parsed.country === "cn") {
+          const fallback = REGIONS[0];
+          setCountry(fallback.value);
+          setProvince(fallback.provinces[0].value);
+          setCity(fallback.provinces[0].cities[0].value);
         } else {
           setCountry(parsed.country);
           setProvince(parsed.province);
@@ -311,6 +314,9 @@ export default function HomePage() {
       } catch {
         // Ignore invalid local cache.
       }
+    } else {
+      // No saved profile — silently detect location from IP as a warm default
+      detectFromIP();
     }
   }, []);
 
@@ -322,6 +328,75 @@ export default function HomePage() {
   useEffect(() => {
     setShareUrl(`${window.location.origin}${window.location.pathname}`);
   }, []);
+
+  // ── Location helpers ──────────────────────────────────────────────────────
+  function applyGeoLocation(rawCode: string, regionName: string | null, cityName: string | null) {
+    // Map ISO 3166-1 alpha-2 codes that differ from our region keys
+    const CODE_MAP: Record<string, string> = { gb: "uk" };
+    const code = CODE_MAP[rawCode.toLowerCase()] ?? rawCode.toLowerCase();
+
+    // This site doesn't show Mainland China (served by cn.horizone.cc.cd)
+    if (code === "cn") return;
+
+    const matched = REGIONS.find(r => r.value === code);
+    if (!matched) return;
+
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+    const matchedProvince = (regionName
+      ? matched.provinces.find(p =>
+          p.value === regionName.toLowerCase().replace(/\s+/g, "-") ||
+          norm(p.label.en) === norm(regionName)
+        )
+      : null) ?? matched.provinces[0];
+
+    const matchedCity = (cityName
+      ? matchedProvince.cities.find(c =>
+          c.value === cityName.toLowerCase().replace(/\s+/g, "-") ||
+          norm(c.label.en) === norm(cityName)
+        )
+      : null) ?? matchedProvince.cities[0];
+
+    setCountry(matched.value);
+    setProvince(matchedProvince.value);
+    setCity(matchedCity.value);
+  }
+
+  async function detectFromIP() {
+    try {
+      const res = await fetch("https://ipwho.is/");
+      const d = await res.json() as { success?: boolean; country_code?: string; region?: string; city?: string };
+      if (d.success && d.country_code) {
+        applyGeoLocation(d.country_code, d.region ?? null, d.city ?? null);
+      }
+    } catch { /* silent fail — user stays on default */ }
+  }
+
+  function requestGPSLocation() {
+    if (!navigator.geolocation) { setLocationStatus("denied"); return; }
+    setLocationStatus("detecting");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            { headers: { "User-Agent": "HorizonRetirementPlanner/1.0 (contact@horizone.cc.cd)" } }
+          );
+          const d = await res.json() as { address?: { country_code?: string; state?: string; city?: string; town?: string } };
+          const addr = d.address ?? {};
+          applyGeoLocation(
+            addr.country_code ?? "",
+            addr.state ?? null,
+            addr.city ?? addr.town ?? null
+          );
+          setLocationStatus("done");
+        } catch { setLocationStatus("idle"); }
+      },
+      () => setLocationStatus("denied")
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   function saveLocal() {
     window.localStorage.setItem("horizon-local-profile", JSON.stringify({
@@ -512,7 +587,7 @@ export default function HomePage() {
 
           {lang === "en" && (
             <div className="region-coverage-note">
-              <strong>📍 Currently covers:</strong> United States, China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
+              <strong>📍 Currently covers:</strong> United States, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets. Mainland China is served at <a href="https://cn.horizone.cc.cd" target="_blank" rel="noopener noreferrer">cn.horizone.cc.cd</a>.<br />
               <strong>United Kingdom</strong> — pension integration coming soon.
             </div>
           )}
@@ -582,9 +657,27 @@ export default function HomePage() {
                   ))}
                 </select>
                 {COMING_SOON_COUNTRIES.has(country) && (
-                  <small className="field-hint">{lang === "zh" ? "美国与英国的规则即将上线。" : "US and UK rules are coming soon."}</small>
+                  <small className="field-hint">{lang === "zh" ? "英国的规则即将上线。" : "UK rules are coming soon."}</small>
                 )}
               </label>
+
+              {/* ── Location auto-fill button ── */}
+              <div className="location-row">
+                <button
+                  type="button"
+                  className="location-detect-btn"
+                  onClick={requestGPSLocation}
+                  disabled={locationStatus === "detecting"}
+                >
+                  {locationStatus === "detecting"
+                    ? (lang === "zh" ? "📍 定位中…" : "📍 Detecting…")
+                    : locationStatus === "done"
+                    ? (lang === "zh" ? "✓ 已自动填写" : "✓ Location filled")
+                    : locationStatus === "denied"
+                    ? (lang === "zh" ? "📍 无法获取位置" : "📍 Location unavailable")
+                    : (lang === "zh" ? "📍 自动填写我的位置" : "📍 Auto-fill my location")}
+                </button>
+              </div>
 
               {/* ── Row 3: Province + City (where applicable) ── */}
               {(currentCountry.provinces.length > 1 || (currentCountry.provinces[0]?.cities.length ?? 0) > 1) && (

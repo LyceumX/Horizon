@@ -105,8 +105,8 @@ export const GLOBAL_COPY: Copy = {
   customizeTitle: "Enter your parameters",
   customizeDesc: "No sign-up needed. Play freely and save to your browser locally.",
   dob: "Date of birth",
-  country: "Country",
-  province: "Province / state",
+  country: "Country or Region",
+  province: "Province / State",
   city: "City",
   employmentType: "Employment type (HK)",
   employmentOptions: {

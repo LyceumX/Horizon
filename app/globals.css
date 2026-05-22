@@ -1785,6 +1785,28 @@ main {
   margin-bottom: 24px;
 }
 .region-coverage-note strong { color: var(--ink); }
+.region-coverage-note a { color: var(--accent); text-decoration: underline; }
+
+/* ── Location auto-fill row ── */
+.location-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+.location-detect-btn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 0.78rem;
+  color: var(--accent);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+  line-height: 1.4;
+}
+.location-detect-btn:hover:not(:disabled) { opacity: 1; }
+.location-detect-btn:disabled { opacity: 0.5; cursor: default; }
 
 /* ── Freedom strip ── */
 .freedom-strip {
