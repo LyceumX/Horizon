@@ -1,157 +1,152 @@
-# Horizon Zero PRD
+# Horizon PRD
 
-## Bilingual Product Principle
+## Vision
 
-- Every user-facing experience should support both English and Chinese.
-- The default homepage includes an EN/CN toggle at the top right.
-- Core concepts such as `Horizon Day1`, low-budget freedom, and full-budget freedom must be written clearly in both languages.
+Horizon helps users plan `Horizon Day1`: the practical date when they can start a sustainable, liberated lifestyle based on spending needs, savings trajectory, and life priorities.
 
-## 1. Vision
+**Core thesis:** Freedom is date-based, not vanity-net-worth based.
 
-Horizon Zero helps users plan `Horizon Day1`: the practical date when they can start a sustainable, liberated lifestyle based on spending needs, savings trajectory, and life priorities.
+---
 
-Core thesis:
+## Product Principles
 
-- Freedom is date-based, not vanity-net-worth based.
-- Users can choose between:
-  - `Low-budget freedom` (simplified lifestyle, faster timeline)
-  - `Full-budget freedom` (maintained lifestyle, higher income/savings target)
+1. **Explainable math** — every output traces to a visible formula. No black boxes.
+2. **User autonomy** — change any assumption and see the impact instantly.
+3. **Honest boundaries** — clearly label estimates vs guarantees. Pension outputs are reference-quality estimates from official data; actuarial internals are not published by governments.
+4. **Privacy-first** — anonymised sharing defaults, local save without sign-in.
+5. **Compliance-safe language** — educational planning tool, not investment/tax/legal advice. No guarantee language.
+6. **Localisation depth** — not a translation layer on a Western product. CN site understands 社保/公积金/缴费档次 natively; SG site runs real CPF simulation.
 
-## 2. Problem Statement
+---
 
-Many people understand retirement as an abstract amount of money, but cannot answer:
+## Problem Statement
 
-- When can I stop compulsory work?
-- How does my city, family situation, and lifestyle change my target?
-- What exact actions move my timeline forward?
+People understand retirement as an abstract number but cannot answer:
 
-Horizon Zero provides an explainable answer and a repeatable plan.
+- When can I actually stop compulsory work?
+- How does my city, pension system, and lifestyle change my target?
+- What specific actions move my timeline forward?
 
-## 3. Target Users
+Horizon provides a specific date, a traceable plan, and an interactive what-if layer.
 
-Primary users:
+---
 
-- China-based professionals and creators across income bands.
-- Chinese-speaking users seeking practical, localized retirement planning.
+## Target Users
 
-Secondary users:
+**Primary — CN site**
+- China-based professionals and creators, any income band
+- Users familiar with 社保 who want to connect their pension reality to a FIRE date
 
-- Global FIRE users interested in date-based planning and lifestyle trade-offs.
+**Primary — Global site**
+- Singapore, Hong Kong, Australia, US knowledge workers
+- Chinese diaspora using the ZH toggle
+- FIRE-adjacent users who want a country-aware calculator rather than a generic spreadsheet
 
-## 4. Goals and Non-Goals
+**Secondary — Both sites**
+- Users who want community proof: "what did people in my situation actually do?" (Stories section)
 
-### Goals
+---
 
-- Generate a clear Day1 date from user profile and assumptions.
-- Offer scenario analysis (base/optimistic/stress).
-- Explain the action gap and how to close it.
-- Localize assumptions for China context.
+## User Journey
 
-### Non-Goals (MVP)
+1. Land on hero → see a realistic static example (labeled Example/示例)
+2. Enter DOB, location, gender → statutory retirement age auto-computed
+3. Enter income, expenses, spend target, savings → Day1 date and nest egg instantly
+4. Explore pension calculator (CN: 缴费年限/基数/余额; SG: years worked/salary)
+5. Adjust scenarios (base/optimistic/stress) → see confidence range
+6. Review budget templates (low/balanced/full) → commit to a path
+7. Share anonymised snapshot or save to account
+8. Return monthly to re-run with updated numbers
 
-- Direct brokerage execution.
-- Personalized tax/legal advice.
-- Guaranteed-return claims.
+---
 
-## 5. Inputs
+## Core Inputs
 
-Required:
-
-- Age
-- City
-- Sex
-- Marital status
-- Dependents
+**Required (both sites)**
+- Date of birth
+- Country / province / city
+- Gender / retirement category
 - Current savings
 - Monthly after-tax income
 - Monthly expenses
-- Housing status
-- Desired lifestyle budget
-- Risk tolerance
+- Desired monthly spend at retirement
 
-Optional:
+**CN-specific**
+- 缴费年限 (contribution years)
+- 缴费基数 (contribution base — monthly salary subject to pension)
+- 个人账户余额 (personal pension account balance)
+- Province → auto-pulls 社平工资 for pension index calculation
 
-- Expected pension/social insurance income
-- Commercial pension plans
-- Side-income expectation
-- Healthcare assumptions
-- One-off future expenses
+**SG-specific**
+- Years worked to date
+- Monthly salary → CPF contribution rates derived automatically
 
-## 6. Outputs
+**US-specific**
+- Annual salary (for SS benefit estimate)
+- Years worked (for SS eligibility)
+- Claim age (62 / FRA 67 / 70)
+- 401(k) balance, annual contribution, employer match rate
 
-- Day1 projected date
-- Required nest egg (with multiplier)
-- Financial gap and recommended monthly delta
-- Scenario confidence and assumptions summary
-- Share-friendly anonymized snapshot
+---
 
-## 7. Product Principles
+## Core Outputs
 
-- Explainable math over black-box output
-- User autonomy: adjust assumptions and see impact instantly
-- Privacy-first defaults and anonymized sharing
-- Compliance-safe language and disclaimers
+- **Day1 date** — month + year when portfolio reaches nest egg target
+- **Required nest egg** — target × multiplier (default 25×, stress 30×)
+- **Years saved vs statutory** — how many years earlier than legal retirement
+- **Monthly surplus / gap** — what needs to change to hit the date
+- **Pension estimate** — monthly government pension at statutory retirement age
+- **Percentile rank** — pension vs province/city average
+- **What-if delta** — how extra contribution years change the monthly pension
+- **Share card** — anonymised text snapshot for social posting
 
-## 8. Method and Logic
+---
 
-Deterministic baseline:
+## Feature Inventory (as of 2026-05-22)
 
-- Annual spending = monthly spending x 12
-- Required capital = annual spending x multiplier
-- Default multiplier = 25x
+### CN Site (`app/cn/page.tsx`)
+- [x] Statutory retirement date — 2025 reform, age by gender/category
+- [x] Province-aware pension formula (基础养老金 + 个人账户养老金)
+- [x] Continuous 缴费指数 derived from 缴费基数 ÷ 社平工资 (no 3-bucket dropdown)
+- [x] Pension percentile vs province average (tanh-based)
+- [x] What-if row — extra N years → +¥X/月
+- [x] Pension disclaimer line
+- [x] Eye toggle to hide/show pension amount
+- [x] Budget templates (low/balanced/full)
+- [x] Share card with city + pension percentile
+- [x] Mobile responsive (860px / 680px breakpoints)
+- [x] Flip animation keyed on value change only
+- [x] Local browser save + Clerk cloud save
 
-Projection model (MVP):
+### Global Site (`app/global/page.tsx`)
+- [x] 30+ countries with statutory retirement age
+- [x] SG: full CPF year-by-year simulation (2026 rates, RA55 payout lookup)
+- [x] HK: MPF estimator
+- [x] AU: Superannuation estimator
+- [x] US: Social Security estimator (62/FRA/70 claim ages)
+- [x] US: 401(k)/IRA projection with employer match
+- [x] US: Healthcare bridge cost (pre-Medicare gap)
+- [x] EN/ZH bilingual toggle
+- [x] Example/示例 hero callout (static, labeled)
+- [x] Budget templates + scenario presets
+- [x] Share card
 
-- Monthly contribution from current surplus
-- Annualized growth assumption
-- Inflation-adjusted target
+---
 
-Advanced model (Phase 2):
+## Non-Goals (permanent)
 
-- Monte Carlo return paths
-- Sequence risk stress testing
-- Dynamic spending policies
+- Brokerage execution or product sales
+- Personalised tax or legal advice
+- Guaranteed-return claims
+- Real-time market data or portfolio tracking
 
-## 9. China Localization Requirements
+---
 
-- Contextualize with 社保, 公积金, 企业年金, and commercial pension options
-- City-tier living-cost presets and healthcare risk presets
-- Clear disclaimer:
-  - Educational planning tool only
-  - Not investment, tax, or legal advice
-- Avoid guarantee language and product-pushing claims
+## Risks and Mitigations
 
-## 10. User Journey
-
-1. Input profile and goals
-2. Receive Day1 date and action plan
-3. Adjust assumptions and compare scenarios
-4. Save result and share anonymized card
-5. Revisit monthly for iteration
-
-## 11. MVP Scope (Current Build)
-
-- Single-page planner UI
-- Day1 deterministic engine
-- Optional Supabase save endpoint
-- Strategy docs and roadmap in repo
-
-## 12. Success Metrics
-
-- Profile completion rate
-- Scenario rerun rate
-- Saved-plan rate
-- Returning users after 30 days
-- Share conversion rate (anonymized)
-
-## 13. Risks
-
-- Oversimplified assumptions can mislead users
-- China policy changes may quickly stale content
-- Users may interpret projections as guaranteed outcomes
-
-Mitigations:
-
-- Assumption transparency
-- Regular localization updates
-- Explicit risk and uncertainty messaging
+| Risk | Mitigation |
+|------|------------|
+| Policy changes stale pension formulas | Data versioned in constants; province data source documented in `ALGORITHMS.md` |
+| Users interpret estimates as guarantees | Disclaimer lines on all pension outputs; "estimate ±10–15%" language |
+| Oversimplified assumptions mislead | Assumption transparency panel; scenario presets expose the range |
+| CN RLS not yet enforced | Supabase RLS policies needed before public launch (tracked in ROADMAP) |
