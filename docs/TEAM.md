@@ -2,12 +2,12 @@
 
 ## Agent Roster
 
-| Agent | Tool | Model | OS | Role |
-|-------|------|-------|-----|------|
-| **Ian** | VSC (Codex) | GPT-5.2 Codex | Windows | Builder — big trunk tasks |
-| **Yuhan** | VSC | Haiku | Mac | Builder — focused/contained tasks |
-| **Codi** | Hermes | GLM 5.1 | Mac | Builder — data, plumbing, verification |
-| **Claude** | Claude Code | Sonnet/Opus | — | Planning, management, task authoring |
+| Agent | Tool | Model | OS | Repo path | Role |
+|-------|------|-------|-----|-----------|------|
+| **Ian** | VSC (Codex) | GPT-5.2 Codex | Mac | `/Users/ianxie/GitHub/Horizon` | Builder — big trunk tasks |
+| **Yuhan** | VSC | Haiku | Windows | `C:\Users\ianxi\GitHub\Horizon` | Builder — focused/contained tasks |
+| **Codi** | Hermes | GLM 5.1 | Mac | `/Users/ianxie/GitHub/Horizon` | Builder — data, plumbing, verification |
+| **Claude** | Claude Code | Sonnet/Opus | Mac | `/Users/ianxie/GitHub/Horizon` | Planning, management, task authoring |
 
 **Ian** handles all git pushes. No agent should push to `origin/main` — commit only.
 
@@ -15,7 +15,9 @@
 
 ## Task Assignment Rules
 
-### Ian (GPT-5.2 Codex · Windows · VSC)
+### Ian (GPT-5.2 Codex · Mac · VSC)
+Repo: `/Users/ianxie/GitHub/Horizon`
+
 Best for:
 - Large trunk features: new pages, complete section rewrites, complex multi-file refactors
 - Algorithm implementations that span multiple files
@@ -24,9 +26,10 @@ Best for:
 
 Avoid:
 - Tasks split across many small isolated changes — Ian works better with one coherent trunk
-- Tasks requiring Mac-specific tooling or file paths
 
-### Yuhan (Haiku · VSC)
+### Yuhan (Haiku · Windows · VSC)
+Repo: `C:\Users\ianxi\GitHub\Horizon`
+
 Best for:
 - Self-contained UI polish (CSS tweaks, layout fixes, small components)
 - Single-file additions: disclaimer lines, what-if rows, responsive breakpoints
@@ -37,6 +40,7 @@ Avoid:
 - Tasks requiring cross-file reasoning or algorithm design
 - Tasks with more than 2–3 files in scope
 - Open-ended investigation or QA
+- Tasks that reference Mac file paths (`/Users/ianxie/...`) — use Windows paths instead
 
 ### Codi (GLM 5.1 · Hermes · Mac)
 Best for:
@@ -75,7 +79,8 @@ One task file per agent. Overwrite with the new task when the previous one is co
 # [Short task title]
 
 **Branch:** main
-**Repo:** /Users/ianxie/GitHub/Horizon (Mac) | C:\Users\ianxi\...\Horizon (Windows — Ian only)
+**Repo:** `/Users/ianxie/GitHub/Horizon` — Ian, Codi, Claude (Mac)
+          `C:\Users\ianxi\GitHub\Horizon` — Yuhan (Windows)
 **Files:** [list the specific files in scope]
 
 [1-sentence summary of what's already done vs what needs to happen]

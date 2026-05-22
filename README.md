@@ -98,3 +98,9 @@ See `docs/INTEGRATIONS.md` for full setup.
 ## Team
 
 Managed by Ian. See `docs/TEAM.md` for agent roster and task assignment protocol.
+
+| Agent | Model | Device |
+|-------|-------|--------|
+| Ian | GPT-5.2 Codex | Mac |
+| Yuhan | Haiku | Windows |
+| Codi | GLM 5.1 | Mac |
