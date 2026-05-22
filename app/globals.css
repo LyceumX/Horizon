@@ -192,6 +192,59 @@ a {
   color: var(--ink);
   font-weight: 500;
 }
+.pension-disclaimer {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--mute);
+  text-align: right;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+.whatif-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0 4px;
+  border-top: 0.5px dashed color-mix(in srgb, var(--line) 70%, transparent);
+  margin-top: 6px;
+}
+.whatif-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--mute);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.whatif-input {
+  width: 38px;
+  text-align: center;
+  border: 0.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 12px var(--mono);
+  padding: 2px 4px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.whatif-input::-webkit-inner-spin-button,
+.whatif-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.whatif-delta {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent);
+}
+.whatif-freq {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 11px;
+  color: var(--mute);
+  margin-left: 2px;
+}
 .field-hint {
   display: block;
   margin-top: 4px;
@@ -2171,4 +2224,68 @@ main { padding-bottom: 48px; }
   margin-top: 24px;
   border-top: 0.5px solid var(--line);
   padding-top: 20px;
+}
+
+@media (max-width: 980px) {
+  .calc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pension-summary-card {
+    padding: 20px 18px 18px;
+  }
+
+  .pension-result {
+    padding: 14px 0 0;
+  }
+
+  .pension-result-amount {
+    justify-content: space-between;
+  }
+
+  .whatif-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .whatif-delta {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 680px) {
+  .calc {
+    padding: 60px 18px 90px;
+  }
+
+  .pension-summary-card {
+    padding: 18px 16px 16px;
+  }
+
+  .pension-result {
+    padding: 12px 0 0;
+  }
+
+  .pension-result-breakdown {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .pension-result-amount {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pension-freq {
+    font-size: 12px;
+  }
+
+  .whatif-row {
+    padding-top: 6px;
+  }
+
+  .whatif-input {
+    width: 44px;
+  }
 }

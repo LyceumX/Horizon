@@ -362,6 +362,7 @@ export default function HomePage() {
   const [hideAmounts, setHideAmounts] = useState(false);
   // Pension calculator inputs — 缴费基数 replaces tier dropdown; index derived automatically
   const [contributionYears, setContributionYears] = useState(25);
+  const [whatIfExtraYears, setWhatIfExtraYears] = useState(5);
   const [contributionBase, setContributionBase] = useState(9500); // default = Zhejiang 社平工资 → 100% tier
   const [personalAccountBalance, setPersonalAccountBalance] = useState(80000);
   // Budget template expansion
@@ -426,6 +427,18 @@ export default function HomePage() {
     return Math.max(0, Number(saved.toFixed(1)));
   }, [defaultRetireAge, age, plannerResult.yearsToGoal]);
   const pensionCalc = pensionCalcEarly; // alias for use in JSX
+  // What-if: pension if user contributes N additional years
+  const pensionCalcWhatIf = (() => {
+    const totalYears = Math.min(40, pensionCalc.retireAge > 0
+      ? contributionYears + whatIfExtraYears
+      : contributionYears + whatIfExtraYears);
+    const socialAvg = PROVINCE_PENSION_BASE[province] ?? 6000;
+    const index = Math.min(3.0, Math.max(0.6, contributionBase / socialAvg));
+    const basic = socialAvg * (1 + index) / 2 * totalYears * 0.01;
+    const personal = personalAccountBalance / (pensionCalc.months || 139);
+    return Math.round(basic + personal);
+  })();
+  const whatIfDelta = pensionCalcWhatIf - pensionCalc.total;
   const currentCountry = getCountry(country);
   const currentProvince = getProvince(country, province);
   const currentCity = getCity(country, province, city);
@@ -880,6 +893,26 @@ export default function HomePage() {
                           <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
                           <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
                           <span>计发月数 <strong>{pensionCalc.months}</strong></span>
+                        </div>
+                        <p className="pension-disclaimer">
+                          基于公开规则测算，实际金额以当地社保局为准。
+                        </p>
+                        <div className="whatif-row">
+                          <div className="whatif-label">
+                            如果再多缴
+                            <input
+                              type="number"
+                              className="whatif-input"
+                              min={1}
+                              max={20}
+                              value={whatIfExtraYears}
+                              onChange={(e) => setWhatIfExtraYears(Math.min(20, Math.max(1, Number(e.target.value))))}
+                            />
+                            年
+                          </div>
+                          <div className="whatif-delta">
+                            +{money(whatIfDelta, "zh")}<span className="whatif-freq">/月</span>
+                          </div>
                         </div>
                       </>
                     )}
