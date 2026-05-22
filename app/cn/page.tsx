@@ -395,7 +395,6 @@ export default function HomePage() {
     // not today. The planner calculates pure portfolio FIRE date; pension is shown
     // separately in the income breakdown as a supplement at retirement.
   }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]);
-  const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
     () => getDefaultRetireDate(country as Parameters<typeof getDefaultRetireDate>[0], dob, gender, employmentType),
     [country, dob, gender, employmentType]
@@ -533,7 +532,7 @@ export default function HomePage() {
         profile: {
           dob, age, country, province, city, gender, employmentType,
           currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome,
-          budgetMode, language: "zh", theme, insurance
+          budgetMode, language: "zh", theme
         },
         projection: {
           horizonDay1: plannerResult.horizonDay1,
@@ -825,24 +824,7 @@ export default function HomePage() {
               {!hasClerk ? <p className="mode-copy auth-warning">{copy.authMissing}</p> : null}
               {saveState ? <p className="mode-copy">{saveState}</p> : null}
 
-              <details className="insurance-fold">
-                <summary>
-                  <div>
-                    <span className="fold-label">{copy.insuranceTitle}</span>
-                    <strong>{true ? currentCity.label.zh : currentCity.label.en}</strong>
-                  </div>
-                  <span className="fold-hint">{true ? "点击展开" : "Click to expand"}</span>
-                </summary>
-                <p>{copy.insuranceLead}</p>
-                <div className="insurance-grid">
-                  <div className="insurance-item"><span>{copy.insuranceFields.pension}</span><strong>{insurance.pension}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.medical}</span><strong>{insurance.medical}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.housing}</span><strong>{insurance.housing}</strong></div>
-                  <div className="insurance-item"><span>{copy.insuranceFields.unemployment}</span><strong>{insurance.unemployment}</strong></div>
-                  <div className="insurance-item full"><span>{copy.insuranceFields.workplace}</span><strong>{insurance.workplace}</strong></div>
-                  <div className="insurance-item full"><span>{copy.insuranceFields.note}</span><strong>{insurance.note}</strong></div>
-                </div>
-              </details>
+
             </div>
 
             <div className="calc-out">
