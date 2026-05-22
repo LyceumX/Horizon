@@ -763,6 +763,7 @@ export default function HomePage() {
               </div>
 
               <div className="form-divider" />
+              <small className="field-hint field-hint-section">可在社保 APP 或账单查询</small>
 
               {/* ── Row 3: 缴费年限 + 缴费档次 ── */}
               <div className="form-row-2col">
@@ -784,7 +785,6 @@ export default function HomePage() {
               <div className="field">
                 <div className="lbl"><span>个人社保账户余额</span><span className="val">{money(personalAccountBalance, "zh")}</span></div>
                 <input type="range" min={0} max={600000} step={5000} value={personalAccountBalance} onChange={(e) => setPersonalAccountBalance(Number(e.target.value))} />
-                <small className="field-hint">可在社保 APP 或账单查询</small>
               </div>
 
               <div className="save-row">
@@ -804,7 +804,6 @@ export default function HomePage() {
                   <button type="button" className="btn" disabled>{copy.cloudSave}</button>
                 )}
               </div>
-              <p className="mode-copy">{copy.freeHint}</p>
               <p className="mode-copy">{copy.signInHint}</p>
               {!hasClerk ? <p className="mode-copy auth-warning">{copy.authMissing}</p> : null}
               {saveState ? <p className="mode-copy">{saveState}</p> : null}
@@ -889,7 +888,7 @@ export default function HomePage() {
 
                   {/* Row 2: pension vs city average — same topic, no divider */}
                   <div className="psc-row">
-                    <a href="#budget" className="psc-label psc-label-link">养老金超过本市人口</a>
+                    <span className="psc-label">养老金超过本市人口</span>
                     <div className="psc-value">
                       <span className="hl">{pensionPercentile}%</span>
                       <span className="psc-sub">
@@ -904,7 +903,7 @@ export default function HomePage() {
                 <div className="psc-divider" />
                 {/* Row 3: years saved with Horizon */}
                 <div className="psc-row">
-                  <span className="psc-label">使用「早早退休」规划</span>
+                  <a href="#budget" className="psc-label psc-label-link">使用「早早退休」规划</a>
                   <div className="psc-value">
                     有望早 <span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
                   </div>

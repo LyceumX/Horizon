@@ -198,6 +198,11 @@ a {
   font-size: 11px;
   color: var(--mute);
 }
+/* Hint placed at top of a form section (after a divider, before the first field) */
+.field-hint-section {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
 
 /* 2-column form row */
 .form-row-2col {

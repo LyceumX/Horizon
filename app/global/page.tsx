@@ -968,7 +968,6 @@ export default function HomePage() {
                   <button type="button" className="btn" disabled>{copy.cloudSave}</button>
                 )}
               </div>
-              <p className="mode-copy">{copy.freeHint}</p>
               <p className="mode-copy">{copy.signInHint}</p>
               {!hasClerk ? <p className="mode-copy auth-warning">{copy.authMissing}</p> : null}
               {saveState ? <p className="mode-copy">{saveState}</p> : null}
