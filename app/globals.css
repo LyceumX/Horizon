@@ -1913,6 +1913,66 @@ main { padding-bottom: 48px; }
 .accounts-proj-highlight strong { color: var(--accent); }
 
 /* ── Healthcare bridge ── */
+
+/* ── Responsive: new US sections ─────────────────────────────── */
+
+@media (max-width: 860px) {
+  /* Freedom strip: slightly smaller on tablets */
+  .freedom-strip {
+    padding: 8px var(--x);
+    font-size: 0.8rem;
+  }
+
+  .freedom-strip-date {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 680px) {
+  /* SS claim-age picker: stack 3 buttons into a single column */
+  .ss-benefit-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* Each claim option becomes a horizontal row instead of a vertical card */
+  .ss-claim-opt {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 12px;
+  }
+
+  .ss-claim-age {
+    font-size: 0.8rem;
+  }
+
+  .ss-claim-amt {
+    font-size: 0.95rem;
+  }
+
+  /* SS tag repositions: inline instead of absolute top badge */
+  .ss-claim-tag {
+    position: static;
+    margin-left: auto;
+  }
+
+  /* Freedom strip: compact on phones */
+  .freedom-strip {
+    padding: 7px var(--x);
+    font-size: 0.75rem;
+  }
+
+  .freedom-strip-date {
+    font-size: 0.9rem;
+  }
+
+  /* Region coverage note: tighter text on phones */
+  .region-coverage-note {
+    font-size: 0.75rem;
+  }
+}
 .healthcare-bridge {
   margin-top: 24px;
   border-top: 0.5px solid var(--line);
