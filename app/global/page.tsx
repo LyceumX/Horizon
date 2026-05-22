@@ -176,7 +176,8 @@ export default function HomePage() {
   const [yearsWorked, setYearsWorked] = useState(10);
   const [ssClaimAge, setSsClaimAge] = useState<62 | 67 | 70>(67);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
-  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>("balanced");
+  const [budgetSelected, setBudgetSelected] = useState(false);
+  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>(null);
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
@@ -311,6 +312,7 @@ export default function HomePage() {
         if (parsed.pensionIncome !== undefined) setPensionIncome(parsed.pensionIncome);
         setSpend(parsed.spend);
         setBudgetMode(parsed.budgetMode);
+        setBudgetSelected(true);
       } catch {
         // Ignore invalid local cache.
       }
@@ -437,6 +439,7 @@ export default function HomePage() {
 
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
+    setBudgetSelected(true);
     const preset = BUDGETS[mode];
     setCurrentSavings(preset.currentSavings);
     setMonthlyIncome(preset.monthlyIncome);
@@ -904,6 +907,14 @@ export default function HomePage() {
             <div className="desc">{copy.budgetLead}</div>
           </div>
 
+          {!budgetSelected && (
+            <p className="budget-prompt">
+              {lang === "zh"
+                ? "选择一个模版，查看详情并调整参数。"
+                : "Select a template to load its parameters and see how each path affects your Day 1 date."}
+            </p>
+          )}
+
           <div className="budget-grid">
             {(
               [
@@ -912,7 +923,7 @@ export default function HomePage() {
                 { key: "full",     label: copy.fullBudgetLabel,     text: copy.fullBudgetCopy     },
               ] as const
             ).map((plan) => {
-              const active = budgetMode === plan.key;
+              const active = budgetSelected && budgetMode === plan.key;
               const open = expandedBudget === plan.key;
               return (
                 <div key={plan.key} className={`budget-card ${active ? "budget-card-active" : ""} ${open ? "budget-card-open" : ""}`}>
