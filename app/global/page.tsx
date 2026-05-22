@@ -588,7 +588,7 @@ export default function HomePage() {
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
                 <div className="callout-line">
-                  {lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span>
+                  {lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span>
                 </div>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
@@ -668,48 +668,7 @@ export default function HomePage() {
           <div className="calc-grid">
             <div className="calc-form">
 
-              {/* ── Row 1: DOB + Retirement category ── */}
-              <div className="form-row-2col">
-                <label className="field">
-                  <div className="lbl"><span>{copy.dob}</span></div>
-                  <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-                </label>
-
-                {country === "cn" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.gender}</span></div>
-                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                      <option value="male">{copy.genderOptions.male}</option>
-                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
-                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
-                      <option value="special_male">{copy.genderOptions.specialMale}</option>
-                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
-                    </select>
-                  </label>
-                ) : country === "hk" ? (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.employmentType}</span></div>
-                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
-                      <option value="private">{copy.employmentOptions.private}</option>
-                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
-                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
-                    </select>
-                  </label>
-                ) : (
-                  <label className="field">
-                    <div className="lbl"><span>{copy.gender}</span></div>
-                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
-                      <option value="male">{copy.genderSimple.male}</option>
-                      <option value="female_pro">{copy.genderSimple.female}</option>
-                      <option value="prefer_not_to_say">{copy.genderSimple.preferNotToSay}</option>
-                    </select>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-divider" />
-
-              {/* ── Row 2: Country ── */}
+              {/* ── Row 1: Country or Region ── */}
               <label className="field">
                 <div className="lbl"><span>{copy.country}</span></div>
                 <select
@@ -753,7 +712,7 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* ── Row 3: Province + City (where applicable) ── */}
+              {/* ── Row 2: Province + City (where applicable) ── */}
               {(currentCountry.provinces.length > 1 || (currentCountry.provinces[0]?.cities.length ?? 0) > 1) && (
                 <>
                   <div className="form-divider" />
@@ -788,6 +747,47 @@ export default function HomePage() {
                   </div>
                 </>
               )}
+
+              <div className="form-divider" />
+
+              {/* ── Row 3: DOB + Gender / Employment type ── */}
+              <div className="form-row-2col">
+                <label className="field">
+                  <div className="lbl"><span>{copy.dob}</span></div>
+                  <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                </label>
+
+                {country === "cn" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.gender}</span></div>
+                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                      <option value="male">{copy.genderOptions.male}</option>
+                      <option value="female_pro">{copy.genderOptions.femalePro}</option>
+                      <option value="female_worker">{copy.genderOptions.femaleWorker}</option>
+                      <option value="special_male">{copy.genderOptions.specialMale}</option>
+                      <option value="special_female">{copy.genderOptions.specialFemale}</option>
+                    </select>
+                  </label>
+                ) : country === "hk" ? (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.employmentType}</span></div>
+                    <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}>
+                      <option value="private">{copy.employmentOptions.private}</option>
+                      <option value="government_civilian">{copy.employmentOptions.governmentCivilian}</option>
+                      <option value="government_disciplined">{copy.employmentOptions.governmentDisciplined}</option>
+                    </select>
+                  </label>
+                ) : (
+                  <label className="field">
+                    <div className="lbl"><span>{copy.gender}</span></div>
+                    <select value={gender} onChange={(e) => setGender(e.target.value as GenderCategory)}>
+                      <option value="male">{copy.genderSimple.male}</option>
+                      <option value="female_pro">{copy.genderSimple.female}</option>
+                      <option value="prefer_not_to_say">{copy.genderSimple.preferNotToSay}</option>
+                    </select>
+                  </label>
+                )}
+              </div>
 
               <div className="form-divider" />
 
@@ -1036,8 +1036,8 @@ export default function HomePage() {
                   <span className="psc-label">{lang === "zh" ? "使用 Horizon 规划" : "With Horizon planning"}</span>
                   <div className="psc-value">
                     {lang === "zh"
-                      ? <>有望早 <span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休</>
-                      : <><span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} yrs</span> earlier</>}
+                      ? <>有望早 <span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休</>
+                      : <><span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} yrs</span> earlier</>}
                   </div>
                 </div>
               </div>

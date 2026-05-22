@@ -869,7 +869,7 @@ export default function HomePage() {
                 <div className="psc-row">
                   <span className="psc-label">使用「早早退休」规划</span>
                   <div className="psc-value">
-                    有望早 <span className="hl">{yearsSaved > 0.5 ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
+                    有望早 <span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
                   </div>
                 </div>
               </div>
