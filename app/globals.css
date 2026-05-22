@@ -675,6 +675,21 @@ main {
   color: var(--mute);
 }
 
+/* "示例 / Example" pill badge */
+.example-tag {
+  display: inline-block;
+  font: 500 9px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 0.5px solid var(--mute);
+  color: var(--mute);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-right: 7px;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
 .callout-years {
   font-family: var(--serif);
   font-style: italic;

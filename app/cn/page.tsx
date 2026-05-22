@@ -637,11 +637,10 @@ export default function HomePage() {
                 <div className="callout-line">
                   {copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> 岁 · <span className="hl">{defaultRetireYear}</span>，早早退休 用户平均节省 <span className="hl callout-years">5.7 年</span>
                 </div>
-                {pensionCalc.total > 0 && pensionPct !== null && (
-                  <div className="callout-line callout-pension">
-                    届时您将领取每月 <span className="hl">¥{pensionCalc.total.toLocaleString("zh-CN")}</span> 养老金，{pensionPct >= 0 ? "高于" : "低于"}当地均值（¥{avgPensionForProvince.toLocaleString("zh-CN")}）<span className="hl">{Math.abs(pensionPct)}%</span>
-                  </div>
-                )}
+                <div className="callout-line callout-pension">
+                  <span className="example-tag">示例</span>
+                  届时您将领取每月 <span className="hl">¥6,951</span> 养老金，高于当地均值（¥3,700）<span className="hl">88%</span>
+                </div>
               </div>
               <p className="mode-copy">{copy.retirementDisclaimer}</p>
               <div className="hero-actions">
