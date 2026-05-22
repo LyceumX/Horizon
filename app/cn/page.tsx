@@ -358,8 +358,8 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideAge, setHideAge] = useState(false);
   const [hideCapital, setHideCapital] = useState(false);
-  const [hideCityAvg, setHideCityAvg] = useState(true);
-  const [hidePension, setHidePension] = useState(false);
+  // Single toggle for all monetary figures in the pension/city-avg group
+  const [hideAmounts, setHideAmounts] = useState(false);
   // Pension calculator inputs
   const [contributionYears, setContributionYears] = useState(25);
   const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
@@ -841,50 +841,64 @@ export default function HomePage() {
                 </div>
                 <div className="psc-divider" />
 
-                {/* Pension estimate — between retirement year and city-average rows */}
-                <div className="pension-result">
-                  <div className="pension-result-header">
-                    <div className="pension-result-label">预计每月养老金</div>
-                    <button
-                      type="button"
-                      className="eye-btn"
-                      onClick={() => setHidePension((v) => !v)}
-                      aria-label={hidePension ? "显示养老金" : "隐藏养老金"}
-                    >
-                      {hidePension ? "○" : "●"}
-                    </button>
-                  </div>
-                  {hidePension ? (
-                    <div className="pension-result-amount">
-                      <span className="psc-hidden">· · ·</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="pension-result-amount">
-                        <span className="hl">{money(pensionCalc.total, "zh")}</span>
-                        <span className="pension-freq">/月</span>
-                      </div>
-                      <div className="pension-result-breakdown">
-                        <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
-                        <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
-                        <span>计发月数 <strong>{pensionCalc.months}</strong></span>
-                      </div>
-                    </>
-                  )}
-                </div>
+                {/* ── Pension amount + city-avg — single eye toggle in top-right corner ── */}
+                <div className="pension-group">
+                  <button
+                    type="button"
+                    className="pension-group-eye"
+                    onClick={() => setHideAmounts((v) => !v)}
+                    aria-label={hideAmounts ? "显示具体金额" : "隐藏具体金额"}
+                    title={hideAmounts ? "显示具体金额" : "隐藏具体金额"}
+                  >
+                    {hideAmounts ? (
+                      /* eye-off */
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94" />
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      /* eye-open */
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
 
-                {/* Row 2: pension vs city average — no divider, same topic as pension above */}
-                <div className="psc-row">
-                  <span className="psc-label">养老金超过本市人口</span>
-                  <div className="psc-value">
-                    <span className="hl">{pensionPercentile}%</span>
-                    <span className="psc-sub">
-                      市平均&nbsp;
-                      {hideCityAvg
-                        ? <span className="psc-hidden">· · ·</span>
-                        : <strong>¥{avgPensionForProvince.toLocaleString("zh-CN")}</strong>}
-                      <button type="button" className="eye-btn" onClick={() => setHideCityAvg(v => !v)} aria-label={hideCityAvg ? "显示市均养老金" : "隐藏市均养老金"}>{hideCityAvg ? "○" : "●"}</button>
-                    </span>
+                  <div className="pension-result">
+                    <div className="pension-result-label">预计每月养老金</div>
+                    {hideAmounts ? (
+                      <div className="pension-result-amount">
+                        <span className="psc-hidden">· · ·</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="pension-result-amount">
+                          <span className="hl">{money(pensionCalc.total, "zh")}</span>
+                          <span className="pension-freq">/月</span>
+                        </div>
+                        <div className="pension-result-breakdown">
+                          <span>基础 <strong>{money(pensionCalc.basic, "zh")}</strong></span>
+                          <span>个人账户 <strong>{money(pensionCalc.personal, "zh")}</strong></span>
+                          <span>计发月数 <strong>{pensionCalc.months}</strong></span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Row 2: pension vs city average — same topic, no divider */}
+                  <div className="psc-row">
+                    <span className="psc-label">养老金超过本市人口</span>
+                    <div className="psc-value">
+                      <span className="hl">{pensionPercentile}%</span>
+                      <span className="psc-sub">
+                        市平均&nbsp;
+                        {hideAmounts
+                          ? <span className="psc-hidden">· · ·</span>
+                          : <strong>¥{avgPensionForProvince.toLocaleString("zh-CN")}</strong>}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="psc-divider" />

@@ -119,6 +119,35 @@ a {
 
 /* Monthly income breakdown panel */
 /* Pension calculator result card (Section 02) */
+/* Wraps pension-amount + city-avg rows with a single corner eye toggle */
+.pension-group {
+  position: relative;
+}
+
+.pension-group-eye {
+  position: absolute;
+  top: 16px;
+  right: 0;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--mute);
+  border-radius: 6px;
+  transition: color 140ms ease, background 140ms ease;
+  line-height: 0;
+}
+.pension-group-eye svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.pension-group-eye:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .pension-result {
   padding: 12px 0 4px;
 }
