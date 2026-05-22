@@ -360,9 +360,9 @@ export default function HomePage() {
   const [hideCapital, setHideCapital] = useState(false);
   // Single toggle for all monetary figures in the pension/city-avg group
   const [hideAmounts, setHideAmounts] = useState(false);
-  // Pension calculator inputs
+  // Pension calculator inputs — 缴费基数 replaces tier dropdown; index derived automatically
   const [contributionYears, setContributionYears] = useState(25);
-  const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
+  const [contributionBase, setContributionBase] = useState(9500); // default = Zhejiang 社平工资 → 100% tier
   const [personalAccountBalance, setPersonalAccountBalance] = useState(80000);
   // Budget template expansion
   const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>(null);
@@ -373,12 +373,13 @@ export default function HomePage() {
   const pensionCalcEarly = useMemo(() => {
     const retireAge = GENDER_RETIRE_AGE[gender] ?? 60;
     const months = DISBURSEMENT_MONTHS[retireAge] ?? 139;
-    const index = contributionTier === "60" ? 0.6 : contributionTier === "300" ? 3.0 : 1.0;
-    const base = PROVINCE_PENSION_BASE[province] ?? 6000;
-    const basic = base * (1 + index) / 2 * contributionYears * 0.01;
+    const socialAvg = PROVINCE_PENSION_BASE[province] ?? 6000;
+    // Continuous index clamped to [0.6, 3.0] — derived from user's actual contribution base
+    const index = Math.min(3.0, Math.max(0.6, contributionBase / socialAvg));
+    const basic = socialAvg * (1 + index) / 2 * contributionYears * 0.01;
     const personal = personalAccountBalance / months;
-    return { total: Math.round(basic + personal), basic: Math.round(basic), personal: Math.round(personal), retireAge, months };
-  }, [gender, contributionYears, contributionTier, personalAccountBalance, province]);
+    return { total: Math.round(basic + personal), basic: Math.round(basic), personal: Math.round(personal), retireAge, months, index };
+  }, [gender, contributionYears, contributionBase, personalAccountBalance, province]);
   const plannerResult = useMemo(() => calculateHorizonDay1({
     age,
     city,
@@ -443,8 +444,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${contributionYears}|${contributionTier}|${personalAccountBalance}`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, contributionYears, contributionTier, personalAccountBalance]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${contributionYears}|${contributionBase}|${personalAccountBalance}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, contributionYears, contributionBase, personalAccountBalance]
   );
   const shareText = buildShareText({
     year: yearOnly(new Date(plannerResult.horizonDay1)),
@@ -476,6 +477,7 @@ export default function HomePage() {
           spend: number;
           pensionIncome?: number;
           budgetMode: BudgetMode;
+          contributionBase?: number;
         };
         setDob(parsed.dob);
         if (COMING_SOON_COUNTRIES.has(parsed.country)) {
@@ -498,6 +500,7 @@ export default function HomePage() {
         if (parsed.monthlyIncome !== undefined) setMonthlyIncome(parsed.monthlyIncome);
         if (parsed.monthlyExpenses !== undefined) setMonthlyExpenses(parsed.monthlyExpenses);
         if (parsed.pensionIncome !== undefined) setPensionIncome(parsed.pensionIncome);
+        if (parsed.contributionBase !== undefined) setContributionBase(parsed.contributionBase);
         setSpend(parsed.spend);
         setBudgetMode(parsed.budgetMode);
         setBudgetSelected(true);
@@ -517,7 +520,7 @@ export default function HomePage() {
   }, []);
 
   function saveLocal() {
-    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode }));
+    window.localStorage.setItem("horizon-local-profile", JSON.stringify({ dob, country, province, city, gender, employmentType, currentSavings, monthlyIncome, monthlyExpenses, spend, pensionIncome, budgetMode, contributionBase }));
     setSaveState(copy.localSaved);
   }
 
@@ -744,6 +747,8 @@ export default function HomePage() {
                       const nextProvince = getCountry(country).provinces.find((item) => item.value === e.target.value) ?? getCountry(country).provinces[0];
                       setProvince(nextProvince.value);
                       setCity(nextProvince.cities[0].value);
+                      // Reset contribution base to new province's social average (= 100% tier)
+                      setContributionBase(PROVINCE_PENSION_BASE[nextProvince.value] ?? 6000);
                     }}
                   >
                     {currentCountry.provinces.map((item) => (
@@ -764,20 +769,33 @@ export default function HomePage() {
               <div className="form-divider" />
               <small className="field-hint field-hint-section">可在社保 APP 或账单查询</small>
 
-              {/* ── Row 3: 缴费年限 + 缴费档次 ── */}
+              {/* ── Row 3: 缴费年限 + 缴费基数 ── */}
               <div className="form-row-2col">
                 <div className="field">
                   <div className="lbl"><span>缴费年限</span><span className="val">{contributionYears} 年</span></div>
                   <input type="range" min={1} max={40} step={0.5} value={contributionYears} onChange={(e) => setContributionYears(Number(e.target.value))} />
                 </div>
-                <label className="field">
-                  <div className="lbl"><span>缴费档次</span></div>
-                  <select value={contributionTier} onChange={(e) => setContributionTier(e.target.value as "60" | "100" | "300")}>
-                    <option value="60">60%（基本档）</option>
-                    <option value="100">100%（标准档）</option>
-                    <option value="300">300%（高档）</option>
-                  </select>
-                </label>
+                <div className="field">
+                  <div className="lbl"><span>缴费基数</span><span className="val">{money(contributionBase, "zh")}</span></div>
+                  <input
+                    type="range"
+                    min={2000}
+                    max={40000}
+                    step={100}
+                    value={contributionBase}
+                    onChange={(e) => setContributionBase(Number(e.target.value))}
+                  />
+                  {/* Auto-derived contribution index */}
+                  <small className="field-hint auto-derived">
+                    缴费指数（自动估算）
+                    <span className="auto-derived-val">
+                      {Math.min(3.0, Math.max(0.6, contributionBase / (PROVINCE_PENSION_BASE[province] ?? 6000))).toFixed(2)}
+                    </span>
+                    <span className="auto-derived-pct">
+                      {Math.round(Math.min(3.0, Math.max(0.6, contributionBase / (PROVINCE_PENSION_BASE[province] ?? 6000))) * 100)}%
+                    </span>
+                  </small>
+                </div>
               </div>
 
               {/* ── Row 4: 个人账户余额 ── */}

@@ -203,6 +203,24 @@ a {
   margin-top: 8px;
   margin-bottom: 0;
 }
+/* Auto-derived / calculated field display */
+.field-hint.auto-derived {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--mute);
+}
+.auto-derived-val {
+  font: 600 13px var(--mono);
+  color: var(--ink);
+}
+.auto-derived-pct {
+  font: 500 11px var(--mono);
+  color: var(--accent);
+  opacity: 0.85;
+}
 
 /* 2-column form row */
 .form-row-2col {
