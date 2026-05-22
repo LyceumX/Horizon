@@ -940,22 +940,22 @@ export default function HomePage() {
                     <h3>{plan.label}</h3>
                     <p>{plan.text}</p>
                     <span className="budget-chevron" aria-hidden="true">{open ? "▲" : "▼"}</span>
-                  </button>
 
-                  {!open && (
-                    <div className="budget-preview">
-                      {[
-                        { label: lang === "zh" ? "月收入" : "Income",   value: BUDGETS[plan.key].monthlyIncome },
-                        { label: lang === "zh" ? "月支出" : "Expenses", value: BUDGETS[plan.key].monthlyExpenses },
-                        { label: lang === "zh" ? "月「足够」" : "Enough", value: BUDGETS[plan.key].spend },
-                      ].map((row) => (
-                        <div key={row.label} className="budget-preview-row">
-                          <span className="budget-preview-label">{row.label}</span>
-                          <span className="budget-preview-val">{money(row.value, lang)}<span className="budget-preview-mo">/mo</span></span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    {!open && (
+                      <div className="budget-preview">
+                        {[
+                          { label: lang === "zh" ? "月收入" : "Income",   value: BUDGETS[plan.key].monthlyIncome },
+                          { label: lang === "zh" ? "月支出" : "Expenses", value: BUDGETS[plan.key].monthlyExpenses },
+                          { label: lang === "zh" ? "月「足够」" : "Enough", value: BUDGETS[plan.key].spend },
+                        ].map((row) => (
+                          <div key={row.label} className="budget-preview-row">
+                            <span className="budget-preview-label">{row.label}</span>
+                            <span className="budget-preview-val">{money(row.value, lang)}<span className="budget-preview-mo">/mo</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </button>
 
                   {open && (
                     <div className="budget-params">
