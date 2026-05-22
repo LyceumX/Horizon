@@ -1,183 +1,170 @@
-## Agent Result
-Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
-Completed:
-Deviations:
-Blockers:
-Rate limit: (X% used, resets at HH:MM)
+# Responsive CSS for new US sections
 
----
-
-# Phase 2 follow-up: CSS for new UI elements
-
-**Branch:** `feat/phase2-planner-core`
+**Branch:** `main`
 **Repo:** `/Users/ianxie/GitHub/Horizon` (Mac)
-**⚠️ Start ONLY after `tasks/codi/current.md` shows Status: ✅ Done**
+**File to edit:** `app/globals.css` only
 
-Phase 2 added a scenario toggle, new input fields, and an assumptions panel to both the CN and Global pages. These elements have no CSS yet. This task adds the styles to `app/globals.css`.
+New UI sections (Social Security estimator, 401k panel, healthcare bridge, sticky freedom strip) were added by automated agents. Their CSS was appended **after** the existing `@media` blocks, so none of it is responsive yet. This task adds the missing breakpoint rules.
 
 ---
 
 ## Pre-flight
 
 ```bash
-git checkout feat/phase2-planner-core
-git pull origin feat/phase2-planner-core
+cd /Users/ianxie/GitHub/Horizon
+git pull origin main
+npm run dev
 ```
 
----
-
-## Overview of new classes needed
-
-| Class | What it is |
-|---|---|
-| `.scenario-toggle` | Flex row container holding 3 scenario buttons |
-| `.scenario-btn` | Individual scenario button (ghost pill, inactive state) |
-| `.scenario-btn-active` | Active scenario button (filled dark) |
-| `.assumptions-fold` | Collapsible `<details>` panel — same pattern as `.insurance-fold` |
-| `.assumptions-grid` | 3-column grid inside the fold showing return rate / inflation / multiplier |
-| `.assumption-item` | Single row: label on left, bold value on right |
+Open `localhost:3000/global`, select United States, open the 401k section. Resize the browser window to confirm the issues this task fixes.
 
 ---
 
-## Step 1 — Add CSS to `app/globals.css`
+## Context: CSS file structure
 
-Open `app/globals.css`. Locate the `@media (max-width: 680px)` block near the bottom of the file (currently last block). Insert the following CSS block **immediately before** that `@media` block.
+`app/globals.css` ends like this:
 
-```css
-/* ── Scenario toggle ──────────────────────────────────────────── */
-
-.scenario-toggle {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.scenario-btn {
-  appearance: none;
-  border: 0.5px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink);
-  padding: 9px 16px;
-  font: 500 11px var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
-}
-
-.scenario-btn:hover,
-.scenario-btn:focus-visible {
-  border-color: color-mix(in srgb, var(--btn-ghost-border) 70%, var(--accent));
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(36, 30, 20, 0.10);
-}
-
-.scenario-btn-active {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-  box-shadow: 0 6px 16px rgba(36, 30, 20, 0.18);
-}
-
-.scenario-btn-active:hover,
-.scenario-btn-active:focus-visible {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(36, 30, 20, 0.22);
-}
-
-
-/* ── Assumptions fold ─────────────────────────────────────────── */
-
-.assumptions-fold {
-  border: 0.5px solid var(--line);
-  border-radius: 18px;
-  padding: 16px 18px;
-  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
-  margin-top: 12px;
-}
-
-.assumptions-fold summary {
-  list-style: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.assumptions-fold summary::-webkit-details-marker {
-  display: none;
-}
-
-.assumptions-fold .fold-label,
-.assumptions-fold .fold-hint {
-  display: block;
-  font: 500 10px var(--mono);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-
-.assumptions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 16px;
-  margin-top: 14px;
-}
-
-.assumption-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.assumption-item span {
-  font: 400 10px var(--mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-
-.assumption-item strong {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 18px;
-  color: var(--ink);
-}
+```
+... component rules (lines 1–1589) ...
+@media (max-width: 980px) { ... }   ← line 1589
+... scenario + assumptions CSS ...
+@media (max-width: 860px) { ... }   ← line 1747
+@media (max-width: 680px) { ... }   ← line 1753, ends ~1775
+... NEW agent-added CSS (region-coverage-note, freedom-strip, ss-*, accounts-*, healthcare-*) ...
 ```
 
+Because the new CSS sits **after** the existing `@media` blocks, adding rules to those earlier blocks would be cascade-unsafe (base rules appearing later in the file would override them). **Add all responsive overrides as new `@media` blocks at the very end of the file**, after the last existing rule.
+
 ---
 
-## Step 2 — Add responsive rules inside the existing `@media (max-width: 860px)` block
+## Step 1 — Identify the four problem areas
 
-Find the existing `@media (max-width: 860px)` block. Inside it, at the end (before its closing `}`), add:
+### 1a — SS claim-age picker (`.ss-benefit-row`)
+Base rule: `grid-template-columns: repeat(3, 1fr)` with `padding: 10px 6px` per button.  
+On ≤ 480px: three columns is too cramped. The amount text gets truncated.
+
+### 1b — Sticky freedom strip (`.freedom-strip`)
+Base rule: `position: fixed; bottom: 0; padding: 10px var(--x)`.  
+On ≤ 680px: `--x` can be as small as 20px, which is fine, but the strip height and font sizes should be slightly tighter so it doesn't eat screen real estate.
+
+### 1c — Accounts projection rows (`.accounts-proj-row`)
+Base rule: `display: flex; justify-content: space-between`. This is already fine at all widths. No change needed.
+
+### 1d — Stories grid with 7 cards
+The base `.stories-grid` uses `repeat(auto-fill, …)` or a fixed column count. With 7 cards the bottom row may have a lone card on desktop. Verify visually — adjust only if it looks bad.
+
+---
+
+## Step 2 — Add responsive blocks at the end of `app/globals.css`
+
+Open `app/globals.css`. Scroll to the very last line. Append the following (do not insert into existing `@media` blocks):
 
 ```css
-  .assumptions-grid {
-    grid-template-columns: repeat(3, 1fr);
+
+/* ── Responsive: new US sections ─────────────────────────────── */
+
+@media (max-width: 860px) {
+  /* Freedom strip: slightly smaller on tablets */
+  .freedom-strip {
+    padding: 8px var(--x);
+    font-size: 0.8rem;
   }
+
+  .freedom-strip-date {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 680px) {
+  /* SS claim-age picker: stack 3 buttons into a single column */
+  .ss-benefit-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* Each claim option becomes a horizontal row instead of a vertical card */
+  .ss-claim-opt {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 12px;
+  }
+
+  .ss-claim-age {
+    font-size: 0.8rem;
+  }
+
+  .ss-claim-amt {
+    font-size: 0.95rem;
+  }
+
+  /* SS tag repositions: inline instead of absolute top badge */
+  .ss-claim-tag {
+    position: static;
+    margin-left: auto;
+  }
+
+  /* Freedom strip: compact on phones */
+  .freedom-strip {
+    padding: 7px var(--x);
+    font-size: 0.75rem;
+  }
+
+  .freedom-strip-date {
+    font-size: 0.9rem;
+  }
+
+  /* Region coverage note: tighter text on phones */
+  .region-coverage-note {
+    font-size: 0.75rem;
+  }
+}
 ```
 
 ---
 
-## Step 3 — Build check
+## Step 3 — Stories grid visual check
+
+With 7 story cards, check desktop (≥ 1200px) layout:
+- If the grid shows 4 columns with the 7th card left-aligned on a second row looking odd, change the stories grid to 3 columns on desktop (or auto-fill with `min-width: 260px`).
+- Check what the existing `.stories-grid` base rule looks like. If it's `repeat(4, 1fr)` or `repeat(auto-fill, minmax(240px, 1fr))` and 7 cards look fine, leave it.
+- Only make a change if it looks wrong. If you do change it, put the rule in the existing component section (before the `@media` blocks), not inside a breakpoint.
+
+---
+
+## Step 4 — Dark mode spot check
+
+Switch to dark mode (◐ button in nav) with United States selected and the 401k panel open. Verify:
+- [ ] `.ss-estimator-card` background (`var(--accent-soft)`) renders correctly in dark
+- [ ] `.ss-claim-opt` background (`var(--paper)`) reads cleanly against dark background
+- [ ] `.freedom-strip` backdrop blur looks right in dark mode
+- [ ] `.region-coverage-note` border and background visible in dark
+
+All these use CSS custom properties that already have dark-mode overrides in `:root[data-theme="dark"]`, so they should work automatically. Note any that don't.
+
+---
+
+## Step 5 — Build + commit
 
 ```bash
 npm run build
 ```
 
-Expected: build succeeds with no new errors.
-
----
-
-## Step 4 — Commit (do not push — planner handles pushes)
+Expected: zero errors.
 
 ```bash
 git add app/globals.css
-git commit -m "feat: add CSS for scenario toggle and assumptions panel"
+git commit -m "style: responsive rules for SS estimator, freedom strip, and coverage note"
 ```
+
+Do not push — the planner handles all pushes.
 
 ---
 
-Write Agent Result when done.
+## Agent Result
+Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
+Completed:
+Deviations:
+Blockers:
+Rate limit: (X% used, resets at HH:MM)
