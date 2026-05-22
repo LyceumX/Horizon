@@ -356,6 +356,7 @@ export default function HomePage() {
   const [scenario, setScenario] = useState<"base" | "optimistic" | "stress">("base");
   const [pensionIncome, setPensionIncome] = useState(0);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
+  const [budgetSelected, setBudgetSelected] = useState(false);
   const [saveState, setSaveState] = useState("");
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [shareState, setShareState] = useState("");
@@ -367,7 +368,7 @@ export default function HomePage() {
   const [contributionTier, setContributionTier] = useState<"60" | "100" | "300">("100");
   const [personalAccountBalance, setPersonalAccountBalance] = useState(80000);
   // Budget template expansion
-  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>("balanced");
+  const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>(null);
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
@@ -501,6 +502,7 @@ export default function HomePage() {
         if (parsed.pensionIncome !== undefined) setPensionIncome(parsed.pensionIncome);
         setSpend(parsed.spend);
         setBudgetMode(parsed.budgetMode);
+        setBudgetSelected(true);
       } catch {
         // Ignore invalid local cache.
       }
@@ -556,6 +558,7 @@ export default function HomePage() {
 
   function applyBudgetMode(mode: BudgetMode) {
     setBudgetMode(mode);
+    setBudgetSelected(true);
     const preset = BUDGETS[mode];
     setCurrentSavings(preset.currentSavings);
     setMonthlyIncome(preset.monthlyIncome);
@@ -901,6 +904,10 @@ export default function HomePage() {
             <div className="desc">{copy.budgetLead}</div>
           </div>
 
+          {!budgetSelected && (
+            <p className="budget-prompt">选择一个模版，查看详情并调整参数。</p>
+          )}
+
           <div className="budget-grid">
             {(
               [
@@ -909,7 +916,7 @@ export default function HomePage() {
                 { key: "full",     label: copy.fullBudgetLabel,     text: copy.fullBudgetCopy     }
               ] as const
             ).map((plan) => {
-              const active = budgetMode === plan.key;
+              const active = budgetSelected && budgetMode === plan.key;
               const open = expandedBudget === plan.key;
               return (
                 <div key={plan.key} className={`budget-card ${active ? "budget-card-active" : ""} ${open ? "budget-card-open" : ""}`}>
@@ -926,6 +933,21 @@ export default function HomePage() {
                     <h3>{plan.label}</h3>
                     <p>{plan.text}</p>
                     <span className="budget-chevron" aria-hidden="true">{open ? "▲" : "▼"}</span>
+
+                    {!open && (
+                      <div className="budget-preview">
+                        {[
+                          { label: "月收入", value: BUDGETS[plan.key].monthlyIncome },
+                          { label: "月支出", value: BUDGETS[plan.key].monthlyExpenses },
+                          { label: "月「足够」", value: BUDGETS[plan.key].spend },
+                        ].map((row) => (
+                          <div key={row.label} className="budget-preview-row">
+                            <span className="budget-preview-label">{row.label}</span>
+                            <span className="budget-preview-val">{money(row.value, "zh")}<span className="budget-preview-mo">/月</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </button>
 
                   {open && (
