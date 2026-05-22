@@ -247,8 +247,14 @@ export default function HomePage() {
   );
 
   const sgPension = useMemo(
-    () => estimateCPFLife(monthlyIncome, yearsWorked, yearsToStatutoryPension),
-    [monthlyIncome, yearsWorked, yearsToStatutoryPension]
+    () => estimateCPFLife(
+      monthlyIncome,
+      yearsWorked,
+      yearsToStatutoryPension,
+      age,
+      (gender === "female_pro" || gender === "female_worker" || gender === "special_female") ? "F" : "M",
+    ),
+    [monthlyIncome, yearsWorked, yearsToStatutoryPension, age, gender]
   );
 
   const hkPension = useMemo(
