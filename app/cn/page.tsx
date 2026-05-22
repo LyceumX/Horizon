@@ -416,6 +416,8 @@ export default function HomePage() {
     }
     return yearOnly(defaultRetireDate);
   }, [defaultRetireDate]);
+  // Years from today until statutory retirement date
+  const yearsToStatutory = defaultRetireAge !== null ? Math.max(0, defaultRetireAge - age) : null;
   const yearsSaved = useMemo(() => {
     if (defaultRetireAge === null) {
       return 0;
@@ -829,44 +831,17 @@ export default function HomePage() {
 
             <div className="calc-out">
               <div className="pension-summary-card" key={projectionVersion}>
-                {/* Row 1: retirement year */}
+                {/* Row 1: statutory retirement year (driven by DOB + retire type) */}
                 <div className="psc-row">
                   <span className="psc-label">预计退休年份</span>
                   <div className="psc-value">
-                    <span className="hl"><span key={`${projectionVersion}-year`} className="flip-number">{yearOnly(new Date(plannerResult.horizonDay1))}</span></span>
-                    <span className="psc-sub">还有 <strong>{plannerResult.yearsToGoal}</strong> 年</span>
+                    <span className="hl"><span key={`${projectionVersion}-year`} className="flip-number">{defaultRetireYear}</span></span>
+                    <span className="psc-sub">还有 <strong>{yearsToStatutory !== null ? yearsToStatutory.toFixed(1) : "--"}</strong> 年</span>
                   </div>
                 </div>
                 <div className="psc-divider" />
-                {/* Row 2: pension vs city average */}
-                <div className="psc-row">
-                  <span className="psc-label">养老金超过本市人口</span>
-                  <div className="psc-value">
-                    <span className="hl">{pensionPercentile}%</span>
-                    <span className="psc-sub">
-                      市平均&nbsp;
-                      {hideCityAvg
-                        ? <span className="psc-hidden">· · ·</span>
-                        : <strong>¥{avgPensionForProvince.toLocaleString("zh-CN")}</strong>}
-                      <button type="button" className="eye-btn" onClick={() => setHideCityAvg(v => !v)} aria-label={hideCityAvg ? "显示市均养老金" : "隐藏市均养老金"}>{hideCityAvg ? "○" : "●"}</button>
-                    </span>
-                  </div>
-                </div>
-                <div className="psc-divider" />
-                {/* Row 3: years saved with Horizon */}
-                <div className="psc-row">
-                  <span className="psc-label">使用「早早退休」规划</span>
-                  <div className="psc-value">
-                    有望早 <span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
-                  </div>
-                </div>
-              </div>
 
-              <div className="share-card">
-                <div className="k">{copy.shareTitle}</div>
-                <p>{copy.shareLead}</p>
-
-                {/* ── 预计每月养老金 (moved here, toggleable) ── */}
+                {/* Pension estimate — between retirement year and city-average rows */}
                 <div className="pension-result">
                   <div className="pension-result-header">
                     <div className="pension-result-label">预计每月养老金</div>
@@ -897,6 +872,35 @@ export default function HomePage() {
                     </>
                   )}
                 </div>
+                <div className="psc-divider" />
+
+                {/* Row 2: pension vs city average */}
+                <div className="psc-row">
+                  <span className="psc-label">养老金超过本市人口</span>
+                  <div className="psc-value">
+                    <span className="hl">{pensionPercentile}%</span>
+                    <span className="psc-sub">
+                      市平均&nbsp;
+                      {hideCityAvg
+                        ? <span className="psc-hidden">· · ·</span>
+                        : <strong>¥{avgPensionForProvince.toLocaleString("zh-CN")}</strong>}
+                      <button type="button" className="eye-btn" onClick={() => setHideCityAvg(v => !v)} aria-label={hideCityAvg ? "显示市均养老金" : "隐藏市均养老金"}>{hideCityAvg ? "○" : "●"}</button>
+                    </span>
+                  </div>
+                </div>
+                <div className="psc-divider" />
+                {/* Row 3: years saved with Horizon */}
+                <div className="psc-row">
+                  <span className="psc-label">使用「早早退休」规划</span>
+                  <div className="psc-value">
+                    有望早 <span className="hl">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} 年</span> 退休
+                  </div>
+                </div>
+              </div>
+
+              <div className="share-card">
+                <div className="k">{copy.shareTitle}</div>
+                <p>{copy.shareLead}</p>
 
                 <div className="share-preview">{shareText}</div>
                 <div className="save-row">

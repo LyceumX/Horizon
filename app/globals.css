@@ -120,11 +120,7 @@ a {
 /* Monthly income breakdown panel */
 /* Pension calculator result card (Section 02) */
 .pension-result {
-  border: 0.5px solid color-mix(in srgb, var(--accent) 35%, var(--line));
-  border-radius: 16px;
-  padding: 16px 18px;
-  background: color-mix(in srgb, var(--accent) 5%, var(--paper-2));
-  margin-top: 4px;
+  padding: 12px 0 4px;
 }
 .pension-result-header {
   display: flex;
