@@ -1,10 +1,10 @@
-# Responsive CSS for new US sections
+# CN Page — Pension UX polish + mobile responsive pass
 
 **Branch:** `main`
 **Repo:** `/Users/ianxie/GitHub/Horizon` (Mac)
-**File to edit:** `app/globals.css` only
+**Files:** `app/cn/page.tsx`, `app/globals.css`
 
-New UI sections (Social Security estimator, 401k panel, healthcare bridge, sticky freedom strip) were added by automated agents. Their CSS was appended **after** the existing `@media` blocks, so none of it is responsive yet. This task adds the missing breakpoint rules.
+Three self-contained tasks. Do them in order; commit after each one.
 
 ---
 
@@ -16,153 +16,285 @@ git pull origin main
 npm run dev
 ```
 
-Open `localhost:3000/global`, select United States, open the 401k section. Resize the browser window to confirm the issues this task fixes.
+Open `localhost:3000/cn`. Keep it open throughout.
 
 ---
 
-## Context: CSS file structure
+## Task 1 — Disclaimer line below pension result
 
-`app/globals.css` ends like this:
+The pension card now shows real formula-based numbers. Add one line of small
+copy beneath the breakdown row to set expectations.
 
+### Where to add it
+
+In `app/cn/page.tsx`, find the pension-result block inside
+`pension-summary-card` (search for `pension-result-breakdown`).
+
+Right after the closing `</>` of the non-hidden branch (the `<>…</>` that
+contains `pension-result-amount` and `pension-result-breakdown`), add:
+
+```tsx
+<p className="pension-disclaimer">
+  基于公开规则测算，实际金额以当地社保局为准。
+</p>
 ```
-... component rules (lines 1–1589) ...
-@media (max-width: 980px) { ... }   ← line 1589
-... scenario + assumptions CSS ...
-@media (max-width: 860px) { ... }   ← line 1747
-@media (max-width: 680px) { ... }   ← line 1753, ends ~1775
-... NEW agent-added CSS (region-coverage-note, freedom-strip, ss-*, accounts-*, healthcare-*) ...
+
+### CSS
+
+In `app/globals.css`, find `.pension-result-breakdown strong` and add below it:
+
+```css
+.pension-disclaimer {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--mute);
+  text-align: right;
+  opacity: 0.7;
+  line-height: 1.5;
+}
 ```
 
-Because the new CSS sits **after** the existing `@media` blocks, adding rules to those earlier blocks would be cascade-unsafe (base rules appearing later in the file would override them). **Add all responsive overrides as new `@media` blocks at the very end of the file**, after the last existing rule.
+### Verify
+
+Pension card shows the small grey disclaimer line below the breakdown.
+Run `npx tsc --noEmit` — zero errors.
+
+### Commit
+
+```bash
+git add app/cn/page.tsx app/globals.css
+git commit -m "feat(cn): add pension disclaimer line below result card"
+```
 
 ---
 
-## Step 1 — Identify the four problem areas
+## Task 2 — What-if row: "多缴 N 年，养老金涨多少？"
 
-### 1a — SS claim-age picker (`.ss-benefit-row`)
-Base rule: `grid-template-columns: repeat(3, 1fr)` with `padding: 10px 6px` per button.  
-On ≤ 480px: three columns is too cramped. The amount text gets truncated.
+A single interactive row below the pension result that lets users see the
+pension impact of contributing more years.
 
-### 1b — Sticky freedom strip (`.freedom-strip`)
-Base rule: `position: fixed; bottom: 0; padding: 10px var(--x)`.  
-On ≤ 680px: `--x` can be as small as 20px, which is fine, but the strip height and font sizes should be slightly tighter so it doesn't eat screen real estate.
+### State
 
-### 1c — Accounts projection rows (`.accounts-proj-row`)
-Base rule: `display: flex; justify-content: space-between`. This is already fine at all widths. No change needed.
+In `app/cn/page.tsx`, find the pension calculator state block
+(near `contributionYears`). Add one new state variable after it:
 
-### 1d — Stories grid with 7 cards
-The base `.stories-grid` uses `repeat(auto-fill, …)` or a fixed column count. With 7 cards the bottom row may have a lone card on desktop. Verify visually — adjust only if it looks bad.
+```tsx
+const [whatIfExtraYears, setWhatIfExtraYears] = useState(5);
+```
+
+### Derived value
+
+Find `const pensionCalc = pensionCalcEarly;` and add immediately after:
+
+```tsx
+// What-if: pension if user contributes N additional years
+const pensionCalcWhatIf = (() => {
+  const totalYears = Math.min(40, pensionCalc.retireAge > 0
+    ? contributionYears + whatIfExtraYears
+    : contributionYears + whatIfExtraYears);
+  const socialAvg = PROVINCE_PENSION_BASE[province] ?? 6000;
+  const index = Math.min(3.0, Math.max(0.6, contributionBase / socialAvg));
+  const basic = socialAvg * (1 + index) / 2 * totalYears * 0.01;
+  const personal = personalAccountBalance / (pensionCalc.months || 139);
+  return Math.round(basic + personal);
+})();
+const whatIfDelta = pensionCalcWhatIf - pensionCalc.total;
+```
+
+### UI — add below the pension-result div in `pension-summary-card`
+
+Find the closing `</div>` of the `pension-result` block (just before the
+`{/* Row 2 */}` comment). Add after it:
+
+```tsx
+<div className="whatif-row">
+  <div className="whatif-label">
+    如果再多缴
+    <input
+      type="number"
+      className="whatif-input"
+      min={1}
+      max={20}
+      value={whatIfExtraYears}
+      onChange={(e) => setWhatIfExtraYears(Math.min(20, Math.max(1, Number(e.target.value))))}
+    />
+    年
+  </div>
+  <div className="whatif-delta">
+    +{money(whatIfDelta, "zh")}<span className="whatif-freq">/月</span>
+  </div>
+</div>
+```
+
+### CSS
+
+Add to `app/globals.css` (after `.pension-disclaimer`):
+
+```css
+.whatif-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0 4px;
+  border-top: 0.5px dashed color-mix(in srgb, var(--line) 70%, transparent);
+  margin-top: 6px;
+}
+.whatif-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--mute);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.whatif-input {
+  width: 38px;
+  text-align: center;
+  border: 0.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 12px var(--mono);
+  padding: 2px 4px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.whatif-input::-webkit-inner-spin-button,
+.whatif-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.whatif-delta {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent);
+}
+.whatif-freq {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 11px;
+  color: var(--mute);
+  margin-left: 2px;
+}
+```
+
+### Verify
+
+- The what-if row appears below the pension card inside the stats card.
+- Changing the year number (1–20) updates the `+¥X/月` figure immediately.
+- `npx tsc --noEmit` — zero errors.
+
+### Commit
+
+```bash
+git add app/cn/page.tsx app/globals.css
+git commit -m "feat(cn): what-if row — pension delta for extra contribution years"
+```
 
 ---
 
-## Step 2 — Add responsive blocks at the end of `app/globals.css`
+## Task 3 — Mobile responsive pass (CN page new sections)
 
-Open `app/globals.css`. Scroll to the very last line. Append the following (do not insert into existing `@media` blocks):
+The pension inputs, stats card, and share card were added recently and have no
+`@media` breakpoints. Add responsive overrides at the **very end** of
+`app/globals.css` (after all existing rules).
+
+### Breakpoints to add
 
 ```css
 
-/* ── Responsive: new US sections ─────────────────────────────── */
+/* ── Responsive: CN pension calculator & output card ─────────── */
 
 @media (max-width: 860px) {
-  /* Freedom strip: slightly smaller on tablets */
-  .freedom-strip {
-    padding: 8px var(--x);
-    font-size: 0.8rem;
-  }
-
-  .freedom-strip-date {
-    font-size: 1rem;
+  /* Stack 2-column pension form into single column */
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 
 @media (max-width: 680px) {
-  /* SS claim-age picker: stack 3 buttons into a single column */
-  .ss-benefit-row {
-    grid-template-columns: 1fr;
+  /* Pension summary card: tighter padding */
+  .pension-summary-card {
+    padding: 16px 16px 14px;
+  }
+
+  /* PSC row: allow value to wrap below label on very small screens */
+  .psc-row {
+    flex-wrap: wrap;
     gap: 6px;
   }
 
-  /* Each claim option becomes a horizontal row instead of a vertical card */
-  .ss-claim-opt {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 14px;
-    gap: 12px;
+  .psc-value {
+    width: 100%;
+    align-items: flex-start;
   }
 
-  .ss-claim-age {
-    font-size: 0.8rem;
+  /* Share card: full-width buttons */
+  .share-card .save-row {
+    flex-direction: column;
   }
 
-  .ss-claim-amt {
-    font-size: 0.95rem;
+  .share-card .save-row .btn {
+    width: 100%;
+    text-align: center;
   }
 
-  /* SS tag repositions: inline instead of absolute top badge */
-  .ss-claim-tag {
+  /* Pension result amount: left-align on mobile for readability */
+  .pension-result-amount,
+  .pension-result-breakdown {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  /* What-if row: allow wrapping */
+  .whatif-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Hero callout: tighter padding on small screens */
+  .hero-callout {
+    padding-right: 18px;
+  }
+
+  .example-tag {
     position: static;
-    margin-left: auto;
-  }
-
-  /* Freedom strip: compact on phones */
-  .freedom-strip {
-    padding: 7px var(--x);
-    font-size: 0.75rem;
-  }
-
-  .freedom-strip-date {
-    font-size: 0.9rem;
-  }
-
-  /* Region coverage note: tighter text on phones */
-  .region-coverage-note {
-    font-size: 0.75rem;
+    display: inline-block;
+    margin-bottom: 4px;
   }
 }
 ```
 
----
+### Verify
 
-## Step 3 — Stories grid visual check
+- At 375px wide (`localhost:3000/cn`): pension form fields stack vertically,
+  stats card is readable, share button is full-width.
+- Desktop (≥ 1024px) looks unchanged.
+- Dark mode: switch to dark (◐ button) at mobile width — no clipping or
+  invisible text.
 
-With 7 story cards, check desktop (≥ 1200px) layout:
-- If the grid shows 4 columns with the 7th card left-aligned on a second row looking odd, change the stories grid to 3 columns on desktop (or auto-fill with `min-width: 260px`).
-- Check what the existing `.stories-grid` base rule looks like. If it's `repeat(4, 1fr)` or `repeat(auto-fill, minmax(240px, 1fr))` and 7 cards look fine, leave it.
-- Only make a change if it looks wrong. If you do change it, put the rule in the existing component section (before the `@media` blocks), not inside a breakpoint.
-
----
-
-## Step 4 — Dark mode spot check
-
-Switch to dark mode (◐ button in nav) with United States selected and the 401k panel open. Verify:
-- [ ] `.ss-estimator-card` background (`var(--accent-soft)`) renders correctly in dark
-- [ ] `.ss-claim-opt` background (`var(--paper)`) reads cleanly against dark background
-- [ ] `.freedom-strip` backdrop blur looks right in dark mode
-- [ ] `.region-coverage-note` border and background visible in dark
-
-All these use CSS custom properties that already have dark-mode overrides in `:root[data-theme="dark"]`, so they should work automatically. Note any that don't.
-
----
-
-## Step 5 — Build + commit
-
-```bash
-npm run build
-```
-
-Expected: zero errors.
+### Commit
 
 ```bash
 git add app/globals.css
-git commit -m "style: responsive rules for SS estimator, freedom strip, and coverage note"
+git commit -m "style(cn): responsive breakpoints for pension form, stats card, share section"
 ```
 
-Do not push — the planner handles all pushes.
+---
+
+## Final check
+
+```bash
+npx tsc --noEmit
+```
+
+Zero errors. Do not push — Ian handles all pushes.
 
 ---
 
 ## Agent Result
+
 Status: (✅ Done / ⚠️ Partial / ❌ Blocked)
 Completed:
 Deviations:
