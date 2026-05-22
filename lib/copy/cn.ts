@@ -150,7 +150,7 @@ export const CN_COPY: Copy = {
   freeHint: "任何人都可免费使用测算器。",
   signInHint: "仅当你希望跨设备同步和获取个性化跟进时，再注册/登录即可。",
   authMissing: "当前工作区未配置 Clerk，因此登录和账户同步不可用。",
-  budgetTitle: "预算模版",
+  budgetTitle: "实现财富自由，规划提前退休",
   budgetLead: "选择与你生活策略匹配的路径，展开后可自定义每一项财务参数。",
   budgetLocked: "请先登录后解锁高级预算方案。",
   lowBudgetLabel: "低预算自由",

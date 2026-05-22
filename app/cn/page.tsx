@@ -889,7 +889,7 @@ export default function HomePage() {
 
                   {/* Row 2: pension vs city average — same topic, no divider */}
                   <div className="psc-row">
-                    <span className="psc-label">养老金超过本市人口</span>
+                    <a href="#budget" className="psc-label psc-label-link">养老金超过本市人口</a>
                     <div className="psc-value">
                       <span className="hl">{pensionPercentile}%</span>
                       <span className="psc-sub">
