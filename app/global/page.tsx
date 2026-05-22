@@ -587,11 +587,11 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
+                <span className="example-tag">Example</span>
                 <div className="callout-line">
                   {lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span>
                 </div>
                 <div className="callout-line callout-pension">
-                  <span className="example-tag">Example</span>
                   At 65, receive ~<span className="hl">SGD 2,850</span>/mo from CPF Life — <span className="hl">above average</span>
                 </div>
               </div>

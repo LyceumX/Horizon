@@ -11,10 +11,10 @@
   --line: rgba(26, 24, 20, 0.14);
   --accent: #c97a3a;
   --accent-soft: rgba(201, 122, 58, 0.12);
-  --btn-bg: var(--ink);
-  --btn-text: var(--paper);
-  --btn-border: var(--ink);
-  --btn-hover-bg: color-mix(in srgb, var(--ink) 86%, var(--accent));
+  --btn-bg: transparent;
+  --btn-text: var(--ink);
+  --btn-border: var(--line);
+  --btn-hover-bg: var(--accent-soft);
   --btn-ghost-bg: transparent;
   --btn-ghost-text: var(--ink);
   --btn-ghost-border: var(--line);
@@ -652,8 +652,10 @@ main {
 }
 
 .hero-callout {
+  position: relative;
   margin-top: 18px;
   padding: 14px 18px;
+  padding-right: 56px; /* room for top-right example-tag */
   border-radius: 16px;
   border: 0.5px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 70%, transparent);
@@ -675,19 +677,20 @@ main {
   color: var(--mute);
 }
 
-/* "示例 / Example" pill badge */
+/* "示例 / Example" pill — absolute top-right of .hero-callout */
 .example-tag {
-  display: inline-block;
+  position: absolute;
+  top: 12px;
+  right: 14px;
   font: 500 9px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 0.5px solid var(--mute);
   color: var(--mute);
   border-radius: 4px;
-  padding: 1px 5px;
-  margin-right: 7px;
-  vertical-align: middle;
-  opacity: 0.7;
+  padding: 2px 6px;
+  opacity: 0.65;
+  white-space: nowrap;
 }
 
 .callout-years {
@@ -758,9 +761,9 @@ main {
 .btn:hover:not(:disabled),
 .btn:focus-visible:not(:disabled) {
   background: var(--btn-hover-bg);
-  border-color: color-mix(in srgb, var(--btn-border) 70%, var(--accent));
+  border-color: color-mix(in srgb, var(--line) 40%, var(--accent));
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(36, 30, 20, 0.14);
+  box-shadow: 0 6px 16px rgba(36, 30, 20, 0.08);
 }
 
 .btn:disabled {

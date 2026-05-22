@@ -634,11 +634,11 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
+                <span className="example-tag">示例</span>
                 <div className="callout-line">
                   {copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> 岁 · <span className="hl">{defaultRetireYear}</span>，早早退休 用户平均节省 <span className="hl callout-years">5.7 年</span>
                 </div>
                 <div className="callout-line callout-pension">
-                  <span className="example-tag">示例</span>
                   届时您将领取每月 <span className="hl">¥6,951</span> 养老金，高于当地均值（¥3,700）<span className="hl">88%</span>
                 </div>
               </div>
