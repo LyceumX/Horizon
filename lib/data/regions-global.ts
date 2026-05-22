@@ -273,7 +273,7 @@ export const GLOBAL_REGIONS: CountryOption[] = [
 
   {
     value: "us",
-    label: { en: "United States (coming soon)", zh: "美国（即将上线）" },
+    label: { en: "United States", zh: "美国" },
     provinces: [
       { value: "california", label: { en: "California", zh: "加利福尼亚" }, cities: [
         { value: "san-francisco", label: { en: "San Francisco", zh: "旧金山" }, insurance: ins.us },
@@ -281,6 +281,17 @@ export const GLOBAL_REGIONS: CountryOption[] = [
       ]},
       { value: "new-york", label: { en: "New York", zh: "纽约州" }, cities: [
         { value: "new-york-city", label: { en: "New York City", zh: "纽约市" }, insurance: ins.us },
+      ]},
+      { value: "texas", label: { en: "Texas", zh: "德克萨斯" }, cities: [
+        { value: "houston", label: { en: "Houston", zh: "休斯顿" }, insurance: ins.us },
+        { value: "austin",  label: { en: "Austin",  zh: "奥斯汀" }, insurance: ins.us },
+      ]},
+      { value: "illinois", label: { en: "Illinois", zh: "伊利诺伊" }, cities: [
+        { value: "chicago", label: { en: "Chicago", zh: "芝加哥" }, insurance: ins.us },
+      ]},
+      { value: "washington", label: { en: "Washington", zh: "华盛顿州" }, cities: [
+        { value: "seattle",  label: { en: "Seattle",  zh: "西雅图" }, insurance: ins.us },
+        { value: "portland", label: { en: "Portland", zh: "波特兰" }, insurance: ins.us },
       ]},
     ],
   },

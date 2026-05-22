@@ -54,7 +54,7 @@ import { GLOBAL_REGIONS } from "@/lib/data/regions-global";
 import { GLOBAL_COPY } from "@/lib/copy/global";
 import { BUDGETS } from "@/lib/data/budgets";
 
-const COMING_SOON_COUNTRIES = new Set(["us", "uk"]);
+const COMING_SOON_COUNTRIES = new Set(["uk"]);
 
 const copy = GLOBAL_COPY;
 const REGIONS: CountryOption[] = GLOBAL_REGIONS;
@@ -512,8 +512,8 @@ export default function HomePage() {
 
           {lang === "en" && (
             <div className="region-coverage-note">
-              <strong>📍 Currently covers:</strong> China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
-              <strong>United States and United Kingdom</strong> — full Social Security &amp; pension integration coming soon.
+              <strong>📍 Currently covers:</strong> United States, China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
+              <strong>United Kingdom</strong> — pension integration coming soon.
             </div>
           )}
 
@@ -874,8 +874,8 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* ── 401(k) / IRA Projection ── */}
-          <div className="accounts-section">
+          {/* ── 401(k) / IRA Projection (US only) ── */}
+          {country === "us" && <div className="accounts-section">
             <button
               type="button"
               className={`accounts-toggle ${show401k ? "accounts-toggle-open" : ""}`}
@@ -936,10 +936,10 @@ export default function HomePage() {
                 </div>
               </div>
             )}
-          </div>
+          </div>}
 
           {/* ── Healthcare Bridge ── */}
-          {healthcareBridge.yearsToMedicare > 0 && (
+          {country === "us" && healthcareBridge.yearsToMedicare > 0 && (
             <div className="healthcare-bridge">
               <div className="k">
                 {lang === "zh" ? "医保过渡期（退休 → Medicare）" : "Healthcare bridge to Medicare"}

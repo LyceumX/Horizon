@@ -128,7 +128,7 @@ export function getDefaultRetireDate(region: Region, dob: string, category: Main
     return addMonths(birthDate, 65 * 12);
   }
 
-  if (region === "us" || region === "uk") {
+  if (region === "uk") {
     return null;
   }
 
@@ -137,6 +137,7 @@ export function getDefaultRetireDate(region: Region, dob: string, category: Main
   const isFemale = category === "female_pro" || category === "female_worker" || category === "special_female";
 
   const RETIRE_AGE_MALE: Partial<Record<Region, number>> = {
+    us: 67,
     au: 67, jp: 65, kr: 63, ca: 65, nz: 65, my: 60,
     de: 67, fr: 64, nl: 67, ch: 65, se: 65, no: 67,
     dk: 67, es: 65, it: 67, pl: 65, tr: 60, il: 67,
