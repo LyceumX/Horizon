@@ -6,6 +6,8 @@ import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { AuthControls } from "@/components/auth-controls";
 import { getDefaultRetireDate } from "@/lib/retirement";
 import { calculateHorizonDay1, SCENARIO_PRESETS } from "@/lib/planner";
+import { estimateSSBenefit } from "@/lib/social-security";
+import { projectAccount, calcHealthcareBridge } from "@/lib/retirement-accounts";
 
 type Theme = "light" | "dark";
 type BudgetMode = "low" | "balanced" | "full";
@@ -169,6 +171,9 @@ export default function HomePage() {
   const [spend, setSpend] = useState(2800);
   const [scenario, setScenario] = useState<"base" | "optimistic" | "stress">("base");
   const [pensionIncome, setPensionIncome] = useState(0);
+  const [annualSalary, setAnnualSalary] = useState(80000);
+  const [yearsWorked, setYearsWorked] = useState(10);
+  const [ssClaimAge, setSsClaimAge] = useState<62 | 67 | 70>(67);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("balanced");
   const [expandedBudget, setExpandedBudget] = useState<BudgetMode | null>("balanced");
   const [saveState, setSaveState] = useState("");
@@ -176,11 +181,24 @@ export default function HomePage() {
   const [shareState, setShareState] = useState("");
   const [hideCapital, setHideCapital] = useState(false);
   const [lang, setLang] = useState<"en" | "zh">("en");
+  const [accountBalance, setAccountBalance] = useState(50000);
+  const [annualContribution401k, setAnnualContribution401k] = useState(6000);
+  const [employerMatchRate, setEmployerMatchRate] = useState(0.04);
+  const [show401k, setShow401k] = useState(false);
 
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const age = useMemo(() => calcAgeFromDob(dob), [dob]);
 
-  // Planner uses pure portfolio math — pension income is informational only
+  const ssBenefit = useMemo(
+    () => estimateSSBenefit(annualSalary, yearsWorked),
+    [annualSalary, yearsWorked]
+  );
+  const ssMonthly = ssClaimAge === 62 ? ssBenefit.at62 : ssClaimAge === 70 ? ssBenefit.at70 : ssBenefit.atFRA;
+
+  // For US users, SS estimate is wired in; for all others, use the manual pensionIncome slider.
+  // calculateHorizonDay1 subtracts pensionIncome from the nest-egg target.
+  const effectivePensionIncome = country === "us" ? ssMonthly : pensionIncome;
+
   const plannerResult = useMemo(() => calculateHorizonDay1({
     age,
     city,
@@ -192,7 +210,30 @@ export default function HomePage() {
     annualReturnRate: SCENARIO_PRESETS[scenario].annualReturnRate,
     annualInflationRate: SCENARIO_PRESETS[scenario].annualInflationRate,
     multiplier: SCENARIO_PRESETS[scenario].multiplier,
-  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario]);
+    pensionIncome: effectivePensionIncome,
+  }), [age, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, effectivePensionIncome]);
+
+  const retirementAge = useMemo(
+    () => age + plannerResult.yearsToGoal,
+    [age, plannerResult.yearsToGoal]
+  );
+
+  const accountProjection = useMemo(
+    () => projectAccount(
+      accountBalance,
+      annualContribution401k,
+      employerMatchRate,
+      monthlyIncome * 12,   // annual salary approximation
+      Math.max(0, plannerResult.yearsToGoal),
+      0.07                  // standard 7% real return for equities
+    ),
+    [accountBalance, annualContribution401k, employerMatchRate, monthlyIncome, plannerResult.yearsToGoal]
+  );
+
+  const healthcareBridge = useMemo(
+    () => calcHealthcareBridge(retirementAge, age),
+    [retirementAge, age]
+  );
 
   const insurance = useMemo(() => getInsurance(country, province, city), [country, province, city]);
   const defaultRetireDate = useMemo(
@@ -469,6 +510,13 @@ export default function HomePage() {
             <div className="desc">{copy.customizeDesc}</div>
           </div>
 
+          {lang === "en" && (
+            <div className="region-coverage-note">
+              <strong>📍 Currently covers:</strong> China, Hong Kong, Macau, Taiwan, Singapore, Malaysia, Australia, Japan, Korea, Canada, New Zealand, and 15 European / Middle East / Africa markets.<br />
+              <strong>United States and United Kingdom</strong> — full Social Security &amp; pension integration coming soon.
+            </div>
+          )}
+
           <div className="calc-grid">
             <div className="calc-form">
 
@@ -576,17 +624,69 @@ export default function HomePage() {
 
               <div className="form-divider" />
 
-              {/* ── Pension income ── */}
-              <div className="field">
-                <div className="lbl">
-                  <span>{lang === "zh" ? "预计每月养老金/社保（可选）" : copy.pensionIncome}</span>
-                  <span className="val">{pensionIncome > 0 ? money(pensionIncome, lang) : (lang === "zh" ? "¥0" : "$0")}</span>
+              {/* ── Social Security / Pension income ── */}
+              {country === "us" ? (
+                <div className="ss-estimator-card">
+                  <div className="ss-card-header">
+                    <span className="fold-label">
+                      {lang === "zh" ? "社会保障估算（美国）" : "Social Security Estimator"}
+                    </span>
+                    <span className="ss-badge">US</span>
+                  </div>
+                  <div className="field">
+                    <div className="lbl">
+                      <span>{lang === "zh" ? "年收入（税前）" : "Annual pre-tax salary"}</span>
+                      <span className="val">{money(annualSalary, lang)}</span>
+                    </div>
+                    <input type="range" min={20000} max={200000} step={5000} value={annualSalary}
+                      onChange={(e) => setAnnualSalary(Number(e.target.value))} />
+                  </div>
+                  <div className="field">
+                    <div className="lbl">
+                      <span>{lang === "zh" ? "已工作年限" : "Years worked (career to date)"}</span>
+                      <span className="val">{yearsWorked} {lang === "zh" ? "年" : "yrs"}</span>
+                    </div>
+                    <input type="range" min={0} max={35} step={1} value={yearsWorked}
+                      onChange={(e) => setYearsWorked(Number(e.target.value))} />
+                  </div>
+                  <div className="ss-benefit-row">
+                    {([62, 67, 70] as const).map((claimAge) => {
+                      const benefit = claimAge === 62 ? ssBenefit.at62 : claimAge === 67 ? ssBenefit.atFRA : ssBenefit.at70;
+                      return (
+                        <button
+                          key={claimAge}
+                          type="button"
+                          className={`ss-claim-opt ${ssClaimAge === claimAge ? "ss-claim-active" : ""}`}
+                          onClick={() => setSsClaimAge(claimAge)}
+                        >
+                          <span className="ss-claim-age">{lang === "zh" ? `${claimAge}岁` : `Age ${claimAge}`}</span>
+                          <span className="ss-claim-amt">{money(benefit, lang)}{lang === "zh" ? "/月" : "/mo"}</span>
+                          {claimAge === 67 && <span className="ss-claim-tag">{lang === "zh" ? "标准" : "FRA"}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? `选择领取年龄：每月 ${money(ssMonthly, lang)} 已计入所需本金计算。`
+                      : `Selected benefit: ${money(ssMonthly, lang)}/mo — this reduces your required nest egg.`}
+                  </small>
                 </div>
-                <input type="range" min={0} max={10000} step={100} value={pensionIncome} onChange={(e) => setPensionIncome(Number(e.target.value))} />
-                <small className="field-hint">
-                  {lang === "zh" ? "退休后预计领取的政府养老金或社保金额（不影响储蓄测算）" : "Expected government pension / social security at retirement (informational only — does not affect the portfolio calculation)"}
-                </small>
-              </div>
+              ) : (
+                <div className="field">
+                  <div className="lbl">
+                    <span>{lang === "zh" ? "预计每月养老金/社保（可选）" : copy.pensionIncome}</span>
+                    <span className="val">{pensionIncome > 0 ? money(pensionIncome, lang) : (lang === "zh" ? "¥0" : "$0")}</span>
+                  </div>
+                  <input type="range" min={0} max={10000} step={100} value={pensionIncome}
+                    onChange={(e) => setPensionIncome(Number(e.target.value))} />
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? "退休后预计领取的政府养老金或社保金额（直接减少所需本金目标）"
+                      : "Expected government pension / social security — this offsets your required nest egg."}
+                  </small>
+                </div>
+              )}
 
               <div className="save-row">
                 <button type="button" className="btn ghost" onClick={saveLocal}>{copy.localSave}</button>
@@ -646,14 +746,24 @@ export default function HomePage() {
                 <div className="psc-divider" />
                 {/* Row 2: required nest egg */}
                 <div className="psc-row">
-                  <span className="psc-label">{lang === "zh" ? copy.nestEgg : copy.nestEgg}</span>
+                  <span className="psc-label">{copy.nestEgg}</span>
                   <div className="psc-value">
                     {hideCapital
                       ? <span className="hl psc-hidden">· · ·</span>
                       : <span className="hl"><span key={`${projectionVersion}-capital`} className="flip-number">{money(plannerResult.requiredNestEgg, lang)}</span></span>}
                     <span className="psc-sub">
-                      {lang === "zh" ? `基于 ${SCENARIO_PRESETS[scenario].multiplier}× 安全倍数` : `${SCENARIO_PRESETS[scenario].multiplier}× safe withdrawal`}
-                      <button type="button" className="eye-btn" onClick={() => setHideCapital(v => !v)} aria-label={hideCapital ? (lang === "zh" ? "显示本金" : "Show nest egg") : (lang === "zh" ? "隐藏本金" : "Hide nest egg")}>{hideCapital ? "○" : "●"}</button>
+                      {effectivePensionIncome > 0
+                        ? (lang === "zh"
+                            ? `养老金抵消 ${money(effectivePensionIncome, lang)}/月`
+                            : `${money(effectivePensionIncome, lang)}/mo offset by pension`)
+                        : (lang === "zh"
+                            ? `基于 ${SCENARIO_PRESETS[scenario].multiplier}× 安全倍数`
+                            : `${SCENARIO_PRESETS[scenario].multiplier}× safe withdrawal`)}
+                      <button type="button" className="eye-btn"
+                        onClick={() => setHideCapital(v => !v)}
+                        aria-label={hideCapital ? (lang === "zh" ? "显示本金" : "Show nest egg") : (lang === "zh" ? "隐藏本金" : "Hide nest egg")}>
+                        {hideCapital ? "○" : "●"}
+                      </button>
                     </span>
                   </div>
                 </div>
@@ -764,6 +874,96 @@ export default function HomePage() {
             })}
           </div>
 
+          {/* ── 401(k) / IRA Projection ── */}
+          <div className="accounts-section">
+            <button
+              type="button"
+              className={`accounts-toggle ${show401k ? "accounts-toggle-open" : ""}`}
+              onClick={() => setShow401k(v => !v)}
+              aria-expanded={show401k}
+            >
+              <span>{lang === "zh" ? "401(k) / IRA 账户测算" : "401(k) / IRA Projection"}</span>
+              <span className="budget-chevron" aria-hidden="true">{show401k ? "▲" : "▼"}</span>
+            </button>
+
+            {show401k && (
+              <div className="accounts-panel">
+                <div className="field">
+                  <div className="lbl">
+                    <span>{lang === "zh" ? "当前账户余额" : "Current account balance"}</span>
+                    <span className="val">{money(accountBalance, lang)}</span>
+                  </div>
+                  <input type="range" min={0} max={500000} step={5000} value={accountBalance}
+                    onChange={(e) => setAccountBalance(Number(e.target.value))} />
+                </div>
+                <div className="field">
+                  <div className="lbl">
+                    <span>{lang === "zh" ? "年缴纳金额（个人）" : "Annual employee contribution"}</span>
+                    <span className="val">{money(annualContribution401k, lang)}</span>
+                  </div>
+                  <input type="range" min={0} max={23000} step={500} value={annualContribution401k}
+                    onChange={(e) => setAnnualContribution401k(Number(e.target.value))} />
+                  <small className="field-hint">{lang === "zh" ? "2026年401(k)上限为$23,000" : "2026 401(k) limit: $23,000/yr"}</small>
+                </div>
+                <div className="field">
+                  <div className="lbl">
+                    <span>{lang === "zh" ? "雇主匹配比例" : "Employer match rate"}</span>
+                    <span className="val">{(employerMatchRate * 100).toFixed(0)}%</span>
+                  </div>
+                  <input type="range" min={0} max={0.1} step={0.01} value={employerMatchRate}
+                    onChange={(e) => setEmployerMatchRate(Number(e.target.value))} />
+                  <small className="field-hint">{lang === "zh" ? "雇主匹配你薪资的一定比例，例如4%" : "Typical: 3–6% of salary"}</small>
+                </div>
+
+                <div className="accounts-projection">
+                  <div className="accounts-proj-row">
+                    <span>{lang === "zh" ? "退休时预计账户价值" : "Projected value at retirement"}</span>
+                    <strong>{money(accountProjection.projectedValue, lang)}</strong>
+                  </div>
+                  <div className="accounts-proj-row">
+                    <span>{lang === "zh" ? "累计缴纳（含雇主匹配）" : "Total contributions (incl. match)"}</span>
+                    <strong>{money(accountProjection.totalContributions, lang)}</strong>
+                  </div>
+                  <div className="accounts-proj-row accounts-proj-highlight">
+                    <span>{lang === "zh" ? "复利增长" : "Compound growth"}</span>
+                    <strong>{money(accountProjection.totalGrowth, lang)}</strong>
+                  </div>
+                  <small className="field-hint">
+                    {lang === "zh"
+                      ? "假设年化收益率 7%（实际波动因市场而异）"
+                      : "Assumes 7% annual return. Actual returns vary."}
+                  </small>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Healthcare Bridge ── */}
+          {healthcareBridge.yearsToMedicare > 0 && (
+            <div className="healthcare-bridge">
+              <div className="k">
+                {lang === "zh" ? "医保过渡期（退休 → Medicare）" : "Healthcare bridge to Medicare"}
+              </div>
+              <div className="breakdown-row">
+                <span>{lang === "zh" ? "距 Medicare 年数" : "Years until Medicare (age 65)"}</span>
+                <strong>{healthcareBridge.yearsToMedicare} {lang === "zh" ? "年" : "yrs"}</strong>
+              </div>
+              <div className="breakdown-row">
+                <span>{lang === "zh" ? "ACA 保险估算（月）" : "Est. ACA marketplace premium"}</span>
+                <strong>{money(healthcareBridge.estimatedMonthlyPremium, lang)}<span className="breakdown-freq">{lang === "zh" ? "/月" : "/mo"}</span></strong>
+              </div>
+              <div className="breakdown-row breakdown-total">
+                <span>{lang === "zh" ? "过渡期医保总成本" : "Total bridge cost"}</span>
+                <strong>{money(healthcareBridge.totalBridgeCost, lang)}</strong>
+              </div>
+              <small className="field-hint">
+                {lang === "zh"
+                  ? "ACA 保费因州、年龄和收入而异。该估算基于全国均值，仅供参考。"
+                  : "ACA premiums vary by state, age, and income. This is a rough national average — check healthcare.gov for your actual options."}
+              </small>
+            </div>
+          )}
+
           {/* Income breakdown */}
           <div className="income-breakdown">
             <div className="k">{lang === "zh" ? "退休后月收入来源" : "Monthly income at retirement"}</div>
@@ -833,6 +1033,21 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        <div className="freedom-strip" aria-live="polite">
+          <span className="freedom-strip-label">
+            {lang === "zh" ? "自由日" : "Day 1"}
+          </span>
+          <span className="freedom-strip-date">
+            {yearOnly(new Date(plannerResult.horizonDay1))}
+          </span>
+          <span className="freedom-strip-sep" aria-hidden="true">·</span>
+          <span className="freedom-strip-away">
+            {lang === "zh"
+              ? <><strong>{plannerResult.yearsToGoal}</strong> 年</>
+              : <><strong>{plannerResult.yearsToGoal}</strong> yrs away</>}
+          </span>
+        </div>
       </main>
     </>
   );

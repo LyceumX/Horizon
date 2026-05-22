@@ -1772,3 +1772,149 @@ main {
     font-size: clamp(28px, 11vw, 52px);
   }
 }
+
+/* ── Region coverage note ── */
+.region-coverage-note {
+  background: var(--accent-soft);
+  border: 0.5px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: var(--mute);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+.region-coverage-note strong { color: var(--ink); }
+
+/* ── Freedom strip ── */
+.freedom-strip {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--x);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px) saturate(130%);
+  border-top: 0.5px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--mute);
+}
+.freedom-strip-label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; }
+.freedom-strip-date { font-family: var(--serif); font-size: 1.1rem; font-style: italic; color: var(--ink); }
+.freedom-strip-sep { opacity: 0.4; }
+.freedom-strip-away strong { color: var(--accent); }
+/* avoid obscuring footer content on short pages */
+main { padding-bottom: 48px; }
+
+/* ── Social Security estimator ── */
+.ss-estimator-card {
+  border: 0.5px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ss-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ss-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.ss-benefit-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ss-claim-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border: 0.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+  color: var(--ink);
+  position: relative;
+}
+.ss-claim-opt:hover { border-color: var(--accent); }
+.ss-claim-active { border-color: var(--accent) !important; background: var(--accent-soft) !important; }
+.ss-claim-age { font-size: 0.72rem; color: var(--mute); }
+.ss-claim-amt { font-size: 0.9rem; font-weight: 600; }
+.ss-claim-tag {
+  position: absolute;
+  top: -8px;
+  font-size: 0.6rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* ── 401(k) / IRA section ── */
+.accounts-section {
+  margin-top: 24px;
+}
+.accounts-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  border-top: 0.5px solid var(--line);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+}
+.accounts-toggle:hover { color: var(--accent); }
+.accounts-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+.accounts-projection {
+  border-top: 0.5px solid var(--line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.accounts-proj-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.88rem;
+}
+.accounts-proj-row strong { font-weight: 600; }
+.accounts-proj-highlight strong { color: var(--accent); }
+
+/* ── Healthcare bridge ── */
+.healthcare-bridge {
+  margin-top: 24px;
+  border-top: 0.5px solid var(--line);
+  padding-top: 20px;
+}

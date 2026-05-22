@@ -82,6 +82,8 @@ export type Copy = {
   inflationRateLabel: string;
   multiplierLabel: string;
   pensionIncome: string;
+  ssEstimatorTitle: string;
+  ssEstimatorLead: string;
   storiesTitle: string;
   storiesLead: string;
   stories: { name: string; role: string; text: string; image: string; yearsSaved: number; plan: string }[];
@@ -189,6 +191,8 @@ export const GLOBAL_COPY: Copy = {
   inflationRateLabel: "Annual inflation rate",
   multiplierLabel: "Safe withdrawal multiple",
   pensionIncome: "Expected monthly pension / social security (optional)",
+  ssEstimatorTitle: "Social Security Estimator",
+  ssEstimatorLead: "Estimate your monthly benefit and see how it reduces your required nest egg.",
   storiesTitle: "Best Practices",
   storiesLead: "Real playbooks from Horizon users who saved years off their timeline. Time to copy their homework.",
   stories: [
@@ -223,6 +227,30 @@ export const GLOBAL_COPY: Copy = {
       text: "I started local, then shared my playbook with others and refined it together.",
       yearsSaved: 14.2,
       plan: "Full-budget plan",
+    },
+    {
+      name: "Alex R.",
+      role: "Software Engineer · Austin, TX",
+      image: "/assets/Stories_image_1.webp",
+      text: "Maxed my 401(k) every year and let compound interest do the rest. My freedom date moved 9 years closer.",
+      yearsSaved: 9.2,
+      plan: "Low-budget plan",
+    },
+    {
+      name: "Sarah M.",
+      role: "Product Manager · Chicago, IL",
+      image: "/assets/Stories_image_3.jpg",
+      text: "Seeing Social Security offset my required nest egg by $400k changed how I thought about retirement entirely.",
+      yearsSaved: 7.4,
+      plan: "Balanced plan",
+    },
+    {
+      name: "David K.",
+      role: "Freelancer · Portland, OR",
+      image: "/assets/Stories_image_2.jpeg",
+      text: "I reduced my 'enough' number by $400/mo and my freedom date jumped from 2041 to 2033.",
+      yearsSaved: 12.1,
+      plan: "Low-budget plan",
     },
   ],
 };
