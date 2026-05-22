@@ -743,6 +743,13 @@ main {
 .callout-line {
   line-height: 1.8;
 }
+/* First line with the tag inline at the right edge (matches CN 示例 style) */
+.callout-line-tagged {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
 .callout-line + .callout-line {
   margin-top: 6px;
   padding-top: 6px;

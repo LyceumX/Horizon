@@ -587,11 +587,9 @@ export default function HomePage() {
               <p className="lede">{copy.slogan}</p>
               <p className="mode-copy">{copy.interest}</p>
               <div className="hero-callout" aria-live="polite">
-                <div className="callout-header">
+                <div className="callout-line callout-line-tagged">
+                  <span>{lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span></span>
                   <span className="example-tag">Example</span>
-                </div>
-                <div className="callout-line">
-                  {lang === "zh" ? copy.defaultRetireLabel : copy.defaultRetireLabel}：<span className="hl">{defaultRetireAge ? defaultRetireAge.toFixed(1) : "--"}</span> {lang === "zh" ? "岁" : "yrs"} · <span className="hl">{defaultRetireYear}</span>，{lang === "zh" ? "Horizon 用户平均节省" : "Horizon users save an average of"} <span className="hl callout-years">{(yearsSaved > 0.5 && yearsSaved <= 12) ? yearsSaved.toFixed(1) : "5.7"} {lang === "zh" ? "年" : "yrs"}</span>
                 </div>
                 <div className="callout-line callout-pension">
                   At 65, receive ~<span className="hl">SGD 2,850</span>/mo from CPF Life — <span className="hl">above average</span>
@@ -872,8 +870,8 @@ export default function HomePage() {
                   </div>
                   <small className="field-hint">
                     {lang === "zh"
-                      ? `基于月收入 ${localMoney(monthlyIncome, "sg")} 及 ${yearsWorked} 年贡献，特别账户4%利息，标准计划。此金额已计入所需本金计算。`
-                      : `Based on ${localMoney(monthlyIncome, "sg")}/mo income and ${yearsWorked} yrs worked. Special Account at 4% p.a., Standard Plan. This reduces your required nest egg.`}
+                      ? `基于月收入 ${localMoney(monthlyIncome, "sg")} 及 ${yearsWorked} 年缴费，按2026缴费率与分配比例逐年测算（CPF LIFE 标准计划）。此金额已计入所需本金计算。`
+                      : `Full CPF simulation: 2026 contribution rates, age-banded allocation, tiered interest (2.5–5%). CPF LIFE Standard Plan — payout based on CPF Board reference table. Estimate ±10–15%. This reduces your required nest egg.`}
                   </small>
                 </div>
 
