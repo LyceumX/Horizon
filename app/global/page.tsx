@@ -265,8 +265,8 @@ export default function HomePage() {
   const rank = getRank(tier.percentile);
   const [shareUrl, setShareUrl] = useState("");
   const projectionVersion = useMemo(
-    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}`,
-    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang]
+    () => `${dob}|${country}|${province}|${city}|${currentSavings}|${monthlyIncome}|${monthlyExpenses}|${spend}|${scenario}|${lang}|${annualSalary}|${yearsWorked}|${ssClaimAge}`,
+    [dob, country, province, city, currentSavings, monthlyIncome, monthlyExpenses, spend, scenario, lang, annualSalary, yearsWorked, ssClaimAge]
   );
   const shareText = buildShareText(lang, {
     brand: copy.brand,
