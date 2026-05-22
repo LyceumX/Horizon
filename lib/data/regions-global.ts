@@ -278,9 +278,13 @@ export const GLOBAL_REGIONS: CountryOption[] = [
       { value: "california", label: { en: "California", zh: "加利福尼亚" }, cities: [
         { value: "san-francisco", label: { en: "San Francisco", zh: "旧金山" }, insurance: ins.us },
         { value: "los-angeles",   label: { en: "Los Angeles",   zh: "洛杉矶" }, insurance: ins.us },
+        { value: "san-diego", label: { en: "San Diego",       zh: "圣地亚哥" }, insurance: ins.us },
+        { value: "san-jose",  label: { en: "San Jose",        zh: "圣何塞"   }, insurance: ins.us },
       ]},
       { value: "new-york", label: { en: "New York", zh: "纽约州" }, cities: [
         { value: "new-york-city", label: { en: "New York City", zh: "纽约市" }, insurance: ins.us },
+        { value: "buffalo",  label: { en: "Buffalo",  zh: "布法罗" }, insurance: ins.us },
+        { value: "albany",   label: { en: "Albany",   zh: "奥尔巴尼"}, insurance: ins.us },
       ]},
       { value: "texas", label: { en: "Texas", zh: "德克萨斯" }, cities: [
         { value: "houston", label: { en: "Houston", zh: "休斯顿" }, insurance: ins.us },
@@ -292,6 +296,19 @@ export const GLOBAL_REGIONS: CountryOption[] = [
       { value: "washington", label: { en: "Washington", zh: "华盛顿州" }, cities: [
         { value: "seattle",  label: { en: "Seattle",  zh: "西雅图" }, insurance: ins.us },
         { value: "portland", label: { en: "Portland", zh: "波特兰" }, insurance: ins.us },
+      ]},
+      { value: "florida", label: { en: "Florida", zh: "佛罗里达" }, cities: [
+        { value: "miami",  label: { en: "Miami",  zh: "迈阿密" }, insurance: ins.us },
+        { value: "tampa",  label: { en: "Tampa",  zh: "坦帕"   }, insurance: ins.us },
+      ]},
+      { value: "massachusetts", label: { en: "Massachusetts", zh: "马萨诸塞" }, cities: [
+        { value: "boston", label: { en: "Boston", zh: "波士顿" }, insurance: ins.us },
+      ]},
+      { value: "colorado", label: { en: "Colorado", zh: "科罗拉多" }, cities: [
+        { value: "denver", label: { en: "Denver", zh: "丹佛" }, insurance: ins.us },
+      ]},
+      { value: "georgia", label: { en: "Georgia", zh: "佐治亚" }, cities: [
+        { value: "atlanta", label: { en: "Atlanta", zh: "亚特兰大" }, insurance: ins.us },
       ]},
     ],
   },
